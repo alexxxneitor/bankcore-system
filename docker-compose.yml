@@ -30,7 +30,7 @@ services:
     restart: on-failure
 
   postgres-customers:
-    image: postgres:15
+    image: postgres:17.8
     container_name: postgres-customers
     environment:
       POSTGRES_DB: customers_db
@@ -43,7 +43,7 @@ services:
     restart: always
 
   postgres-accounts:
-    image: postgres:15
+    image: postgres:17.8
     container_name: postgres-accounts
     environment:
       POSTGRES_DB: accounts_db
