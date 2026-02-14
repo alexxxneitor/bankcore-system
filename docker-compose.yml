@@ -1,4 +1,30 @@
 services:
+  postgres-customers:
+    image: postgres:17.8
+    container_name: postgres-customers
+    environment:
+      POSTGRES_DB: ${DATASOURCE_DB_NAME_CUSTOMERS}
+      POSTGRES_USER: ${DATASOURCE_USERNAME_CUSTOMERS}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD_CUSTOMERS}
+    ports:
+      - "5433:5432"
+    volumes:
+      - customers_data:/var/lib/postgresql/data
+    restart: always
+
+  postgres-accounts:
+    image: postgres:17.8
+    container_name: postgres-accounts
+    environment:
+      POSTGRES_DB: ${DATASOURCE_DB_NAME_ACCOUNTS}
+      POSTGRES_USER: ${DATASOURCE_USERNAME_ACCOUNTS}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD_ACCOUNTS}
+    ports:
+      - "5434:5432"
+    volumes:
+      - accounts_data:/var/lib/postgresql/data
+    restart: always
+
   ms-customers:
     build:
       context: ./ms-customers
@@ -8,9 +34,10 @@ services:
     depends_on:
       - postgres-customers
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-customers:5432/customers_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL_CUSTOMERS: jdbc:postgresql://postgres-customers:5432/${DATASOURCE_DB_NAME_CUSTOMERS}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME_CUSTOMERS}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD_CUSTOMERS}
     restart: on-failure
 
   ms-accounts:
@@ -23,37 +50,12 @@ services:
       - postgres-accounts
       - ms-customers
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-accounts:5432/accounts_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL_ACCOUNTS: jdbc:postgresql://postgres-accounts:5432/${DATASOURCE_DB_NAME_ACCOUNTS}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME_ACCOUNTS}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD_ACCOUNTS}
       CUSTOMERS_SERVICE_URL: http://ms-customers:8081
     restart: on-failure
-
-  postgres-customers:
-    image: postgres:17.8
-    container_name: postgres-customers
-    environment:
-      POSTGRES_DB: customers_db
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-    ports:
-      - "5433:5432"
-    volumes:
-      - customers_data:/var/lib/postgresql/data
-    restart: always
-
-  postgres-accounts:
-    image: postgres:17.8
-    container_name: postgres-accounts
-    environment:
-      POSTGRES_DB: accounts_db
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-    ports:
-      - "5434:5432"
-    volumes:
-      - accounts_data:/var/lib/postgresql/data
-    restart: always
 
 volumes:
   customers_data:
