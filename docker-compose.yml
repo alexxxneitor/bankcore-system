@@ -9,7 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - customers_data:/var/lib/postgresql/data
+      - ./customers_data:/var/lib/postgresql/data
     restart: always
 
   postgres-accounts:
@@ -22,7 +22,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - accounts_data:/var/lib/postgresql/data
+      - ./accounts_data:/var/lib/postgresql/data
     restart: always
 
   ms-customers:
@@ -56,7 +56,3 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD_ACCOUNTS}
       CUSTOMERS_SERVICE_URL: http://ms-customers:8081
     restart: on-failure
-
-volumes:
-  customers_data:
-  accounts_data:
