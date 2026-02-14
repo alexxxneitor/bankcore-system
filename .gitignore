@@ -40,3 +40,7 @@ Thumbs.db
 
 # Env
 .env
+
+# data persistence
+accounts_data/
+customers_data/

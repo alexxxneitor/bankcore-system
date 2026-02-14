@@ -1,0 +1,58 @@
+services:
+  postgres-customers:
+    image: postgres:17.8
+    container_name: postgres-customers
+    environment:
+      POSTGRES_DB: ${DATASOURCE_DB_NAME_CUSTOMERS}
+      POSTGRES_USER: ${DATASOURCE_USERNAME_CUSTOMERS}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD_CUSTOMERS}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./customers_data:/var/lib/postgresql/data
+    restart: always
+
+  postgres-accounts:
+    image: postgres:17.8
+    container_name: postgres-accounts
+    environment:
+      POSTGRES_DB: ${DATASOURCE_DB_NAME_ACCOUNTS}
+      POSTGRES_USER: ${DATASOURCE_USERNAME_ACCOUNTS}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD_ACCOUNTS}
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./accounts_data:/var/lib/postgresql/data
+    restart: always
+
+  ms-customers:
+    build:
+      context: ./ms-customers
+    container_name: ms-customers
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-customers
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL_CUSTOMERS: jdbc:postgresql://postgres-customers:5432/${DATASOURCE_DB_NAME_CUSTOMERS}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME_CUSTOMERS}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD_CUSTOMERS}
+    restart: on-failure
+
+  ms-accounts:
+    build:
+      context: ./ms-accounts
+    container_name: ms-accounts
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres-accounts
+      - ms-customers
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL_ACCOUNTS: jdbc:postgresql://postgres-accounts:5432/${DATASOURCE_DB_NAME_ACCOUNTS}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME_ACCOUNTS}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD_ACCOUNTS}
+      CUSTOMERS_SERVICE_URL: http://ms-customers:8081
+    restart: on-failure
