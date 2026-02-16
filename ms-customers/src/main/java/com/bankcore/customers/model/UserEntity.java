@@ -35,6 +35,9 @@ public class UserEntity {
     private String password;
 
     @Column(nullable = false)
+    private String ATMPin;
+
+    @Column(nullable = false)
     private String phone;
 
     @Column(nullable = false)
