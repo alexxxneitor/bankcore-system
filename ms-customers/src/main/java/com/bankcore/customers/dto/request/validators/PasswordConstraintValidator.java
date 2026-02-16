@@ -1,0 +1,25 @@
+package com.bankcore.customers.dto.request.validators;
+
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import org.passay.*;
+
+import java.util.List;
+
+public class PasswordConstraintValidator implements ConstraintValidator<ValidPassword, String> {
+
+    private final PasswordValidator validator = new PasswordValidator(List.of(
+            new LengthRule(8, 20),
+            new CharacterRule(EnglishCharacterData.UpperCase, 1),
+            new CharacterRule(EnglishCharacterData.LowerCase,1),
+            new CharacterRule(EnglishCharacterData.Digit, 1),
+            new CharacterRule(EnglishCharacterData.Special,1),
+            new WhitespaceRule()
+    ));
+
+    @Override
+    public boolean isValid(String password, ConstraintValidatorContext context){
+        if (password == null) return false;
+        return validator.validate(new PasswordData(password)).isValid();
+    }
+}
