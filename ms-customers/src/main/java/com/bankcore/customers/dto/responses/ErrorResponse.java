@@ -17,7 +17,7 @@ public class ErrorResponse {
     private final int code;
 
     /** Name or short identifier of the error (e.g., "NotFound", "InternalServerError"). */
-    private final String message;
+    private final String name;
 
     /** Detailed description of the error. */
     private final String description;
