@@ -7,18 +7,19 @@ import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.UserRole;
-import org.springframework.http.HttpStatus;
+import com.bankcore.customers.utils.mappers.UserMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.server.ResponseStatusException;
 
 public class UserManagementImpl implements UserManagement{
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    public UserManagementImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserManagementImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -45,13 +46,6 @@ public class UserManagementImpl implements UserManagement{
                         .build();
 
         userRepository.save(userEntity);
-        return RegisterResponses.builder()
-                .id(userEntity.getId())
-                .dni(userEntity.getDni())
-                .fullName(userEntity.getFirstName() + " " + userEntity.getLastName())
-                .email(userEntity.getEmail())
-                .status(userEntity.getStatus())
-                .createdDate(userEntity.getCreatedDate())
-                .build();
+        return userMapper.toRegisterResponse(userEntity);
     }
 }
