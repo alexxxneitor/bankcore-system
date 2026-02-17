@@ -5,6 +5,7 @@ import com.bankcore.customers.utils.validators.ValidAtmPin;
 import com.bankcore.customers.utils.validators.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +33,7 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank(message = "ATM Pin is required")
+    @Size(min = 4, max = 4, message = "ATM Pin must be exactly 4 digits")
     @ValidAtmPin
     private String atmPin;
 
