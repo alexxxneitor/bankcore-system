@@ -1,4 +1,4 @@
-package com.bankcore.customers.dto.request;
+package com.bankcore.customers.dto.requests;
 
 
 import com.bankcore.customers.utils.validators.ValidAtmPin;
