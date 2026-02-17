@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 public class RegisterResponses {
     private UUID id;
-    private String dni;
+    private int dni;
     private String fullName;
     private String email;
     private CustomerStatus status;
