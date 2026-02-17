@@ -8,14 +8,17 @@ import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.UserRole;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 public class UserManagementImpl implements UserManagement{
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserManagementImpl(UserRepository userRepository) {
+    public UserManagementImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -33,8 +36,8 @@ public class UserManagementImpl implements UserManagement{
                         .firstName(request.getFirstName())
                         .lastName(request.getLastName())
                         .email(request.getEmail())
-                        .password(request.getPassword())
-                        .ATMPin(request.getAtmPin())
+                        .password(passwordEncoder.encode(request.getPassword()))
+                        .atmPin(passwordEncoder.encode(request.getAtmPin()))
                         .phone(request.getPhone())
                         .address(request.getAddress())
                         .role(UserRole.CUSTOMER)
