@@ -1,4 +1,4 @@
-package com.bankcore.customers.dto.request.validators;
+package com.bankcore.customers.utils.validators;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

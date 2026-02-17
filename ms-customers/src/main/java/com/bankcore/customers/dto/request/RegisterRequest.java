@@ -1,8 +1,8 @@
 package com.bankcore.customers.dto.request;
 
 
-import com.bankcore.customers.dto.request.validators.ValidAtmPin;
-import com.bankcore.customers.dto.request.validators.ValidPassword;
+import com.bankcore.customers.utils.validators.ValidAtmPin;
+import com.bankcore.customers.utils.validators.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
@@ -33,7 +33,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "ATM Pin is required")
     @ValidAtmPin
-    private String ATMPin;
+    private String atmPin;
 
     @NotBlank(message = "Phone number is required")
     private String phone;
