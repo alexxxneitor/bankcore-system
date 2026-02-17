@@ -6,8 +6,6 @@ package com.bankcore.customers.exception;
  */
 public class ResourceConflictException extends RuntimeException{
 
-    private static final Long serialVersionUID = 1L;
-
     /**
      * Constructs a new {@code ResourceConflictException} with the specified detail message.
      *
