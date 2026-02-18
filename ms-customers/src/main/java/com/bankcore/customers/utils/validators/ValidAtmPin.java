@@ -15,7 +15,7 @@ import static java.lang.annotation.ElementType.FIELD;
 @Target({ FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidAtmPin {
-    String message() default "Invalid ATM PIN";
+    String message() default "Invalid ATM PIN. All digits cannot be the same";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
