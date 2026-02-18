@@ -19,7 +19,7 @@ public class PasswordConstraintValidator implements ConstraintValidator<ValidPas
 
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context){
-        if (password == null) return false;
+        if (password == null || password.isBlank()) return true;
         return validator.validate(new PasswordData(password)).isValid();
     }
 }
