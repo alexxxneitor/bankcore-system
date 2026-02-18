@@ -9,7 +9,9 @@ import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
+@Service
 public class UserManagementImpl implements UserManagement{
 
     private final UserRepository userRepository;
