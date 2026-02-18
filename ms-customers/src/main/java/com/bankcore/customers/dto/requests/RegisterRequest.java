@@ -16,7 +16,7 @@ import lombok.Setter;
 public class RegisterRequest {
 
     @NotBlank(message = "DNI is required")
-    private int dni;
+    private String dni;
 
     @NotBlank(message = "First name is required")
     private String firstName;

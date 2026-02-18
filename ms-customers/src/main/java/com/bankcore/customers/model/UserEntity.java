@@ -20,7 +20,7 @@ public class UserEntity {
     @Id @GeneratedValue private UUID id;
 
     @Column(unique=true, nullable = false)
-    private int dni;
+    private String dni;
 
     @Column(nullable = false)
     private String firstName;
