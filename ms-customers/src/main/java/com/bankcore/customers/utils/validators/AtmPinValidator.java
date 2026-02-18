@@ -10,8 +10,9 @@ public class AtmPinValidator implements ConstraintValidator<ValidAtmPin, String>
 
     @Override
     public boolean isValid(String pin, ConstraintValidatorContext context){
-        if (pin == null || !pin.matches("\\d{4}")) {
-            return false;
+
+        if (pin == null) {
+            return true;
         }
 
         Map<Character, Integer> frequency = new HashMap<>();
