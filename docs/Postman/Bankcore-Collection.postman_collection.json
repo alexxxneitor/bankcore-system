@@ -15,6 +15,26 @@
           "request": {
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\"dni\": \"12345678\",\r\n\"firstName\": \"Carlos\",\r\n\"lastName\": \"García López\",\r\n\"email\": \"carlosgarcia@email.com\",\r\n\"password\": \"SecurePass123!\",\r\n\"atmPin\" : \"1234\",\r\n\"phone\": \"+34612345678\",\r\n\"address\": \"Calle Mayor 123, Madrid\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_customers}}/api/auth/register",
+              "host": [
+                "{{base_url_customers}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
             "description": "### 🧾 Register Customer\n\n**Endpoint**  \n`POST {{base_url_customers}}/api/auth/register`\n\n**Description**\n\nRegisters a new customer in the system by creating a user account with validated credentials and security rules.\n\nThis endpoint is intended for **manual testing and controlled user registration** during development and QA processes.\n\n---\n\n### 📥 Request Body Rules\n\nThe request body must comply with the following validation rules:\n\n#### 🔐 Credentials\n\n- **email**\n    \n    - Must be unique in the system\n        \n- **dni**\n    \n    - Must be unique in the system\n        \n\n#### 🔑 Password Policy\n\n- Length must be between **8 and 20 characters**\n    \n- Must contain:\n    \n    - At least **one lowercase letter**\n        \n    - At least **one uppercase letter**\n        \n    - At least **one number**\n        \n    - At least **one special character**\n        \n\n#### 🏧 ATM PIN Policy\n\n- **atmPin**\n    \n    - Must be **numeric only**\n        \n    - Must be **exactly 4 digits**\n        \n    - Repeated digits are **not allowed**\n        \n        (e.g. `1111`, `2222` are invalid)\n        \n\n### 📤 Responses\n\n#### ✅ **201 Created**\n\nThe customer was successfully registered.\n\n- The user account has been created and persisted in the system.\n    \n- Unique constraints for **email** and **dni** were validated successfully.\n    \n\n---\n\n#### ❌ **400 Bad Request**\n\nThe request body is invalid or does not comply with the required validation rules.\n\nPossible reasons include:\n\n- Password does not meet the required security policy\n    \n- ATM PIN is not numeric, does not contain exactly 4 digits, or contains repeated digits\n    \n- Missing or malformed required fields\n    \n\n---\n\n#### ⚠️ **409 Conflict**\n\nThe registration could not be completed due to a conflict with existing data.\n\nPossible reasons include:\n\n- The **email** is already registered\n    \n- The **dni** is already registered"
           },
           "response": []
