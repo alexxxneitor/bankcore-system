@@ -20,6 +20,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        // TODO: reemplazar cuando HU-02 esté lista 
+                        .requestMatchers("/api/customers/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
