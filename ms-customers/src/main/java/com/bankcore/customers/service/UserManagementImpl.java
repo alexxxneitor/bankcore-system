@@ -2,12 +2,17 @@ package com.bankcore.customers.service;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponses;
+import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exception.ResourceConflictException;
+import com.bankcore.customers.exception.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,5 +54,20 @@ public class UserManagementImpl implements UserManagement{
 
         userRepository.save(userEntity);
         return userMapper.toRegisterResponse(userEntity);
+    }
+
+    @Override
+    public UserProfileResponse getCurrentUserProfile() {
+
+        Authentication auth = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        // TODO: Comprobar funcionamiento cuando HU-02 esté lista
+        UserEntity user = userRepository.findByEmail(auth.getName()).orElseThrow(
+        () -> new UserProfileNotFoundException("Authenticated user not found"));
+
+        return userMapper.toUserProfileResponse(user);
+
     }
 }
