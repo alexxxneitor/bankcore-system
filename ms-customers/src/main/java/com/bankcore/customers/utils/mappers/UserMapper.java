@@ -1,6 +1,7 @@
 package com.bankcore.customers.utils.mappers;
 
 import com.bankcore.customers.dto.responses.RegisterResponses;
+import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.model.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,4 +17,7 @@ public interface UserMapper {
     default String mapFullName(UserEntity user){
         return user.getFirstName() + " " + user.getLastName();
     }
+
+    @Mapping(source = "createdDate", target = "createdAt")
+    UserProfileResponse toUserProfileResponse(UserEntity user);
 }
