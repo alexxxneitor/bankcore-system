@@ -45,11 +45,8 @@ jobs:
             distribution: "temurin"
             cache: maven
 
-        - name: Grant execute permissions to Maven wrapper
-          run: chmod +x mvnw
-
         - name: Run tests and generate coverage report
-          run: ./mvnw clean test jacoco:report 
+          run: mvn -B clean verify
 
         - name: Upload JaCoCo coverage report
           uses: actions/upload-artifact@v4
@@ -96,11 +93,8 @@ jobs:
             distribution: "temurin"
             cache: maven
 
-        - name: Grant execute permissions to Maven wrapper
-          run: chmod +x mvnw
-
         - name: Run tests and generate coverage report
-          run: ./mvnw clean test jacoco:report 
+          run: mvn -B clean verify
 
         - name: Upload JaCoCo coverage report
           uses: actions/upload-artifact@v4
