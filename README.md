@@ -64,7 +64,7 @@ Tabla: `customers`
 para acceder a la documentación de la API del microservicio `ms-customers`, una vez que el servicio esté en ejecución, puedes acceder a través de Swagger UI en la siguiente URL:
 
 ```url
-    http://localhost:8081/swagger-ui/index.html
+http://localhost:8081/swagger-ui/index.html
 ```
 
 ---
