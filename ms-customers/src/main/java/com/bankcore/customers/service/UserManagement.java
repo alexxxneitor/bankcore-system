@@ -8,5 +8,5 @@ public interface UserManagement {
 
     RegisterResponses registerCustomer(RegisterRequest request);
 
-    UserProfileResponse getCurrentUserProfile();
+    UserProfileResponse getCurrentUserProfile(String email);
 }
