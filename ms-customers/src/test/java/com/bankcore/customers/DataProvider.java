@@ -9,7 +9,7 @@ import java.time.Instant;
 public class DataProvider {
 
     public static final String EMAIL = "juan@test.com";
-    public static final String  CUSTOMER_ROLE = "CUSTOMER";
+    public static final String CUSTOMER_ROLE = "CUSTOMER";
 
     public static UserEntity createMockUser(){
         return UserEntity.builder()
