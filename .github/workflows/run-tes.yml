@@ -30,9 +30,9 @@ jobs:
         working-directory: ms-customers
 
     env:
-      DB_URL: jdbc:postgresql://localhost:5432/${{ secrets.POSTGRES_DB_BANKCORE_CUSTOMERS }}
-      DB_USERNAME: ${{ secrets.POSTGRES_USER_BANKCORE }}
-      DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD_BANKCORE }}
+      BANKCORESYTEM_DATASOURCE_DB_URL: jdbc:postgresql://localhost:5432/${{ secrets.POSTGRES_DB_BANKCORE_CUSTOMERS }}
+      BANKCORESYTEM_DATASOURCE_USERNAME: ${{ secrets.POSTGRES_USER_BANKCORE }}
+      BANKCORESYTEM_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD_BANKCORE }}
 
     steps:
         - name: Checkout repository
