@@ -1,8 +1,15 @@
 package com.bankcore.customers.controller;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.ErrorResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.service.UserManagement;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Endpoints for user registration and authentication")
 public class UserController {
 
     private final UserManagement userManagement;
@@ -46,6 +54,47 @@ public class UserController {
      * @throws org.springframework.web.bind.MethodArgumentNotValidException
      *         if the request validation fails
      */
+    @Operation(
+            summary = "Register a new user",
+            description = "Registers a new user with the provided credentials and personal data."
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "User registration data",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RegisterRequest.class)
+            )
+    )
+    @ApiResponses(value = {
+
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "User registered successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterResponse.class)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error - Invalid input fields",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Conflict - Email or DNI already registered",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            )
+    })
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(userManagement.registerCustomer(request));
