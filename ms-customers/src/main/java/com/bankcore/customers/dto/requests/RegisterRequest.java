@@ -14,24 +14,19 @@ import lombok.Setter;
 public class RegisterRequest {
 
     @NotBlank(message = "DNI is required")
-    @NotNull(message = "DNI cannot be null")
     private String dni;
 
     @NotBlank(message = "First name is required")
-    @NotNull(message = "First name cannot be null")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
-    @NotNull(message = "Last name cannot be null")
     private String lastName;
 
     @NotBlank(message = "Email is required")
-    @NotNull(message = "Email cannot be null")
     @Email(message = "Invalid email format")
     private String email;
 
     @NotBlank(message = "Password is required")
-    @NotNull(message = "Password cannot be null")
     @ValidPassword
     private String password;
 
@@ -42,10 +37,8 @@ public class RegisterRequest {
     private String atmPin;
 
     @NotBlank(message = "Phone number is required")
-    @NotNull(message = "Phone number cannot be null")
     private String phone;
 
     @NotBlank(message = "Address is required")
-    @NotNull(message = "Address cannot be null")
     private String address;
 }
