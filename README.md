@@ -29,32 +29,33 @@ Responsable de:
 
 ---
 
-#### Modelo de base de datos:
+#### Modelo de base de datos
 
 Tabla: `customers`
 
-| Campo        | Tipo | Restricciones | Descripción                                |
-|--------------|------|--------------|--------------------------------------------|
-| id           | UUID | PK | Identificador único del cliente            |
-| dni          | VARCHAR | UNIQUE, NOT NULL | Documento nacional de identidad            |
-| first_name   | VARCHAR | NOT NULL | Nombre del cliente                         |
-| last_name    | VARCHAR | NOT NULL | Apellido del cliente                       |
-| email        | VARCHAR | UNIQUE, NOT NULL | Correo electrónico                         |
-| password     | VARCHAR | NOT NULL | Contraseña encriptada (BCrypt)             |
-| atm_pin      | VARCHAR | NOT NULL | PIN de la tarjeta ATM (BCrypt)             |
-| phone        | VARCHAR | NOT NULL | Número de teléfono                        |
-| address      | VARCHAR | NOT NULL | Dirección del cliente                      |
-| role         | VARCHAR | NOT NULL | Rol del usuario (CUSTOMER / ADMIN)         |
-| status       | VARCHAR | NOT NULL | Estado del cliente (ACTIVE, BLOCKED, etc.) |
-| created_date | TIMESTAMP | NOT NULL | Fecha de creación                          |
-| updated_date | TIMESTAMP | | Fecha de última actualización              |
+| Campo        | Tipo      | Restricciones    | Descripción                                |
+|--------------|-----------|------------------|--------------------------------------------|
+| id           | UUID      | PK               | Identificador único del cliente            |
+| dni          | VARCHAR   | UNIQUE, NOT NULL | Documento nacional de identidad            |
+| first_name   | VARCHAR   | NOT NULL         | Nombre del cliente                         |
+| last_name    | VARCHAR   | NOT NULL         | Apellido del cliente                       |
+| email        | VARCHAR   | UNIQUE, NOT NULL | Correo electrónico                         |
+| password     | VARCHAR   | NOT NULL         | Contraseña encriptada (BCrypt)             |
+| atm_pin      | VARCHAR   | NOT NULL         | PIN de la tarjeta ATM (BCrypt)             |
+| phone        | VARCHAR   | NOT NULL         | Número de teléfono                         |
+| address      | VARCHAR   | NOT NULL         | Dirección del cliente                      |
+| role         | VARCHAR   | NOT NULL         | Rol del usuario (CUSTOMER / ADMIN)         |
+| status       | VARCHAR   | NOT NULL         | Estado del cliente (ACTIVE, BLOCKED, etc.) |
+| created_date | TIMESTAMP | NOT NULL         | Fecha de creación                          |
+| updated_date | TIMESTAMP |                  | Fecha de última actualización              |
 
-----
-#### URLs principales:
+---
 
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| /api/customers/register | POST | Registro de nuevos clientes |
+#### URLs principales
+
+| Endpoint                |Método| Descripción                |
+|-------------------------|------|----------------------------|
+| /api/customers/register | POST | Registro de nuevos clientes|
 
 ---
 
@@ -62,9 +63,9 @@ Tabla: `customers`
 
 para acceder a la documentación de la API del microservicio `ms-customers`, una vez que el servicio esté en ejecución, puedes acceder a través de Swagger UI en la siguiente URL:
 
+```url
+    http://localhost:8081/swagger-ui/index.html
 ```
-http://localhost:8081/swagger-ui/index.html
-``` 
 
 ---
 
