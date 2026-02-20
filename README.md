@@ -24,7 +24,7 @@ Responsable de:
 
 - Motor: PostgreSQL
 - Base de datos: `customers_db`
-- Independiente de otros microservicios
+- Puerto que expone 5432
 - Sin compartir esquema con otros servicios
 
 ---
@@ -77,9 +77,12 @@ Responsable de:
 - Asociación de cuentas a clientes
 - Comunicación con `ms-customers` para validaciones
 
-Base de datos independiente:
+🗄 Base de Datos independiente:
 
-- PostgreSQL (accounts_db)
+- Motor: PostgreSQL
+- Base de datos: `accounts_db`
+- Puerto que expone 5432
+- Sin compartir esquema con otros servicios
 
 ---
 
@@ -90,7 +93,6 @@ Base de datos independiente:
 - Spring Security + JWT
 - Spring Data JPA
 - PostgreSQL
-- OpenFeign (comunicación entre microservicios)
 - Docker & Docker Compose
 - Maven
 - Lombok
@@ -153,5 +155,4 @@ Este comando:
 | -------------------- | ------ |
 | ms-customers         | 8081   |
 | ms-accounts          | 8082   |
-| PostgreSQL Customers | 5433   |
-| PostgreSQL Accounts  | 5434   |
+| postgres-system-data | 5432   |
