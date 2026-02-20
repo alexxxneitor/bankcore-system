@@ -18,6 +18,8 @@ services:
     build:
       context: ./ms-customers
     container_name: ms-customers
+    env_file:
+      - .env
     ports:
       - "8081:8081"
     depends_on:
@@ -33,6 +35,8 @@ services:
     build:
       context: ./ms-accounts
     container_name: ms-accounts
+    env_file:
+      - .env
     ports:
       - "8082:8082"
     depends_on:
