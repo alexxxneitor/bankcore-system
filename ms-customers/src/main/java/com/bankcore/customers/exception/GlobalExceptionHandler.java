@@ -9,18 +9,48 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+/**
+ * Global exception handler responsible for centralizing application-wide
+ * error handling logic.
+ * <p>
+ * This component intercepts exceptions thrown by controllers and transforms
+ * them into structured {@link ErrorResponse} objects, ensuring consistent
+ * API error responses across the system.
+ * </p>
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles {@link ResourceConflictException} thrown when a resource
+     * already exists or violates a uniqueness constraint.
+     *
+     * @param ex the thrown {@code ResourceConflictException}
+     * @return a {@link ResponseEntity} containing a structured error response
+     *         with HTTP status {@code 409 Conflict}
+     */
     @ExceptionHandler(ResourceConflictException.class)
-    public ResponseEntity<ErrorResponse> handleResourceConflictException(ResourceConflictException ex) {
+    public ResponseEntity<ErrorResponse> handleResourceConflictException(
+            ResourceConflictException ex) {
+
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    /**
+     * Handles validation errors triggered by {@link jakarta.validation.Valid}
+     * when request payloads fail Bean Validation constraints.
+     *
+     * <p>
+     * Aggregates all field validation errors into a single descriptive message.
+     * </p>
+     *
+     * @param ex the {@link MethodArgumentNotValidException} containing validation details
+     * @return a {@link ResponseEntity} containing a structured error response
+     *         with HTTP status {@code 400 Bad Request}
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
-            MethodArgumentNotValidException ex
-    ) {
+            MethodArgumentNotValidException ex) {
 
         String description = ex.getBindingResult()
                 .getFieldErrors()
@@ -31,13 +61,24 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, description);
     }
 
-    private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String description) {
+    /**
+     * Builds a standardized {@link ErrorResponse} object.
+     *
+     * @param status      the HTTP status associated with the error
+     * @param description a human-readable description of the error
+     * @return a {@link ResponseEntity} wrapping the constructed error body
+     */
+    private ResponseEntity<ErrorResponse> buildErrorResponse(
+            HttpStatus status,
+            String description) {
+
         ErrorResponse body =
                 ErrorResponse.builder()
                         .code(status.value())
                         .name(status.getReasonPhrase())
                         .description(description)
                         .build();
+
         return new ResponseEntity<>(body, status);
     }
 }
