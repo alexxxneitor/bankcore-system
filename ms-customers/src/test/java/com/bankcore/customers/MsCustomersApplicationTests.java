@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:application-test.properties")
 class MsCustomersApplicationTests {
 
     @Test
