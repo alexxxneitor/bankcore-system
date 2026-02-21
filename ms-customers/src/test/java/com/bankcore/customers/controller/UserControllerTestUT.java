@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserControllerTest {
+class UserControllerTestUT {
 
     @Mock private UserManagement userManagement;
 
