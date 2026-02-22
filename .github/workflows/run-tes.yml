@@ -34,7 +34,7 @@ jobs:
         - name: Upload JaCoCo coverage report
           uses: actions/upload-artifact@v4
           with:
-            name: jacoco-report
+            name: jacoco-report-customers
             path: ms-customers/target/site/jacoco/
 
   accounts-service:
@@ -65,5 +65,5 @@ jobs:
         - name: Upload JaCoCo coverage report
           uses: actions/upload-artifact@v4
           with:
-            name: jacoco-report
+            name: jacoco-report-accounts
             path: ms-accounts/target/site/jacoco/
