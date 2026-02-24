@@ -20,9 +20,52 @@ Responsable de:
 - Gestión del perfil del cliente
 - Validación del estado del cliente para otros servicios
 
-Base de datos independiente:
+🗄 Base de Datos independiente:
 
-- PostgreSQL (customers_db)
+- Motor: PostgreSQL
+- Base de datos: `customers_db`
+- Puerto que expone 5432
+- Sin compartir esquema con otros servicios
+
+---
+
+#### Modelo de base de datos
+
+Tabla: `customers`
+
+| Campo        | Tipo      | Restricciones    | Descripción                                |
+|--------------|-----------|------------------|--------------------------------------------|
+| id           | UUID      | PK               | Identificador único del cliente            |
+| dni          | VARCHAR   | UNIQUE, NOT NULL | Documento nacional de identidad            |
+| first_name   | VARCHAR   | NOT NULL         | Nombre del cliente                         |
+| last_name    | VARCHAR   | NOT NULL         | Apellido del cliente                       |
+| email        | VARCHAR   | UNIQUE, NOT NULL | Correo electrónico                         |
+| password     | VARCHAR   | NOT NULL         | Contraseña encriptada (BCrypt)             |
+| atm_pin      | VARCHAR   | NOT NULL         | PIN de la tarjeta ATM (BCrypt)             |
+| phone        | VARCHAR   | NOT NULL         | Número de teléfono                         |
+| address      | VARCHAR   | NOT NULL         | Dirección del cliente                      |
+| role         | VARCHAR   | NOT NULL         | Rol del usuario (CUSTOMER / ADMIN)         |
+| status       | VARCHAR   | NOT NULL         | Estado del cliente (ACTIVE, BLOCKED, etc.) |
+| created_date | TIMESTAMP | NOT NULL         | Fecha de creación                          |
+| updated_date | TIMESTAMP |                  | Fecha de última actualización              |
+
+---
+
+#### URLs principales
+
+| Endpoint                |Método| Descripción                |
+|-------------------------|------|----------------------------|
+| /api/customers/register | POST | Registro de nuevos clientes|
+
+---
+
+#### 📄 Documentación de la API
+
+para acceder a la documentación de la API del microservicio `ms-customers`, una vez que el servicio esté en ejecución, puedes acceder a través de Swagger UI en la siguiente URL:
+
+```url
+http://localhost:8081/swagger-ui/index.html
+```
 
 ---
 
@@ -34,9 +77,12 @@ Responsable de:
 - Asociación de cuentas a clientes
 - Comunicación con `ms-customers` para validaciones
 
-Base de datos independiente:
+🗄 Base de Datos independiente:
 
-- PostgreSQL (accounts_db)
+- Motor: PostgreSQL
+- Base de datos: `accounts_db`
+- Puerto que expone 5432
+- Sin compartir esquema con otros servicios
 
 ---
 
@@ -47,7 +93,6 @@ Base de datos independiente:
 - Spring Security + JWT
 - Spring Data JPA
 - PostgreSQL
-- OpenFeign (comunicación entre microservicios)
 - Docker & Docker Compose
 - Maven
 - Lombok
@@ -110,5 +155,4 @@ Este comando:
 | -------------------- | ------ |
 | ms-customers         | 8081   |
 | ms-accounts          | 8082   |
-| PostgreSQL Customers | 5433   |
-| PostgreSQL Accounts  | 5434   |
+| postgres-system-data | 5432   |

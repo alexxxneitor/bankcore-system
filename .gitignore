@@ -42,5 +42,4 @@ Thumbs.db
 .env
 
 # data persistence
-accounts_data/
-customers_data/
+bankcore-system-data/

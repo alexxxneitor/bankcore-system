@@ -1,0 +1,112 @@
+package com.bankcore.customers.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.RegisterResponse;
+import com.bankcore.customers.exception.ResourceConflictException;
+import com.bankcore.customers.model.UserEntity;
+import com.bankcore.customers.repository.UserRepository;
+import com.bankcore.customers.utils.CustomerStatus;
+import com.bankcore.customers.utils.mappers.UserMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@ExtendWith(MockitoExtension.class)
+class UserManagementImplTest {
+    @Mock private UserRepository userRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private UserMapper userMapper;
+
+    @InjectMocks private UserManagementImpl userManagement;
+
+    private final RegisterRequest request =
+            RegisterRequest.builder()
+                    .dni("1234567890")
+                    .firstName("John")
+                    .lastName("Doe")
+                    .email("johndoe@email.com")
+                    .password("Password123!")
+                    .atmPin("1234")
+                    .phone("+573001234567")
+                    .address("123 Main St")
+                    .build();
+
+    @Test
+    void registerCustomer_Success() {
+        RegisterResponse expectedResponse =
+                RegisterResponse.builder()
+                        .id(java.util.UUID.randomUUID())
+                        .dni(request.getDni())
+                        .fullName(request.getFirstName() + " " + request.getLastName())
+                        .email(request.getEmail())
+                        .status(CustomerStatus.ACTIVE)
+                        .createdDate(java.time.Instant.now())
+                        .build();
+
+        when(userRepository.existsByDni(request.getDni())).thenReturn(false);
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(request.getPassword())).thenReturn("hashedPassword");
+        when(passwordEncoder.encode(request.getAtmPin())).thenReturn("hashedAtmPin");
+        when(userRepository.save(any(UserEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(userMapper.toRegisterResponse(any(UserEntity.class)))
+                .thenReturn(expectedResponse);
+
+        RegisterResponse response = userManagement.registerCustomer(request);
+
+        assertNotNull(response);
+        assertEquals(expectedResponse.getDni(), response.getDni());
+        assertEquals(expectedResponse.getEmail(), response.getEmail());
+
+        verify(userRepository, times(1)).existsByDni(request.getDni());
+        verify(userRepository, times(1)).existsByEmail(request.getEmail());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+        verify(userMapper, times(1)).toRegisterResponse(any(UserEntity.class));
+    }
+
+    @Test
+    void registerCustomer_Failure_DniAlreadyExists() {
+        when(userRepository.existsByDni(request.getDni()))
+                .thenReturn(true);
+
+        ResourceConflictException exception =
+                assertThrows(ResourceConflictException.class, () ->
+                        userManagement.registerCustomer(request)
+                );
+
+        assertEquals("DNI already exists", exception.getMessage());
+
+        verify(userRepository, times(1)).existsByDni(request.getDni());
+        verify(userRepository, never()).save(any());
+        verify(userMapper, never()).toRegisterResponse(any());
+    }
+
+    @Test
+    void registerCustomer_Failure_EmailAlreadyExists() {
+        when(userRepository.existsByDni(request.getDni()))
+                .thenReturn(false);
+
+        when(userRepository.existsByEmail(request.getEmail()))
+                .thenReturn(true);
+
+        ResourceConflictException exception =
+                assertThrows(ResourceConflictException.class, () ->
+                        userManagement.registerCustomer(request)
+                );
+
+        assertEquals("Email already exists", exception.getMessage());
+
+        verify(userRepository, times(1)).existsByDni(request.getDni());
+        verify(userRepository, times(1)).existsByEmail(request.getEmail());
+        verify(userRepository, never()).save(any());
+        verify(userMapper, never()).toRegisterResponse(any());
+    }
+}
