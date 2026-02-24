@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Transactional
 @ActiveProfiles("test")
-public class ProfileControllerTest extends AbstractIntegrationTest {
+public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,10 +50,20 @@ public class ProfileControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "example@mail.com", roles = DataProvider.CUSTOMER_ROLE)
+    void shouldReturn404WhenUserNotFound() throws Exception {
+
+        mockMvc.perform(get("/api/customers/me"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     @WithMockUser(username = DataProvider.EMAIL, roles = "ADMIN")
     void shouldReturn403WhenWrongRole() throws Exception {
 
         mockMvc.perform(get("/api/customers/me"))
+                .andDo(print())
                 .andExpect(status().isForbidden());
     }
 
@@ -63,7 +73,5 @@ public class ProfileControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
-
-
 
 }
