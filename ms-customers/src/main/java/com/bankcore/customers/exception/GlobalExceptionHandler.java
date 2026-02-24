@@ -63,6 +63,18 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, description);
     }
 
+    /**
+     * Handles exceptions when an authenticated user's profile is not found in the database.
+     * <p>
+     * This handler is triggered by {@link UserProfileNotFoundException}. It logs a security
+     * alert since this scenario typically implies an inconsistency between the security
+     * context (JWT) and the persistence layer.
+     * </p>
+     *
+     * @param ex The {@link UserProfileNotFoundException} instance caught by the advice.
+     * @return A {@link ResponseEntity} containing an {@link ErrorResponse} with
+     * HTTP status 404 (Not Found) and a user-friendly message.
+     */
     @ExceptionHandler(UserProfileNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserProfileNotFoundException ex) {
 
