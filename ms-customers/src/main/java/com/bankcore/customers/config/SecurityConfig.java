@@ -1,8 +1,6 @@
 package com.bankcore.customers.config;
 
-import jakarta.servlet.http.HttpServletResponse;
 import com.bankcore.customers.utils.UserRole;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -42,13 +40,17 @@ public class SecurityConfig {
      * @throws Exception if an error occurs while building the security configuration
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler
+    ) throws Exception {
 
         http
                 .exceptionHandling(e ->
-                        e.authenticationEntryPoint(
-                                (req, res, ex) ->
-                                        res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
+                        e.authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .accessDeniedHandler(customAccessDeniedHandler)
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
