@@ -103,6 +103,21 @@ public class UserManagementImpl implements UserManagement {
         return userMapper.toRegisterResponse(userEntity);
     }
 
+    /**
+     * Retrieves the profile data for a specific user based on their email.
+     * <p>
+     * This method performs a read-only transaction to fetch the user entity.
+     * It validates the input and ensures that if the user does not exist in the
+     * persistence layer, a specific business exception is thrown.
+     * </p>
+     *
+     * @param email The email of the authenticated user to retrieve.
+     * @return A {@link UserProfileResponse} containing the mapped profile data.
+     * @throws IllegalArgumentException      If the provided email is null or empty.
+     * @throws UserProfileNotFoundException If no user is found with the given email.
+     * @see UserEntity
+     * @see UserProfileResponse
+     */
     @Override
     @Transactional(readOnly = true)
     public UserProfileResponse getCurrentUserProfile(String email) {
