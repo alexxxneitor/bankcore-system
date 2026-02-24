@@ -3,49 +3,117 @@ package com.bankcore.customers.dto.requests;
 
 import com.bankcore.customers.utils.validators.ValidAtmPin;
 import com.bankcore.customers.utils.validators.ValidPassword;
-import jakarta.validation.constraints.*;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object (DTO) used to capture user registration data.
+ * <p>
+ * This object represents the request payload received when a new user
+ * attempts to register in the system. It includes validation constraints
+ * to enforce business rules and input integrity before processing.
+ * </p>
+ *
+ * <p>
+ * Validation is performed using Jakarta Bean Validation annotations,
+ * ensuring that required fields are present and comply with defined
+ * formatting and security rules.
+ * </p>
+ */
 @Getter
 @Setter
 @Builder
 public class RegisterRequest {
 
+    /**
+     * Government-issued identification number of the user.
+     * <p>
+     * Must not be null or blank.
+     * </p>
+     */
     @NotBlank(message = "DNI is required")
-    @NotNull(message = "DNI cannot be null")
     private String dni;
 
+    /**
+     * User's first name.
+     * <p>
+     * Must not be null or blank.
+     * </p>
+     */
     @NotBlank(message = "First name is required")
-    @NotNull(message = "First name cannot be null")
     private String firstName;
 
+    /**
+     * User's last name.
+     * <p>
+     * Must not be null or blank.
+     * </p>
+     */
     @NotBlank(message = "Last name is required")
-    @NotNull(message = "Last name cannot be null")
     private String lastName;
 
+    /**
+     * User's email address.
+     * <p>
+     * Must be a valid email format and cannot be null or blank.
+     * </p>
+     */
     @NotBlank(message = "Email is required")
-    @NotNull(message = "Email cannot be null")
     @Email(message = "Invalid email format")
     private String email;
 
+    /**
+     * Account password chosen by the user.
+     * <p>
+     * Must comply with the custom {@code @ValidPassword} policy,
+     * which enforces security requirements such as length,
+     * character diversity, and complexity rules.
+     * </p>
+     */
     @NotBlank(message = "Password is required")
-    @NotNull(message = "Password cannot be null")
     @ValidPassword
     private String password;
 
+    /**
+     * 4-digit ATM PIN associated with the user's account.
+     * <p>
+     * Must:
+     * <ul>
+     *     <li>Contain exactly 4 numeric digits</li>
+     *     <li>Not be null</li>
+     *     <li>Comply with the custom {@code @ValidAtmPin} rule
+     *     (e.g., disallow sequential or repeated digits)</li>
+     * </ul>
+     * </p>
+     */
     @NotNull(message = "ATM Pin cannot be null")
     @Size(min = 4, max = 4, message = "ATM Pin must be exactly 4 digits")
     @Pattern(regexp = "\\d+", message = "ATM Pin must contain only numbers")
     @ValidAtmPin
     private String atmPin;
 
+    /**
+     * User's contact phone number.
+     * <p>
+     * Must not be null or blank.
+     * </p>
+     */
     @NotBlank(message = "Phone number is required")
-    @NotNull(message = "Phone number cannot be null")
     private String phone;
 
+    /**
+     * Residential address of the user.
+     * <p>
+     * Must not be null or blank.
+     * </p>
+     */
     @NotBlank(message = "Address is required")
-    @NotNull(message = "Address cannot be null")
     private String address;
 }

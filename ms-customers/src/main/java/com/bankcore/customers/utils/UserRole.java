@@ -1,6 +1,24 @@
 package com.bankcore.customers.utils;
 
+/**
+ * Defines the security roles available in the system.
+ *
+ * <p>
+ * Roles determine authorization levels and access control
+ * to protected resources within the application.
+ * </p>
+ */
 public enum UserRole {
+
+    /**
+     * Standard user with access limited to
+     * personal operations and customer features.
+     */
     CUSTOMER,
+
+    /**
+     * Administrative user with elevated privileges,
+     * including management and system configuration capabilities.
+     */
     ADMIN
 }

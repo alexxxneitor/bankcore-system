@@ -1,66 +1,112 @@
 package com.bankcore.customers.service;
 
-import com.bankcore.customers.dto.responses.UserProfileResponse;
-import com.bankcore.customers.exception.UserProfileNotFoundException;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.RegisterResponse;
+import com.bankcore.customers.exception.ResourceConflictException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
+import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.mappers.UserMapper;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
-public class UserManagementImplTest {
+class UserManagementImplTest {
+    @Mock private UserRepository userRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private UserMapper userMapper;
 
-    @Mock
-    private UserRepository userRepository;
+    @InjectMocks private UserManagementImpl userManagement;
 
-    @Mock
-    private UserMapper userMapper;
-
-    @InjectMocks
-    private UserManagementImpl service;
+    private final RegisterRequest request =
+            RegisterRequest.builder()
+                    .dni("1234567890")
+                    .firstName("John")
+                    .lastName("Doe")
+                    .email("johndoe@email.com")
+                    .password("Password123!")
+                    .atmPin("1234")
+                    .phone("+573001234567")
+                    .address("123 Main St")
+                    .build();
 
     @Test
-    void shouldReturnProfileWhenUserExists() {
-        String email = "dev@mail.com";
+    void registerCustomer_Success() {
+        RegisterResponse expectedResponse =
+                RegisterResponse.builder()
+                        .id(java.util.UUID.randomUUID())
+                        .dni(request.getDni())
+                        .fullName(request.getFirstName() + " " + request.getLastName())
+                        .email(request.getEmail())
+                        .status(CustomerStatus.ACTIVE)
+                        .createdDate(java.time.Instant.now())
+                        .build();
 
-        UserEntity user = new UserEntity();
-        UserProfileResponse response = UserProfileResponse.builder().build();
+        when(userRepository.existsByDni(request.getDni())).thenReturn(false);
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(request.getPassword())).thenReturn("hashedPassword");
+        when(passwordEncoder.encode(request.getAtmPin())).thenReturn("hashedAtmPin");
+        when(userRepository.save(any(UserEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(userMapper.toUserProfileResponse(user)).thenReturn(response);
+        when(userMapper.toRegisterResponse(any(UserEntity.class)))
+                .thenReturn(expectedResponse);
 
-        UserProfileResponse result = service.getCurrentUserProfile(email);
+        RegisterResponse response = userManagement.registerCustomer(request);
 
-        assertEquals(response, result);
-        verify(userRepository).findByEmail(email);
-        verify(userMapper).toUserProfileResponse(user);
+        assertNotNull(response);
+        assertEquals(expectedResponse.getDni(), response.getDni());
+        assertEquals(expectedResponse.getEmail(), response.getEmail());
 
+        verify(userRepository, times(1)).existsByDni(request.getDni());
+        verify(userRepository, times(1)).existsByEmail(request.getEmail());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+        verify(userMapper, times(1)).toRegisterResponse(any(UserEntity.class));
     }
 
     @Test
-    void shouldThrowWhenEmailIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> service.getCurrentUserProfile(null));
+    void registerCustomer_Failure_DniAlreadyExists() {
+        when(userRepository.existsByDni(request.getDni()))
+                .thenReturn(true);
+
+        ResourceConflictException exception =
+                assertThrows(ResourceConflictException.class, () ->
+                        userManagement.registerCustomer(request)
+                );
+
+        assertEquals("DNI already exists", exception.getMessage());
+
+        verify(userRepository, times(1)).existsByDni(request.getDni());
+        verify(userRepository, never()).save(any());
+        verify(userMapper, never()).toRegisterResponse(any());
     }
 
     @Test
-    void shouldThrowWhenEmailIsBlank() {
-        assertThrows(IllegalArgumentException.class, () -> service.getCurrentUserProfile(""));
-    }
+    void registerCustomer_Failure_EmailAlreadyExists() {
+        when(userRepository.existsByDni(request.getDni()))
+                .thenReturn(false);
 
-    @Test
-    void shouldThrowWhenUserNotFound() {
-        when(userRepository.findByEmail("x")).thenReturn(Optional.empty());
-        assertThrows(UserProfileNotFoundException.class, () -> service.getCurrentUserProfile("x"));
-    }
+        when(userRepository.existsByEmail(request.getEmail()))
+                .thenReturn(true);
 
+        ResourceConflictException exception =
+                assertThrows(ResourceConflictException.class, () ->
+                        userManagement.registerCustomer(request)
+                );
+
+        assertEquals("Email already exists", exception.getMessage());
+
+        verify(userRepository, times(1)).existsByDni(request.getDni());
+        verify(userRepository, times(1)).existsByEmail(request.getEmail());
+        verify(userRepository, never()).save(any());
+        verify(userMapper, never()).toRegisterResponse(any());
+    }
 }
