@@ -21,23 +21,30 @@ import org.springframework.security.web.SecurityFilterChain;
  *     <li>Disables CSRF protection (commonly used in stateless REST APIs).</li>
  *     <li>Allows unauthenticated access to authentication-related endpoints.</li>
  *     <li>Requires authentication for all other endpoints.</li>
+ *     <li>Custom error handling for 401 and 403 responses.</li>
  *     <li>Provides a {@link PasswordEncoder} bean for secure password hashing.</li>
  * </ul>
  * </p>
+ *
+ * @author BankCore Team
+ * @version 1.0
  */
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
     /**
-     * Configures the HTTP security filter chain.
+     * Configures the {@link SecurityFilterChain} to define the security behavior of the application.
      * <p>
-     * Defines authorization rules and security settings for incoming HTTP requests.
+     * It integrates custom handlers for authentication and authorization failures,
+     * ensures the application is stateless, and secures endpoints based on user roles.
      * </p>
      *
-     * @param http the {@link HttpSecurity} object used to configure web-based security
-     * @return the configured {@link SecurityFilterChain}
-     * @throws Exception if an error occurs while building the security configuration
+     * @param http                           The {@link HttpSecurity} to modify.
+     * @param customAuthenticationEntryPoint The handler for 401 Unauthorized errors.
+     * @param customAccessDeniedHandler      The handler for 403 Forbidden errors.
+     * @return The built {@link SecurityFilterChain}.
+     * @throws Exception If an error occurs during the configuration of the security filters.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(

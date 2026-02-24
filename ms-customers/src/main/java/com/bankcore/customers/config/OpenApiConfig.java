@@ -8,7 +8,17 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.http.HttpHeaders;
 
-
+/**
+ * Configuration class for OpenAPI (Swagger) documentation.
+ * <p>
+ * This class defines the global metadata for the BankCoreSystem-Customers API,
+ * including versioning, description, and the security scheme (JWT Bearer Token)
+ * required to access protected endpoints.
+ * </p>
+ *
+ * @author BankCore Team
+ * @version 1.0
+ */
 @OpenAPIDefinition(
         info = @Info(
                 title = "BankCoreSystem-Customers",
@@ -28,4 +38,12 @@ import org.springframework.http.HttpHeaders;
         scheme = "bearer",
         bearerFormat = "JWT"
 )
-public class OpenApiConfig {}
+public class OpenApiConfig {
+    /**
+     * Default constructor for OpenApiConfig.
+     * This class is used solely for OpenAPI metadata configuration via annotations.
+     */
+    public OpenApiConfig() {
+        // Empty constructor for documentation purposes
+    }
+}

@@ -14,19 +14,38 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * Custom implementation of {@link AuthenticationEntryPoint} to handle 401 Unauthorized errors.
+ * <p>
+ * This component is triggered when an unauthenticated user attempts to access
+ * a protected resource. It overrides the default Spring Security behavior to
+ * return a structured JSON response using {@link ErrorResponse}.
+ * </p>
+ *
+ * @author BankCore Team
+ * @version 1.0
+ */
 @Component
 @RequiredArgsConstructor
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    /**
+     * Object mapper used for serializing the unauthorized error body into JSON format.
+     */
     private final ObjectMapper objectMapper;
 
-
     /**
-     * @param request       that resulted in an <code>AuthenticationException</code>
-     * @param response      so that the user agent can begin authentication
-     * @param authException that caused the invocation
-     * @throws IOException
-     * @throws ServletException
+     * Commences the authentication scheme.
+     * <p>
+     * This method is invoked when a user tries to access a secured REST endpoint
+     * without providing valid credentials.
+     * </p>
+     *
+     * @param request       The {@link HttpServletRequest} that resulted in an AuthenticationException.
+     * @param response      The {@link HttpServletResponse} so that the user agent can begin authentication or receive the error.
+     * @param authException The exception that caused the invocation (e.g., BadCredentialsException).
+     * @throws IOException      If an input or output exception occurs during response writing.
+     * @throws ServletException If a servlet-related error occurs.
      */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
