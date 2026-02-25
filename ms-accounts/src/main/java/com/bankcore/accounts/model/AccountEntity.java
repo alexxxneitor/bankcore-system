@@ -16,18 +16,18 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Builder
-@Table(name = "customers")
+@Table(name = "accounts")
 public class AccountEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "account_number", unique = true, nullable = false)
+    @Column(name = "account_number", nullable = false)
     private String accountNumber;
 
-    @Column(name = "customer_id", unique = true, nullable = false)
-    private UUID customerID;
+    @Column(name = "customer_id", nullable = false)
+    private UUID customerId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type", nullable = false)
