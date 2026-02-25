@@ -120,9 +120,9 @@ class UserManagementImplTest {
     void shouldReturnProfileWhenUserExists() {
 
         UserEntity user = DataProvider.createMockUser();
-        String email = user.getEmail();
+        UUID id = UUID.randomUUID();
         UserProfileResponse response = UserProfileResponse.builder()
-                .id(UUID.randomUUID().toString())
+                .id(id.toString())
                 .dni(user.getDni())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
@@ -133,30 +133,31 @@ class UserManagementImplTest {
                 .createdAt(user.getCreatedDate().toString())
                 .build();
 
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
         when(userMapper.toUserProfileResponse(user)).thenReturn(response);
 
-        UserProfileResponse result = userManagement.getCurrentUserProfile(email);
+        UserProfileResponse result = userManagement.getCurrentUserProfile(id.toString());
 
         assertEquals(response, result);
-        verify(userRepository).findByEmail(email);
+        verify(userRepository).findById(id);
         verify(userMapper).toUserProfileResponse(user);
 
     }
 
     @Test
-    void shouldThrowWhenEmailIsNull() {
+    void shouldThrowWhenIdIsNull() {
         assertThrows(IllegalArgumentException.class, () -> userManagement.getCurrentUserProfile(null));
     }
 
     @Test
-    void shouldThrowWhenEmailIsBlank() {
+    void shouldThrowWhenIdIsBlank() {
         assertThrows(IllegalArgumentException.class, () -> userManagement.getCurrentUserProfile(""));
     }
 
     @Test
     void shouldThrowWhenUserNotFound() {
-        when(userRepository.findByEmail("x")).thenReturn(Optional.empty());
-        assertThrows(UserProfileNotFoundException.class, () -> userManagement.getCurrentUserProfile("x"));
+        UUID id = UUID.randomUUID();
+        when(userRepository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(UserProfileNotFoundException.class, () -> userManagement.getCurrentUserProfile(id.toString()));
     }
 }

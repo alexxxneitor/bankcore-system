@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -34,19 +35,20 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private UserManagementImpl userManagement;
 
+    private UserEntity savedUser;
+
     @BeforeEach
     public void init() {
         UserEntity user = DataProvider.createMockUser();
-        userRepository.save(user);
+        savedUser = userRepository.save(user);
     }
 
     @Test
-    @WithMockUser(
-            username = DataProvider.EMAIL,
-            roles = DataProvider.CUSTOMER_ROLE
-    )
     void shouldReturnProfileWhenAuthorized() throws Exception {
-        mockMvc.perform(get("/api/customers/me"))
+        mockMvc.perform(get("/api/customers/me")
+                        .with(user(savedUser.getId().toString())
+                                .roles(DataProvider.CUSTOMER_ROLE))
+                )
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -64,20 +66,20 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "example@mail.com", roles = DataProvider.CUSTOMER_ROLE)
+    @WithMockUser(username = DataProvider.UUID, roles = DataProvider.CUSTOMER_ROLE)
     void shouldReturn404WhenUserNotFound() throws Exception {
-
         mockMvc.perform(get("/api/customers/me"))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
-                .andExpect(jsonPath("$.description").exists());;
+                .andExpect(jsonPath("$.description").exists());
+        ;
     }
 
     @Test
-    @WithMockUser(username = DataProvider.EMAIL, roles = "ADMIN")
+    @WithMockUser(username = DataProvider.UUID, roles = "ADMIN")
     void shouldReturn403WhenWrongRole() throws Exception {
 
         mockMvc.perform(get("/api/customers/me"))
@@ -86,7 +88,8 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
-                .andExpect(jsonPath("$.description").exists());;
+                .andExpect(jsonPath("$.description").exists());
+        ;
     }
 
     @Test
@@ -97,7 +100,8 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
-                .andExpect(jsonPath("$.description").exists());;
+                .andExpect(jsonPath("$.description").exists());
+        ;
     }
 
 }
