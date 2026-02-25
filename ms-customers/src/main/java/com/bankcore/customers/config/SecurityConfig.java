@@ -1,6 +1,6 @@
 package com.bankcore.customers.config;
 
-import jakarta.servlet.http.HttpServletResponse;
+import com.bankcore.customers.utils.UserRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -21,32 +21,43 @@ import org.springframework.security.web.SecurityFilterChain;
  *     <li>Disables CSRF protection (commonly used in stateless REST APIs).</li>
  *     <li>Allows unauthenticated access to authentication-related endpoints.</li>
  *     <li>Requires authentication for all other endpoints.</li>
+ *     <li>Custom error handling for 401 and 403 responses.</li>
  *     <li>Provides a {@link PasswordEncoder} bean for secure password hashing.</li>
  * </ul>
  * </p>
+ *
+ * @author BankCore Team
+ * @version 1.0
  */
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
     /**
-     * Configures the HTTP security filter chain.
+     * Configures the {@link SecurityFilterChain} to define the security behavior of the application.
      * <p>
-     * Defines authorization rules and security settings for incoming HTTP requests.
+     * It integrates custom handlers for authentication and authorization failures,
+     * ensures the application is stateless, and secures endpoints based on user roles.
      * </p>
      *
-     * @param http the {@link HttpSecurity} object used to configure web-based security
-     * @return the configured {@link SecurityFilterChain}
-     * @throws Exception if an error occurs while building the security configuration
+     * @param http                           The {@link HttpSecurity} to modify.
+     * @param customAuthenticationEntryPoint The handler for 401 Unauthorized errors.
+     * @param customAccessDeniedHandler      The handler for 403 Forbidden errors.
+     * @return The built {@link SecurityFilterChain}.
+     * @throws Exception If an error occurs during the configuration of the security filters.
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler
+    ) throws Exception {
 
         http
                 .exceptionHandling(e ->
-                        e.authenticationEntryPoint(
-                                (req, res, ex) ->
-                                        res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
+                        e.authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .accessDeniedHandler(customAccessDeniedHandler)
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
@@ -54,7 +65,9 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
-                        ).permitAll().anyRequest().denyAll()
+                        ).permitAll()
+                        .requestMatchers("/api/customers/me").hasRole(UserRole.CUSTOMER.name())
+                        .anyRequest().denyAll()
                 );
 
         return http.build();
