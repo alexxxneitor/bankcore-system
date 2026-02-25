@@ -1,0 +1,64 @@
+package com.bankcore.accounts.models;
+
+import com.bankcore.accounts.utils.enums.AccountStatus;
+import com.bankcore.accounts.utils.enums.AccountType;
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "accounts")
+@Data
+public class AccountEntity {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(unique = true, nullable = false)
+    private String accountNumber;
+
+    @Column(nullable = false)
+    private UUID customerId;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType;
+
+    @Column(nullable = false)
+    private String currency;
+
+    @Column(nullable = false)
+    private BigDecimal balance;
+
+    @Column(nullable = false)
+    private String alias;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
+
+    @Column(nullable = false)
+    private BigDecimal dailyWithdrawalLimit;
+
+    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant createdAt;
+
+    @Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
+}
