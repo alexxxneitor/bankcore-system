@@ -53,9 +53,10 @@ Tabla: `customers`
 
 #### URLs principales
 
-| Endpoint                |Método| Descripción                |
-|-------------------------|------|----------------------------|
-| /api/customers/register | POST | Registro de nuevos clientes|
+| Endpoint                | Método | Descripción                               |
+|-------------------------|--------|-------------------------------------------|
+| /api/customers/register | POST   | Registro de nuevos clientes               |
+| /api/customers/me        | GET    | Obtener el perfil del cliente autenticado |
 
 ---
 
@@ -96,6 +97,7 @@ Responsable de:
 - Docker & Docker Compose
 - Maven
 - Lombok
+- MapStruct
 - Swagger / OpenAPI (en progreso)
 
 ---

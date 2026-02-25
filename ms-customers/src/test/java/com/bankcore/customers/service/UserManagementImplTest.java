@@ -4,9 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.bankcore.customers.DataProvider;
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponse;
+import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exception.ResourceConflictException;
+import com.bankcore.customers.exception.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.utils.CustomerStatus;
@@ -17,6 +20,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 class UserManagementImplTest {
@@ -108,5 +114,49 @@ class UserManagementImplTest {
         verify(userRepository, times(1)).existsByEmail(request.getEmail());
         verify(userRepository, never()).save(any());
         verify(userMapper, never()).toRegisterResponse(any());
+    }
+
+    @Test
+    void shouldReturnProfileWhenUserExists() {
+
+        UserEntity user = DataProvider.createMockUser();
+        String email = user.getEmail();
+        UserProfileResponse response = UserProfileResponse.builder()
+                .id(UUID.randomUUID().toString())
+                .dni(user.getDni())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .status(user.getStatus().toString())
+                .createdAt(user.getCreatedDate().toString())
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userMapper.toUserProfileResponse(user)).thenReturn(response);
+
+        UserProfileResponse result = userManagement.getCurrentUserProfile(email);
+
+        assertEquals(response, result);
+        verify(userRepository).findByEmail(email);
+        verify(userMapper).toUserProfileResponse(user);
+
+    }
+
+    @Test
+    void shouldThrowWhenEmailIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> userManagement.getCurrentUserProfile(null));
+    }
+
+    @Test
+    void shouldThrowWhenEmailIsBlank() {
+        assertThrows(IllegalArgumentException.class, () -> userManagement.getCurrentUserProfile(""));
+    }
+
+    @Test
+    void shouldThrowWhenUserNotFound() {
+        when(userRepository.findByEmail("x")).thenReturn(Optional.empty());
+        assertThrows(UserProfileNotFoundException.class, () -> userManagement.getCurrentUserProfile("x"));
     }
 }

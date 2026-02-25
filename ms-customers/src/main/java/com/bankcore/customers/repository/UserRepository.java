@@ -3,6 +3,7 @@ package com.bankcore.customers.repository;
 import com.bankcore.customers.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -32,4 +33,14 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
      *         {@code false} otherwise
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Retrieves a user entity from the database using their email address.
+     *
+     * @param email The email address to search for.
+     * @return An {@link Optional} containing the {@link UserEntity} if found,
+     * or {@link Optional#empty()} if no user matches the provided email.
+     */
+    Optional<UserEntity> findByEmail(String email);
+
 }

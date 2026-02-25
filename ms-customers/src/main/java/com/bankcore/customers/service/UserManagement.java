@@ -2,7 +2,9 @@ package com.bankcore.customers.service;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponse;
+import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exception.ResourceConflictException;
+import com.bankcore.customers.exception.UserProfileNotFoundException;
 
 /**
  * Application service interface responsible for managing user-related
@@ -34,4 +36,19 @@ public interface UserManagement {
      *         business rules
      */
     RegisterResponse registerCustomer(RegisterRequest request);
+
+    /**
+     * Retrieves the profile information for a user identified by their email.
+     * <p>
+     * This method serves as the main entry point for obtaining customer profile details.
+     * Implementations are expected to handle validation and ensure the returned
+     * data is properly mapped to a response DTO.
+     * </p>
+     *
+     * @param email The unique email address of the user.
+     * @return A {@link UserProfileResponse} object containing the user's profile details.
+     * @throws UserProfileNotFoundException If no user exists with the specified email.
+     * @throws IllegalArgumentException      If the email parameter is invalid (null or blank).
+     */
+    UserProfileResponse getCurrentUserProfile(String email);
 }

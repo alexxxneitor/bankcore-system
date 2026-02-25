@@ -1,5 +1,6 @@
 package com.bankcore.customers.utils.mappers;
 
+import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.model.UserEntity;
 import org.mapstruct.Mapper;
@@ -52,4 +53,20 @@ public interface UserMapper {
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(" "));
     }
+
+    /**
+     * Maps a {@link UserEntity} to a {@link UserProfileResponse} DTO.
+     * <p>
+     * This method transforms the internal database entity into a client-facing response.
+     * It handles the conversion of specific fields, such as mapping the internal
+     * creation date to the standardized response format.
+     * </p>
+     *
+     * @param user The {@link UserEntity} containing the data from the persistence layer.
+     * @return A {@link UserProfileResponse} populated with the user's information.
+     * @see UserEntity
+     * @see UserProfileResponse
+     */
+    @Mapping(source = "createdDate", target = "createdAt")
+    UserProfileResponse toUserProfileResponse(UserEntity user);
 }

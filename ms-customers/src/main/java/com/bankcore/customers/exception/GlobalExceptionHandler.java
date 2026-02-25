@@ -1,6 +1,7 @@
 package com.bankcore.customers.exception;
 
 import com.bankcore.customers.dto.responses.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
  * API error responses across the system.
  * </p>
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -59,6 +61,26 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining("; "));
 
         return buildErrorResponse(HttpStatus.BAD_REQUEST, description);
+    }
+
+    /**
+     * Handles exceptions when an authenticated user's profile is not found in the database.
+     * <p>
+     * This handler is triggered by {@link UserProfileNotFoundException}. It logs a security
+     * alert since this scenario typically implies an inconsistency between the security
+     * context (JWT) and the persistence layer.
+     * </p>
+     *
+     * @param ex The {@link UserProfileNotFoundException} instance caught by the advice.
+     * @return A {@link ResponseEntity} containing an {@link ErrorResponse} with
+     * HTTP status 404 (Not Found) and a user-friendly message.
+     */
+    @ExceptionHandler(UserProfileNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserProfileNotFoundException ex) {
+
+        log.error("Security alert: Authenticated user missing from DB: {}", ex.getMessage());
+
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Account error. Please log in again.");
     }
 
     /**

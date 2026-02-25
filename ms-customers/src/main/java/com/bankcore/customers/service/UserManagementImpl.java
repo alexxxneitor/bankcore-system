@@ -2,14 +2,18 @@ package com.bankcore.customers.service;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponse;
+import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exception.ResourceConflictException;
+import com.bankcore.customers.exception.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default implementation of {@link UserManagement}.
@@ -97,5 +101,36 @@ public class UserManagementImpl implements UserManagement {
         userRepository.save(userEntity);
 
         return userMapper.toRegisterResponse(userEntity);
+    }
+
+    /**
+     * Retrieves the profile data for a specific user based on their email.
+     * <p>
+     * This method performs a read-only transaction to fetch the user entity.
+     * It validates the input and ensures that if the user does not exist in the
+     * persistence layer, a specific business exception is thrown.
+     * </p>
+     *
+     * @param email The email of the authenticated user to retrieve.
+     * @return A {@link UserProfileResponse} containing the mapped profile data.
+     * @throws IllegalArgumentException      If the provided email is null or empty.
+     * @throws UserProfileNotFoundException If no user is found with the given email.
+     * @see UserEntity
+     * @see UserProfileResponse
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public UserProfileResponse getCurrentUserProfile(String email) {
+
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email must not be null or blank");
+        }
+
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserProfileNotFoundException("Authenticated user not found: " + email));
+
+
+        return userMapper.toUserProfileResponse(user);
     }
 }
