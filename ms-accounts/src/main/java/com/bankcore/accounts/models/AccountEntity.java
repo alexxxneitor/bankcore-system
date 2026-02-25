@@ -4,6 +4,7 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -16,6 +17,7 @@ public class AccountEntity {
 
     @Id
     @GeneratedValue
+    @UuidGenerator
     private UUID id;
 
     @Column(unique = true, nullable = false)
