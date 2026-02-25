@@ -31,9 +31,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder(SecretKey secretKey) {
-        return NimbusJwtDecoder.withSecretKey(secretKey)
-                .macAlgorithm(MacAlgorithm.HS256)
-                .build();
+        return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
     }
 
     @Bean
@@ -49,18 +47,24 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(
+            HttpSecurity http,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandle
+    ) throws Exception {
         http
+                .exceptionHandling(
+                        e -> e.authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .accessDeniedHandler(customAccessDeniedHandle))
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/accounts/**")
-                        .hasRole("CUSTOMER")
-                        .anyRequest().denyAll()
-                )
-                .oauth2ResourceServer(
-                        oauth2 ->
-                                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                );
+                .authorizeHttpRequests(auth ->
+                        auth.requestMatchers("/api/accounts/**").hasRole("CUSTOMER")
+                                .anyRequest()
+                                .denyAll())
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(
+                                jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        ));
 
         return http.build();
     }
