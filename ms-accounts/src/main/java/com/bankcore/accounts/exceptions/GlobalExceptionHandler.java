@@ -19,26 +19,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleEnumError(HttpMessageNotReadableException ex){
         Throwable cause = ex.getCause();
 
-        if (cause instanceof InvalidFormatException formatException) {
-            Class<?> targetType = formatException.getTargetType();
+        if (cause instanceof InvalidFormatException formatException && formatException.getTargetType().isEnum()) {
+            String fieldName = formatException.getPath().get(0).getFieldName();
+            Object invalidValue = formatException.getValue();
 
-            if (targetType.isEnum()) {
-                String fieldName = formatException.getPath().get(0).getFieldName();
-                Object invalidValue = formatException.getValue();
+            String allowedValues = Arrays.stream(formatException.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
 
-                String allowedValues = Arrays.stream(targetType.getEnumConstants())
-                        .map(Object::toString)
-                        .collect(Collectors.joining(", "));
+            String message = String.format(
+                    "%s: Invalid value '%s'. Allowed values: [%s]",
+                    fieldName,
+                    invalidValue,
+                    allowedValues
+            );
 
-                String message = String.format(
-                        "%s: Invalid value '%s'. Allowed values: [%s]",
-                        fieldName,
-                        invalidValue,
-                        allowedValues
-                );
-
-                return buildErrorResponse(HttpStatus.BAD_REQUEST, message);
-            }
+            return buildErrorResponse(HttpStatus.BAD_REQUEST, message);
         }
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request payload");
     }
