@@ -2,6 +2,7 @@ package com.bankcore.accounts.models;
 
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
+import com.bankcore.accounts.utils.enums.CurrencyCode;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -31,7 +32,8 @@ public class AccountEntity {
     private AccountType accountType;
 
     @Column(nullable = false)
-    private String currency;
+    @Enumerated(EnumType.STRING)
+    private CurrencyCode currency;
 
     @Column(nullable = false)
     private BigDecimal balance;
