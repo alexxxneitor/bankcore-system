@@ -52,6 +52,21 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, description);
     }
 
+    @ExceptionHandler(CustomerInactiveException.class)
+    public ResponseEntity<ErrorResponse> hanldeCustomerInactiveException(CustomerInactiveException ex) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(CustomerNotFoundException.class)
+    public ResponseEntity<ErrorResponse> hanldeCustomerNotFoundException(CustomerNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleExternalServiceError(ExternalServiceException ex) {
+        return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    }
+
     /**
      * Builds a standardized {@link ErrorResponse} object.
      *
