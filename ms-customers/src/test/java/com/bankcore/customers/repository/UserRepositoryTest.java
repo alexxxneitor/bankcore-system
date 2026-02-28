@@ -23,13 +23,26 @@ class UserRepositoryTest extends AbstractIntegrationTest {
     void shouldFindById() {
         UserEntity user1 = DataProvider.createMockUser();
 
-       UserEntity savedUser = userRepository.save(user1);
+        UserEntity savedUser = userRepository.save(user1);
 
-       Optional<UserEntity> found = userRepository.findById(savedUser.getId());
+        Optional<UserEntity> found = userRepository.findById(savedUser.getId());
 
         assertTrue(found.isPresent());
         assertEquals(found.get(), savedUser);
 
     }
+
+    @Test
+    void shouldFindByEmail() {
+        UserEntity user1 = DataProvider.createMockUser();
+
+        UserEntity savedUser = userRepository.save(user1);
+
+        Optional<UserEntity> found = userRepository.findByEmail(savedUser.getEmail());
+
+        assertTrue(found.isPresent());
+        assertEquals(found.get(), savedUser);
+    }
+
 
 }
