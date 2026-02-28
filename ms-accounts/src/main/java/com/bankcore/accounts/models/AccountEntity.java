@@ -4,6 +4,7 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "accounts")
 @Data
+@Builder
 public class AccountEntity {
 
     @Id
