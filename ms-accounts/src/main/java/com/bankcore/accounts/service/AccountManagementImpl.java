@@ -10,7 +10,6 @@ import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositries.AccountRepository;
 import com.bankcore.accounts.utils.DailyWithdrawalLimit;
-import com.bankcore.accounts.utils.IbanGeneratorService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
 import lombok.AllArgsConstructor;
@@ -68,7 +67,7 @@ public class AccountManagementImpl implements AccountManagementService{
 
         do {
             iban = ibanGeneratorService.generateSpanishIban();
-        } while (accountRepository.existsByIban(iban));
+        } while (accountRepository.existsByAccountNumber(iban));
 
         AccountEntity accountEntity =
                 AccountEntity.builder()

@@ -33,5 +33,5 @@ public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
      * @param iban The IBAN of the account to check for existence.
      * @return true if an account with the specified IBAN exists, false otherwise.
      */
-    boolean existsByIban(String iban);
+    boolean existsByAccountNumber(String iban);
 }
