@@ -8,7 +8,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomExternalServiceException;
-import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 
 import lombok.AllArgsConstructor;
@@ -23,7 +22,7 @@ public class CustomerClientImpl implements CustomerClient {
     private final WebClient customersWebClient;
 
     @Override
-    public void getCustomerById(UUID id) {
+    public CustomerResponse getCustomerById(UUID id) {
 
         CustomerResponse response = customersWebClient
                 .get()
@@ -65,8 +64,6 @@ public class CustomerClientImpl implements CustomerClient {
             throw new CustomerNotFoundException("The authenticated client is not registered");
         }
 
-        if (!response.isActive()) {
-            throw new CustomerInactiveException("The authenticated client is inactive");
-        }
+        return response;
     }
 }
