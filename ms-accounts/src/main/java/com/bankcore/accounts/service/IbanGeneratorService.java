@@ -1,4 +1,6 @@
-package com.bankcore.accounts.utils;
+package com.bankcore.accounts.service;
+
+import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -31,6 +33,7 @@ import java.security.SecureRandom;
  * internal systems. It does not guarantee existence in a real banking network.
  * </p>
  */
+@Service
 public class IbanGeneratorService {
 
     private static final SecureRandom random = new SecureRandom();
