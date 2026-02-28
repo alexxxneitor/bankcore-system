@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface CustomerClient {
 
-    CustomerResponse getCustomerById(UUID customerId);
+    void getCustomerById(UUID customerId);
 }

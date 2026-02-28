@@ -23,41 +23,46 @@ public class CustomerClientImpl implements CustomerClient {
     }
 
     @Override
-    public CustomerResponse getCustomerById(UUID id) {
+    public void getCustomerById(UUID id) {
 
-        return customersWebClient
+        CustomerResponse response = customersWebClient
                 .get()
                 .uri("/api/customers/{id}/validate", id)
                 .retrieve()
-                .onStatus(status -> status.value() == 404, response -> {
+                .onStatus(status -> status.value() == 404, clientResponse -> {
                     log.warn("Customer not found in Customer Service. ID: {}", id);
                     return Mono.error(
-                            new CustomerNotFoundException("Customer with ID " + id + " not found")
+                            new CustomerNotFoundException("The authenticated client is not registered")
                     );
                 })
-                .onStatus(HttpStatusCode::is5xxServerError, response ->
-                        response.bodyToMono(String.class)
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
                                 .defaultIfEmpty("No body")
                                 .flatMap(body -> {
-                                    log.error("5xx error from Customer Service. Status: {}, Body: {}",
-                                            response.statusCode(), body);
+                                    log.error(
+                                            "5xx error from Customer Service. ID: {}, Status: {}, Body: {}",
+                                            id,
+                                            clientResponse.statusCode(),
+                                            body
+                                    );
                                     return Mono.error(
-                                            new CustomExternalServiceException("Error communicating with Customer Service")
+                                            new CustomExternalServiceException(
+                                                    "Error communicating with Customer Service"
+                                            )
                                     );
                                 })
                 )
+
                 .bodyToMono(CustomerResponse.class)
-                .flatMap(customer -> {
-                    if (!customer.exists()) {
-                        return Mono.error(new CustomerNotFoundException(id.toString()));
-                    }
-                    if (!customer.isActive()) {
-                        return Mono.error(
-                                new CustomerInactiveException("Customer with ID " + id + " is inactive")
-                        );
-                    }
-                    return Mono.just(customer);
-                })
                 .block();
+
+        if (!response.exists()) {
+            log.warn("Customer does not exist according to validation endpoint. ID: {}", id);
+            throw new CustomerNotFoundException(id.toString());
+        }
+
+        if (!response.isActive()) {
+            throw new CustomerInactiveException("The authenticated client is inactive");
+        }
     }
 }
