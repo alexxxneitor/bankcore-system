@@ -1,16 +1,18 @@
 package com.bankcore.accounts.client;
 
-import com.bankcore.accounts.dto.responses.CustomerResponse;
-import com.bankcore.accounts.exceptions.CustomerInactiveException;
-import com.bankcore.accounts.exceptions.CustomerNotFoundException;
-import com.bankcore.accounts.exceptions.CustomExternalServiceException;
-import lombok.extern.slf4j.Slf4j;
+import java.util.UUID;
+
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.util.UUID;
+import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.exceptions.CustomExternalServiceException;
+import com.bankcore.accounts.exceptions.CustomerInactiveException;
+import com.bankcore.accounts.exceptions.CustomerNotFoundException;
+
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
@@ -55,6 +57,11 @@ public class CustomerClientImpl implements CustomerClient {
 
                 .bodyToMono(CustomerResponse.class)
                 .block();
+
+        if (response == null) {
+            log.error("Customer Service returned empty body. ID: {}", id);
+            throw new CustomExternalServiceException("Empty response from Customer Service");
+        }
 
         if (!response.exists()) {
             log.warn("Customer does not exist according to validation endpoint. ID: {}", id);
