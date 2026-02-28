@@ -7,6 +7,7 @@ import com.bankcore.customers.dto.responses.ErrorResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.service.UserManagement;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -102,8 +103,50 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userManagement.registerCustomer(request));
     }
 
+
+    /**
+     * Authenticates a user based on the provided credentials.
+     * <p>
+     * This method validates the {@link LoginRequest}, processes the authentication
+     * through the user management service, and returns a session token.
+     * </p>
+     *
+     * @param request The login credentials (email and password).
+     * @return A {@link ResponseEntity} containing the {@link LoginResponse} with status 200 OK.
+     * @throws org.springframework.web.bind.MethodArgumentNotValidException If credentials are invalid (handled by global exception handler).
+     */
+    @Operation(
+            summary = "User Login",
+            description = "Authenticates a user and returns a JWT token along with user uuid, token type and expire time in milliseconds."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully authenticated",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Invalid credentials provided",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error or malformed request body",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            )
+    })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
+    public ResponseEntity<LoginResponse> login(
+            @Parameter(description = "User credentials required for authentication", required = true)
+            @Valid @RequestBody LoginRequest request
+    ){
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.login(request));
     }
 }
