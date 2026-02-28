@@ -8,4 +8,8 @@ import java.util.UUID;
 public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
 
     long countByCustomerId(UUID customerId);
+
+    boolean existsByAliasAndCustomerId(String alias, UUID customerId);
+
+    boolean existsByIban(String iban);
 }
