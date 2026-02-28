@@ -2,7 +2,15 @@ package com.bankcore.accounts.controllers;
 
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.ErrorResponse;
 import com.bankcore.accounts.service.AccountManagementService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +35,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/accounts")
 @AllArgsConstructor
+@Tag(name = "Accounts", description = "Controller that handles requests for the management of bank accounts")
 public class AccountController {
 
     private final AccountManagementService accountManagementService;
@@ -38,6 +47,56 @@ public class AccountController {
      * @param auth The {@link Authentication} object containing the security context of the user
      * @return a {@link ResponseEntity} that contains the {@link AccountRegisterResponse} along with its Http code 201
      */
+    @Operation(
+            summary = "Register a new account",
+            description = "Register a new account to the currently authenticated user",
+            security = @SecurityRequirement(name = "Security Token")
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Account registration data",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AccountRegisterRequest.class)
+            )
+    )
+    @ApiResponses(value = {
+
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "account registered successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AccountRegisterResponse.class)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error - Invalid input fields",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Conflict - alias already registered",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Company policies - The request violates a company policy.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+    })
     @PostMapping()
     @PreAuthorize("isFullyAuthenticated() && hasRole('CUSTOMER')")
     public ResponseEntity<AccountRegisterResponse> registerAccount(@RequestBody @Valid AccountRegisterRequest request, Authentication auth){
