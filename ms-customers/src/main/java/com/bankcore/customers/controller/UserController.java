@@ -120,7 +120,7 @@ public class UserController {
      */
     @Operation(
             summary = "User Login",
-            description = "Authenticates a user and returns a JWT token along with user uuid, token type and expire time in milliseconds."
+            description = "Authenticates a user and returns a JWT token along with user uuid, token type and expire time in seconds."
     )
     @ApiResponses(value = {
             @ApiResponse(

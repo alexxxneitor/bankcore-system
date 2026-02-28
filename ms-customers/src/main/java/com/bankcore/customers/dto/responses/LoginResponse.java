@@ -28,7 +28,7 @@ public class LoginResponse {
     private String tokenType;
 
     /**
-     * The remaining lifetime of the token in milliseconds.
+     * The remaining lifetime of the token in seconds.
      */
     private Long expiresIn;
 

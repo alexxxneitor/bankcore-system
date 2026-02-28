@@ -70,7 +70,7 @@ public interface UserMapper {
      *
      * @param user the {@link UserEntity} containing the customer's unique identifier
      * @param jwt the generated JSON Web Token string
-     * @param expiresIn the token expiration time in milliseconds
+     * @param expiresIn the token expiration time in seconds
      * @return a populated {@link LoginResponse} ready for the API consumer
      */
     @Mapping(target = "token", source = "jwt")
