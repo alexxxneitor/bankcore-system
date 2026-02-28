@@ -43,7 +43,8 @@ import java.util.UUID;
  * Business rules and security requirements are enforced at this layer
  * before interacting with the persistence layer.
  * </p>
- * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
+ * @author BankCore Team - Sebastian Orjuela - Cristian
+ * @version 1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -122,7 +123,7 @@ public class UserManagementImpl implements UserManagement {
     @Override
     public LoginResponse login(LoginRequest request) {
 
-        UserEntity userEntity = userRepository.findByEmail(request.getEmail())
+        UserEntity userEntity = userRepository.findByEmailIgnoreCase(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.getEmail()));
 
         Authentication authentication = authenticationManager.authenticate(

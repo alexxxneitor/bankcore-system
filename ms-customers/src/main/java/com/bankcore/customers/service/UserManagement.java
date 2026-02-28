@@ -18,6 +18,7 @@ import com.bankcore.customers.exception.UserProfileNotFoundException;
  * coordinating persistence, and handling security requirements.
  * </p>
  * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
  */
 public interface UserManagement {
 

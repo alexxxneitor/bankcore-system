@@ -24,6 +24,8 @@ import java.util.stream.Stream;
  * This mapper ensures that only non-sensitive data is exposed
  * to the API layer.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
  */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -55,6 +57,22 @@ public interface UserMapper {
                 .collect(Collectors.joining(" "));
     }
 
+    /**
+     * Maps user details and authentication metadata to a {@link LoginResponse} DTO.
+     * <p>
+     * This mapping performs the following transformations:
+     * <ul>
+     * <li>Maps {@code user.id} to {@code customerId}.</li>
+     * <li>Maps the {@code jwt} parameter to the {@code token} field.</li>
+     * <li>Sets the {@code tokenType} to a constant value of <b>"Bearer"</b>.</li>
+     * <li>Passes the {@code expiresIn} duration directly to the response.</li>
+     * </ul>
+     *
+     * @param user the {@link UserEntity} containing the customer's unique identifier
+     * @param jwt the generated JSON Web Token string
+     * @param expiresIn the token expiration time in milliseconds
+     * @return a populated {@link LoginResponse} ready for the API consumer
+     */
     @Mapping(target = "token", source = "jwt")
     @Mapping(target = "tokenType", constant = "Bearer")
     @Mapping(target = "customerId", source = "user.id")

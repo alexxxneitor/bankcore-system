@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
  * This controller exposes endpoints under {@code /api/auth} for user registration
  * and other authentication workflows.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
  */
 @RestController
 @RequestMapping("/api/auth")

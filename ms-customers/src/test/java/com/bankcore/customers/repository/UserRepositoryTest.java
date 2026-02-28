@@ -38,7 +38,7 @@ class UserRepositoryTest extends AbstractIntegrationTest {
 
         UserEntity savedUser = userRepository.save(user1);
 
-        Optional<UserEntity> found = userRepository.findByEmail(savedUser.getEmail());
+        Optional<UserEntity> found = userRepository.findByEmailIgnoreCase(savedUser.getEmail());
 
         assertTrue(found.isPresent());
         assertEquals(found.get(), savedUser);

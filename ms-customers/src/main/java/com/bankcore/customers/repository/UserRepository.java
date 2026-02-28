@@ -13,6 +13,8 @@ import java.util.UUID;
  * Extends {@link JpaRepository} to provide standard CRUD operations
  * and defines additional query methods for uniqueness validation.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
  */
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
@@ -34,6 +36,12 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
      */
     boolean existsByEmail(String email);
 
-    Optional<UserEntity> findByEmail(String email);
+    /**
+     * Retrieves a user entity by email, ignoring case sensitivity.
+     * @param email the email address (e.g., "User@Example.com" matches "user@example.com")
+     * @return an {@link Optional} containing the {@link UserEntity} if found,
+     * or {@link Optional#empty()} if no user exists with the given email
+     */
+    Optional<UserEntity> findByEmailIgnoreCase(String email);
 
 }
