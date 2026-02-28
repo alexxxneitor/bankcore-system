@@ -4,6 +4,7 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import java.util.UUID;
  */
 @Setter
 @Builder
+@Getter
 public class AccountRegisterResponse {
 
     private UUID id;
