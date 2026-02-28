@@ -11,18 +11,16 @@ import com.bankcore.accounts.exceptions.CustomExternalServiceException;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
+@AllArgsConstructor
 public class CustomerClientImpl implements CustomerClient {
 
     private final WebClient customersWebClient;
-
-    public CustomerClientImpl(WebClient customersWebClient) {
-        this.customersWebClient = customersWebClient;
-    }
 
     @Override
     public void getCustomerById(UUID id) {
@@ -54,7 +52,6 @@ public class CustomerClientImpl implements CustomerClient {
                                     );
                                 })
                 )
-
                 .bodyToMono(CustomerResponse.class)
                 .block();
 
