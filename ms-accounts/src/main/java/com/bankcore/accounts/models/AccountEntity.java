@@ -21,7 +21,7 @@ public class AccountEntity {
     @UuidGenerator
     private UUID id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 24)
     private String accountNumber;
 
     @Column(nullable = false)
