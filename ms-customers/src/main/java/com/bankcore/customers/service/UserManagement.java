@@ -1,5 +1,7 @@
 package com.bankcore.customers.service;
 
+import com.bankcore.customers.dto.responses.LoginResponse;
+import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
@@ -36,6 +38,8 @@ public interface UserManagement {
      *         business rules
      */
     RegisterResponse registerCustomer(RegisterRequest request);
+
+    LoginResponse login(LoginRequest request);
 
     /**
      * Retrieves the profile information for a user identified by their email.

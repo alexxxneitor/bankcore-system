@@ -29,7 +29,7 @@ import com.bankcore.customers.service.UserManagement;
  * with the CUSTOMER role can access the data.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @RestController

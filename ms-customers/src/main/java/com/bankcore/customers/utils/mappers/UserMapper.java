@@ -1,5 +1,6 @@
 package com.bankcore.customers.utils.mappers;
 
+import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.model.UserEntity;
@@ -53,6 +54,11 @@ public interface UserMapper {
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(" "));
     }
+
+    @Mapping(target = "token", source = "jwt")
+    @Mapping(target = "tokenType", constant = "Bearer")
+    @Mapping(target = "customerId", source = "user.id")
+    LoginResponse toLoginResponse(UserEntity user, String jwt, Long expiresIn);
 
     /**
      * Maps a {@link UserEntity} to a {@link UserProfileResponse} DTO.

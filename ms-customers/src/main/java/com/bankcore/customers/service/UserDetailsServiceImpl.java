@@ -21,12 +21,12 @@ import java.util.UUID;
  * and mapping the internal {@link UserEntity} state to a {@link UserDetails} object
  * that the security framework can process for authentication and authorization.
  * </p>
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @Service
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl  implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService {
 
 
     private final UserRepository userRepository;

@@ -1,6 +1,9 @@
 package com.bankcore.customers.service;
 
+
+import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exception.ResourceConflictException;
@@ -11,6 +14,13 @@ import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,28 +45,14 @@ import java.util.UUID;
  * </p>
  */
 @Service
+@RequiredArgsConstructor
 public class UserManagementImpl implements UserManagement {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-
-    /**
-     * Constructs a new {@code UserManagementImpl} with required dependencies.
-     *
-     * @param userRepository repository responsible for user persistence operations
-     * @param passwordEncoder encoder used to securely hash password and ATM PIN
-     * @param userMapper mapper responsible for converting entities to DTOs
-     */
-    public UserManagementImpl(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            UserMapper userMapper) {
-
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userMapper = userMapper;
-    }
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     /**
      * Registers a new customer in the system.
@@ -103,6 +99,29 @@ public class UserManagementImpl implements UserManagement {
         userRepository.save(userEntity);
 
         return userMapper.toRegisterResponse(userEntity);
+    }
+
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+
+        UserEntity userEntity = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.getEmail()));
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        userEntity.getId(),
+                        request.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String jwt = jwtService.generateAccessToken(userDetails);
+        long expiration = jwtService.getAccessTokenExpiration(jwt);
+
+        return userMapper.toLoginResponse(userEntity, jwt, expiration);
     }
 
     /**

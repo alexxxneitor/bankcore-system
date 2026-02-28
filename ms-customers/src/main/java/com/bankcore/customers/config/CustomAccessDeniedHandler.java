@@ -22,7 +22,7 @@ import java.io.IOException;
  * It returns a standardized JSON response using {@link ErrorResponse}.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @Component

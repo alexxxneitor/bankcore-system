@@ -1,5 +1,7 @@
 package com.bankcore.customers.controller;
 
+import com.bankcore.customers.dto.responses.LoginResponse;
+import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.ErrorResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
@@ -98,5 +100,10 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(userManagement.registerCustomer(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
+        return ResponseEntity.status(HttpStatus.OK).body(userManagement.login(request));
     }
 }
