@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -123,13 +124,13 @@ public class UserController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Successfully authenticated",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = LoginResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "Invalid credentials provided",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
@@ -137,7 +138,7 @@ public class UserController {
                     responseCode = "400",
                     description = "Validation error or malformed request body",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
