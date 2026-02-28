@@ -14,6 +14,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+/**
+ * Implementation of the CustomerClient interface that uses WebClient to communicate with the Customer service.
+ * This class handles the retrieval of customer information and includes error handling for various scenarios.
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @Slf4j
 @Component
 @AllArgsConstructor

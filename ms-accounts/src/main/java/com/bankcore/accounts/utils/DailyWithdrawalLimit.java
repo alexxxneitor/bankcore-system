@@ -4,6 +4,11 @@ import com.bankcore.accounts.utils.enums.AccountType;
 
 import java.math.BigDecimal;
 
+/**
+ * Utility class to determine the daily withdrawal limit based on the account type.
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 public class DailyWithdrawalLimit {
 
     public BigDecimal resolveDailyLimit(AccountType type) {

@@ -10,6 +10,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Response DTO for account registration.
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @Setter
 @Builder
 public class AccountRegisterResponse {

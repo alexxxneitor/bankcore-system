@@ -16,6 +16,17 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * Global exception handler for handling {@link HttpMessageNotReadableException} exceptions.
+ * <p>
+ * This class intercepts exceptions thrown when the request body cannot be read or parsed,
+ * such as when an invalid enum value is provided. It returns a structured JSON response
+ * with details about the error using the {@link ErrorResponse} DTO.
+ * </p>
+ *
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class CustomHttpMessageNotReadableException {

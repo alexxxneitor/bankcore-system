@@ -5,6 +5,11 @@ import lombok.Getter;
 
 import java.time.Instant;
 
+/**
+ * Response DTO for error information.
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @Getter
 @Builder
 public class ErrorResponse {

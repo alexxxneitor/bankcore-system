@@ -14,6 +14,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
+/**
+ * Global exception handler for handling {@link MethodArgumentNotValidException} exceptions.
+ * <p>
+ * This class intercepts exceptions thrown when validation on an argument annotated with
+ * {@code @Valid} fails. It extracts the validation error messages and returns a structured
+ * JSON response with details about the error using the {@link ErrorResponse} DTO.
+ * </p>
+ *
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class CustomMethodArgumentNotValidException {

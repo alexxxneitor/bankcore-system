@@ -18,7 +18,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
-
+/**
+ * Security configuration class for the Accounts microservice.
+ * This class sets up JWT authentication and authorization, defining how incoming requests are secured.
+ * It includes custom handlers for authentication and access denied exceptions, as well as a converter for extracting roles from JWT tokens.
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
