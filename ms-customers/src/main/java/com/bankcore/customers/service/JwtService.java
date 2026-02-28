@@ -1,6 +1,7 @@
 package com.bankcore.customers.service;
 
 
+import com.bankcore.customers.utils.UserRole;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
  * Service responsible for managing JSON Web Tokens (JWT).
  * Provides utility methods for generating, parsing, and validating access tokens
  * used for authentication and authorization within the bankcore system.
+ *
  * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
@@ -41,6 +43,10 @@ public class JwtService {
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
+
+        if (authorities.isEmpty()) {
+            authorities.add("ROLE_" + UserRole.CUSTOMER.name());
+        }
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
@@ -94,14 +100,12 @@ public class JwtService {
 
         } catch (ExpiredJwtException e) {
             log.error("Expired token: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            log.error("Unsupported token: {}", e.getMessage());
         } catch (MalformedJwtException e) {
             log.error("Malformed token: {}", e.getMessage());
-        } catch (SecurityException e) {
-            log.error("Invalid signature: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
             log.error("Token is empty or null: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("Token problem: {}", e.getMessage());
         }
 
         return false;

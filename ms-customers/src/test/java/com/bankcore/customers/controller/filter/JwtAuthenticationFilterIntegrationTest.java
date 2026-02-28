@@ -108,11 +108,12 @@ public class JwtAuthenticationFilterIntegrationTest extends AbstractIntegrationT
     }
 
     @Test
-    void shouldReturn403_whenTokenhasNoRoles() throws Exception {
+    void shouldReturn404_whenTokenhasNoRoles() throws Exception {
         String token = generateToken(UUID.randomUUID().toString());
 
-        mockMvc.perform(get("/api/customers/me").header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/customers/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
     }
 
     // Valid token
