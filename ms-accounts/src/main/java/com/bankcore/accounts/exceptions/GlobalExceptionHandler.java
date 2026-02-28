@@ -19,14 +19,19 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(CustomExternalServiceException.class)
-    public ResponseEntity<ErrorResponse> handleExternalServiceError(CustomExternalServiceException ex) {
-        return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<ErrorResponse> handleResourceConflictException(ResourceConflictException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
         return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+    }
+
+    @ExceptionHandler(CustomExternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleExternalServiceError(CustomExternalServiceException ex) {
+        return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
     /**
