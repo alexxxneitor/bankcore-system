@@ -64,7 +64,11 @@ public class SecurityConfig {
                                 .accessDeniedHandler(customAccessDeniedHandle))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/accounts/**").hasRole("CUSTOMER")
+                        auth.requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers("/api/accounts/**").hasRole("CUSTOMER")
                                 .anyRequest()
                                 .denyAll())
                 .oauth2ResourceServer(oauth2 ->
