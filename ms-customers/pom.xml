@@ -159,6 +159,7 @@
                         <exclude>**/*MapperImpl.class</exclude>
                         <exclude>**/model/**</exclude>
                         <exclude>**/*Application.class</exclude>
+                        <exclude>**/config/**</exclude>
                     </excludes>
                 </configuration>
 				<executions>
