@@ -62,7 +62,7 @@ public class CustomerClientImpl implements CustomerClient {
 
         if (!response.exists()) {
             log.warn("Customer does not exist according to validation endpoint. ID: {}", id);
-            throw new CustomerNotFoundException(id.toString());
+            throw new CustomerNotFoundException("The authenticated client is not registered");
         }
 
         if (!response.isActive()) {
