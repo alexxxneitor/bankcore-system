@@ -17,6 +17,7 @@ import com.bankcore.customers.exception.UserProfileNotFoundException;
  * Implementations are responsible for enforcing business rules,
  * coordinating persistence, and handling security requirements.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  */
 public interface UserManagement {
 
@@ -39,6 +40,18 @@ public interface UserManagement {
      */
     RegisterResponse registerCustomer(RegisterRequest request);
 
+    /**
+     * Authenticates a user and returns a session token.
+     * <p>
+     * This method validates the provided credentials and, upon success,
+     * issues a JSON Web Token (JWT) for subsequent authenticated requests.
+     *
+     * @param request the {@link LoginRequest} containing the user's credentials
+     * @return a {@link LoginResponse} containing the generated access token and metadata
+     * @throws org.springframework.security.core.userdetails.UsernameNotFoundException if the account associated with the email does not exist
+     * @throws org.springframework.security.core.AuthenticationException if the credentials
+     * are invalid or the account is disabled/locked
+     */
     LoginResponse login(LoginRequest request);
 
     /**

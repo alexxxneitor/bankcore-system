@@ -43,6 +43,7 @@ import java.util.UUID;
  * Business rules and security requirements are enforced at this layer
  * before interacting with the persistence layer.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  */
 @Service
 @RequiredArgsConstructor
@@ -101,7 +102,23 @@ public class UserManagementImpl implements UserManagement {
         return userMapper.toRegisterResponse(userEntity);
     }
 
-
+    /**
+     * Authenticates a user based on email and password and generates a JWT access token.
+     * <p>
+     * This method performs the following steps:
+     * <ol>
+     * <li>Validates the existence of the user by email.</li>
+     * <li>Authenticates the credentials using the {@code AuthenticationManager}.</li>
+     * <li>Updates the {@code SecurityContextHolder} with the authenticated principal.</li>
+     * <li>Generates a new JWT access token and retrieves its expiration.</li>
+     * </ol>
+     *
+     * @param request the {@link LoginRequest} containing the user's email and password
+     * @return a {@link LoginResponse} containing the JWT, expiration time, and user details
+     * @throws UsernameNotFoundException if no user is found with the provided email
+     * @throws org.springframework.security.core.AuthenticationException if authentication fails
+     * (e.g., invalid credentials or locked account)
+     */
     @Override
     public LoginResponse login(LoginRequest request) {
 
