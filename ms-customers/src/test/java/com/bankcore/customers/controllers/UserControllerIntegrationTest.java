@@ -1,9 +1,9 @@
-package com.bankcore.customers.controller;
+package com.bankcore.customers.controllers;
 
 import com.bankcore.customers.AbstractIntegrationTest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.utils.CustomerStatus;
+import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,8 +1,8 @@
 package com.bankcore.customers;
 
 import com.bankcore.customers.model.UserEntity;
-import com.bankcore.customers.utils.CustomerStatus;
-import com.bankcore.customers.utils.UserRole;
+import com.bankcore.customers.utils.enums.CustomerStatus;
+import com.bankcore.customers.utils.enums.UserRole;
 
 import java.time.Instant;
 

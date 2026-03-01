@@ -1,14 +1,14 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
-import com.bankcore.customers.exception.ResourceConflictException;
-import com.bankcore.customers.exception.UserProfileNotFoundException;
+import com.bankcore.customers.exceptions.ResourceConflictException;
+import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.utils.CustomerStatus;
-import com.bankcore.customers.utils.UserRole;
+import com.bankcore.customers.utils.enums.CustomerStatus;
+import com.bankcore.customers.utils.enums.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
 
 import org.springframework.security.crypto.password.PasswordEncoder;

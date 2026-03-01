@@ -1,9 +1,9 @@
-package com.bankcore.customers.controller;
+package com.bankcore.customers.controllers;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponse;
-import com.bankcore.customers.service.UserManagement;
-import com.bankcore.customers.utils.CustomerStatus;
+import com.bankcore.customers.services.UserManagement;
+import com.bankcore.customers.utils.enums.CustomerStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

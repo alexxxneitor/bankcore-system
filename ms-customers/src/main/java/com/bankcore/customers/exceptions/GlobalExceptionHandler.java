@@ -1,4 +1,4 @@
-package com.bankcore.customers.exception;
+package com.bankcore.customers.exceptions;
 
 import com.bankcore.customers.dto.responses.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;

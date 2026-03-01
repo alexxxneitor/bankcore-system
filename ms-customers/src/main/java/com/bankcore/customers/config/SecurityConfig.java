@@ -1,6 +1,6 @@
 package com.bankcore.customers.config;
 
-import com.bankcore.customers.utils.UserRole;
+import com.bankcore.customers.utils.enums.UserRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;

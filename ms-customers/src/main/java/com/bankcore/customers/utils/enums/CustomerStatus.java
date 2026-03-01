@@ -1,4 +1,4 @@
-package com.bankcore.customers.utils;
+package com.bankcore.customers.utils.enums;
 
 /**
  * Represents the possible states of a Customer account

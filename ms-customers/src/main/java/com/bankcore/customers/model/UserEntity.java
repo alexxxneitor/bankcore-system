@@ -3,8 +3,8 @@ package com.bankcore.customers.model;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.bankcore.customers.utils.CustomerStatus;
-import com.bankcore.customers.utils.UserRole;
+import com.bankcore.customers.utils.enums.CustomerStatus;
+import com.bankcore.customers.utils.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 

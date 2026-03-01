@@ -1,4 +1,4 @@
-package com.bankcore.customers.exception;
+package com.bankcore.customers.exceptions;
 
 /**
  * Exception thrown when a customer profile cannot be found in the system.

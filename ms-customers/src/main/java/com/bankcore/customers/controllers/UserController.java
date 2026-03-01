@@ -1,9 +1,9 @@
-package com.bankcore.customers.controller;
+package com.bankcore.customers.controllers;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.ErrorResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
-import com.bankcore.customers.service.UserManagement;
+import com.bankcore.customers.services.UserManagement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

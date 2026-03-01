@@ -1,4 +1,4 @@
-package com.bankcore.customers.controller;
+package com.bankcore.customers.controllers;
 
 import com.bankcore.customers.dto.responses.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bankcore.customers.dto.responses.UserProfileResponse;
-import com.bankcore.customers.service.UserManagement;
+import com.bankcore.customers.services.UserManagement;
 
 /**
  * REST controller for managing customer profile operations.
@@ -56,7 +56,7 @@ public class ProfileController {
      * @see UserManagement#getCurrentUserProfile(String)
      */
     @GetMapping("/me")
-    @PreAuthorize("isFullyAuthenticated() && hasRole(T(com.bankcore.customers.utils.UserRole).CUSTOMER.name())")
+    @PreAuthorize("isFullyAuthenticated() && hasRole(T(com.bankcore.customers.utils.enums.UserRole).CUSTOMER.name())")
     @Operation(
             summary = "View Profile",
             description = "Returns the profile of the authenticated CUSTOMER",

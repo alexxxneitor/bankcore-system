@@ -1,4 +1,4 @@
-package com.bankcore.customers.utils;
+package com.bankcore.customers.utils.enums;
 
 /**
  * Defines the security roles available in the system.

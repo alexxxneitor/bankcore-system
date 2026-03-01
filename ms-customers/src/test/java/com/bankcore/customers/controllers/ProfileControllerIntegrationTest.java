@@ -1,10 +1,10 @@
-package com.bankcore.customers.controller;
+package com.bankcore.customers.controllers;
 
 import com.bankcore.customers.AbstractIntegrationTest;
 import com.bankcore.customers.DataProvider;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.service.UserManagementImpl;
+import com.bankcore.customers.services.UserManagementImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

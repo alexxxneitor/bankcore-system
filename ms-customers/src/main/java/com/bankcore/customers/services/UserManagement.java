@@ -1,10 +1,10 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
-import com.bankcore.customers.exception.ResourceConflictException;
-import com.bankcore.customers.exception.UserProfileNotFoundException;
+import com.bankcore.customers.exceptions.ResourceConflictException;
+import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 
 /**
  * Application service interface responsible for managing user-related
