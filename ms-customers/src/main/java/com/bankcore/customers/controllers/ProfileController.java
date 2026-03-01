@@ -1,5 +1,7 @@
 package com.bankcore.customers.controllers;
 
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.CustomerValidateResponse;
 import com.bankcore.customers.dto.responses.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,11 +16,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.services.UserManagement;
+
+import java.util.UUID;
 
 /**
  * REST controller for managing customer profile operations.
@@ -100,5 +105,13 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getCurrentUserProfile(auth.getName()));
     }
 
+    @GetMapping("/{customerId}")
+    public ResponseEntity<CustomerDetailsValidateResponse> getCustomerDetailsById(@PathVariable UUID customerId){
+        return ResponseEntity.status(HttpStatus.OK).body(userManagement.getDetailsCustomer(customerId));
+    }
 
+    @GetMapping("/{customerId}/validate")
+    public ResponseEntity<CustomerValidateResponse> getCustomerValidateById(@PathVariable UUID customerId){
+        return ResponseEntity.status(HttpStatus.OK).body(userManagement.getCustomerIsActive(customerId));
+    }
 }
