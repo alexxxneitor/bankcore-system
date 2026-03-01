@@ -1,8 +1,10 @@
-package com.bankcore.customers.controller.filter;
+package com.bankcore.customers.controllers.filter;
 
-import com.bankcore.customers.AbstractIntegrationTest;
-import com.bankcore.customers.service.JwtService;
-import com.bankcore.customers.utils.UserRole;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -10,16 +12,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.bankcore.customers.AbstractIntegrationTest;
+import com.bankcore.customers.services.JwtService;
+import com.bankcore.customers.utils.enums.UserRole;
 
 public class JwtAuthenticationFilterIntegrationTest extends AbstractIntegrationTest {
 

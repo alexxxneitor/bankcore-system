@@ -1,28 +1,31 @@
-package com.bankcore.customers.controller.filter;
+package com.bankcore.customers.controllers.filter;
 
-import com.bankcore.customers.controllers.filter.JwtAuthenticationFilter;
-import com.bankcore.customers.service.JwtService;
-import com.bankcore.customers.utils.UserRole;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
+import com.bankcore.customers.services.JwtService;
+import com.bankcore.customers.utils.enums.UserRole;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 
 
 @ExtendWith(MockitoExtension.class)

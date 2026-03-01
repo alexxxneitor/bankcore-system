@@ -1,23 +1,26 @@
-package com.bankcore.customers.service;
-
-import com.bankcore.customers.DataProvider;
-import com.bankcore.customers.model.UserEntity;
-import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.utils.CustomerStatus;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+package com.bankcore.customers.services;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import com.bankcore.customers.DataProvider;
+import com.bankcore.customers.model.UserEntity;
+import com.bankcore.customers.repository.UserRepository;
+import com.bankcore.customers.utils.enums.CustomerStatus;
 
 @ExtendWith(MockitoExtension.class)
 class UserDetailsServiceImplTest {
