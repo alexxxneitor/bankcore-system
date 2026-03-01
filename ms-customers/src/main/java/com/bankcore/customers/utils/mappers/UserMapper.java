@@ -1,5 +1,6 @@
 package com.bankcore.customers.utils.mappers;
 
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.model.UserEntity;
@@ -41,20 +42,6 @@ public interface UserMapper {
     RegisterResponse toRegisterResponse(UserEntity user);
 
     /**
-     * Generates the full name of the user by concatenating
-     * non-null first and last name values.
-     *
-     * @param user the user entity
-     * @return a formatted full name string without null components
-     */
-    @Named("fullName")
-    default String mapFullName(UserEntity user) {
-        return Stream.of(user.getFirstName(), user.getLastName())
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(" "));
-    }
-
-    /**
      * Maps a {@link UserEntity} to a {@link UserProfileResponse} DTO.
      * <p>
      * This method transforms the internal database entity into a client-facing response.
@@ -69,4 +56,31 @@ public interface UserMapper {
      */
     @Mapping(source = "createdDate", target = "createdAt")
     UserProfileResponse toUserProfileResponse(UserEntity user);
+
+    /**
+     * Converts a {@link UserEntity} into a {@link CustomerDetailsValidateResponse}.
+     * <p>
+     * The {@code fullName} field is derived from the entity's
+     * first and last name using a custom mapping method.
+     * </p>
+     *
+     * @param user the persisted user entity
+     * @return a response DTO containing non-sensitive user information
+     */
+    @Mapping(target = "fullName", source = ".", qualifiedByName = "fullName")
+    CustomerDetailsValidateResponse toCustomerDetailsValidateResponse(UserEntity user);
+
+    /**
+     * Generates the full name of the user by concatenating
+     * non-null first and last name values.
+     *
+     * @param user the user entity
+     * @return a formatted full name string without null components
+     */
+    @Named("fullName")
+    default String mapFullName(UserEntity user) {
+        return Stream.of(user.getFirstName(), user.getLastName())
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" "));
+    }
 }
