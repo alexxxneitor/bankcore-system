@@ -1,4 +1,4 @@
-package com.bankcore.customers.config;
+package com.bankcore.customers.exceptions;
 
 import com.bankcore.customers.dto.responses.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
