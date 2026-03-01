@@ -1,10 +1,13 @@
 package com.bankcore.customers.services;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exceptions.ResourceConflictException;
 import com.bankcore.customers.exceptions.UserProfileNotFoundException;
+
+import java.util.UUID;
 
 /**
  * Application service interface responsible for managing user-related
@@ -38,7 +41,7 @@ public interface UserManagement {
     RegisterResponse registerCustomer(RegisterRequest request);
 
     /**
-     * Retrieves the profile information for a user identified by their email.
+     * Retrieves the profile information for a user identified by their id.
      * <p>
      * This method serves as the main entry point for obtaining customer profile details.
      * Implementations are expected to handle validation and ensure the returned
@@ -51,4 +54,15 @@ public interface UserManagement {
      * @throws IllegalArgumentException     If the id parameter is invalid (null or blank).
      */
     UserProfileResponse getCurrentUserProfile(String id);
+
+    /**
+     * Retrieve the user details for the accounts service
+     * <p>
+     *      This method retrieves the user profile and validates its existence, and maps the user to the corresponding DTO
+     * </p>
+     * @param customerId the unique id of the user.
+     * @return A {@link CustomerDetailsValidateResponse} object containing the user's profile details.
+     * @throws UserProfileNotFoundException If no user exists with the specified id.
+     */
+    CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId);
 }

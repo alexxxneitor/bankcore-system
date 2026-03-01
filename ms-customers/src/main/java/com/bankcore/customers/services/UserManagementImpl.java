@@ -1,6 +1,7 @@
 package com.bankcore.customers.services;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exceptions.ResourceConflictException;
@@ -11,6 +12,8 @@ import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.bankcore.customers.utils.enums.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,28 +38,12 @@ import java.util.UUID;
  * </p>
  */
 @Service
+@RequiredArgsConstructor
 public class UserManagementImpl implements UserManagement {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-
-    /**
-     * Constructs a new {@code UserManagementImpl} with required dependencies.
-     *
-     * @param userRepository repository responsible for user persistence operations
-     * @param passwordEncoder encoder used to securely hash password and ATM PIN
-     * @param userMapper mapper responsible for converting entities to DTOs
-     */
-    public UserManagementImpl(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            UserMapper userMapper) {
-
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userMapper = userMapper;
-    }
 
     /**
      * Registers a new customer in the system.
@@ -134,5 +121,33 @@ public class UserManagementImpl implements UserManagement {
 
 
         return userMapper.toUserProfileResponse(user);
+    }
+
+    /**
+     * Retrieves detailed information about a customer based on their unique identifier.
+     *
+     * <p>This method queries the {@link UserRepository} to find a {@link UserEntity}
+     * associated with the provided customer ID. If no entity is found, a
+     * {@link UserProfileNotFoundException} is thrown. The retrieved entity is then
+     * mapped into a {@link CustomerDetailsValidateResponse} using the {@link UserMapper}.
+     *
+     * @param customerId the unique identifier of the customer; must not be null
+     * @return a {@link CustomerDetailsValidateResponse} containing the validated customer details
+     * @throws UserProfileNotFoundException if no customer exists with the provided ID
+     * @see UserEntity
+     * @see CustomerDetailsValidateResponse
+     * @see UserRepository
+     * @see UserMapper
+     */
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId) {
+        UserEntity customer = userRepository.findById(customerId)
+                .orElseThrow(() -> {
+                    return new UserProfileNotFoundException("There is no client with the provided ID");
+                });
+
+        return userMapper.toCustomerDetailsValidateResponse(customer);
     }
 }
