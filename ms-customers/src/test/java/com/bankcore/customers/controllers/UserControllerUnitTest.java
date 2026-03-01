@@ -1,6 +1,8 @@
 package com.bankcore.customers.controllers;
 
+import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.services.UserManagement;
 import com.bankcore.customers.utils.enums.CustomerStatus;
@@ -12,18 +14,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerUnitTest {
 
-    @Mock private UserManagement userManagement;
+    @Mock
+    private UserManagement userManagement;
 
-    @InjectMocks private UserController userController;
+    @InjectMocks
+    private UserController userController;
 
     @Test
-    void register_Customer_Success(){
+    void register_Customer_Success() {
         RegisterRequest request =
                 RegisterRequest.builder()
                         .dni("1234567890")
@@ -52,4 +57,29 @@ class UserControllerUnitTest {
         assertEquals(expectedResponse, response.getBody());
         verify(userManagement, times(1)).registerCustomer(request);
     }
+
+    @Test
+    void shouldReturn200_whenCredentialsAreValid() {
+        LoginRequest request = LoginRequest.builder()
+                .email("customer@bankcore.com")
+                .password("Secure@123")
+                .build();
+
+        LoginResponse response = LoginResponse.builder()
+                .token("token")
+                .tokenType("Bearer")
+                .expiresIn(3600000L)
+                .customerId("uuid")
+                .build();
+
+        when(userManagement.login(any())).thenReturn(response);
+
+        ResponseEntity<LoginResponse> result = userController.login(request);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody()).isEqualTo(response);
+        verify(userManagement).login(request);
+    }
+
+
 }

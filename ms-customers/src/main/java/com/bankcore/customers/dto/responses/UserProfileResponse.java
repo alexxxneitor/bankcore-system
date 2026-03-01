@@ -12,7 +12,7 @@ import lombok.Data;
  * information, and account metadata.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @Data

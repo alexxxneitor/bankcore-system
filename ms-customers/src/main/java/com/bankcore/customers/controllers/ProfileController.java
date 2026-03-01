@@ -34,7 +34,7 @@ import java.util.UUID;
  * with the CUSTOMER role can access the data.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @RestController
@@ -79,7 +79,7 @@ public class ProfileController {
                             responseCode = "401",
                             description = "Unauthorized - Invalid or missing JWT",
                             content = @Content(
-                                    mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ErrorResponse.class)
                             )
                     ),
@@ -87,7 +87,7 @@ public class ProfileController {
                             responseCode = "403",
                             description = "Forbidden - User does not have CUSTOMER role",
                             content = @Content(
-                                    mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ErrorResponse.class)
                             )
                     ),
@@ -95,7 +95,7 @@ public class ProfileController {
                             responseCode = "404",
                             description = "Authenticated user not found in database",
                             content = @Content(
-                                    mediaType = "application/json",
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ErrorResponse.class)
                             )
                     )

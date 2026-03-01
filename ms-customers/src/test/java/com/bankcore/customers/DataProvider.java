@@ -18,7 +18,7 @@ public class DataProvider {
                 .firstName("Juan")
                 .lastName("Perez")
                 .email("juan@test.com")
-                .password("123456")
+                .password("Password123!")
                 .atmPin("1234")
                 .phone("3001234567")
                 .address("Bogotá")

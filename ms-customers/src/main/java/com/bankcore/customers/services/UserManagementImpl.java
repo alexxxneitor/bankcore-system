@@ -1,8 +1,11 @@
 package com.bankcore.customers.services;
 
+
+import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
 import com.bankcore.customers.dto.responses.CustomerValidateResponse;
+import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exceptions.ResourceConflictException;
@@ -15,6 +18,11 @@ import com.bankcore.customers.utils.mappers.UserMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +46,8 @@ import java.util.UUID;
  * Business rules and security requirements are enforced at this layer
  * before interacting with the persistence layer.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian
+ * @version 1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -93,6 +103,45 @@ public class UserManagementImpl implements UserManagement {
         userRepository.save(userEntity);
 
         return userMapper.toRegisterResponse(userEntity);
+    }
+
+    /**
+     * Authenticates a user based on email and password and generates a JWT access token.
+     * <p>
+     * This method performs the following steps:
+     * <ol>
+     * <li>Validates the existence of the user by email.</li>
+     * <li>Authenticates the credentials using the {@code AuthenticationManager}.</li>
+     * <li>Updates the {@code SecurityContextHolder} with the authenticated principal.</li>
+     * <li>Generates a new JWT access token and retrieves its expiration.</li>
+     * </ol>
+     *
+     * @param request the {@link LoginRequest} containing the user's email and password
+     * @return a {@link LoginResponse} containing the JWT, expiration time, and user details
+     * @throws UsernameNotFoundException if no user is found with the provided email
+     * @throws org.springframework.security.core.AuthenticationException if authentication fails
+     * (e.g., invalid credentials or locked account)
+     */
+    @Override
+    public LoginResponse login(LoginRequest request) {
+
+        UserEntity userEntity = userRepository.findByEmailIgnoreCase(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.getEmail()));
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        userEntity.getId(),
+                        request.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String jwt = jwtService.generateAccessToken(userDetails);
+        long expiration = jwtService.getAccessTokenExpiration(jwt);
+
+        return userMapper.toLoginResponse(userEntity, jwt, expiration);
     }
 
     /**

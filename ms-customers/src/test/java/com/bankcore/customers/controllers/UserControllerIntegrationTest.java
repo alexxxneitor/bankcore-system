@@ -1,18 +1,21 @@
 package com.bankcore.customers.controllers;
 
 import com.bankcore.customers.AbstractIntegrationTest;
+import com.bankcore.customers.DataProvider;
+import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -22,13 +25,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private UserRepository userRepository;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final RegisterRequest firstsUserRegister =
             RegisterRequest.builder()
@@ -43,27 +49,32 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
                     .build();
 
     @BeforeEach
-    void setUp() throws Exception{
+    void setUp() throws Exception {
         userRepository.deleteAll();
-                mockMvc
-                        .perform(
-                                post("/api/auth/register")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(objectMapper.writeValueAsString(firstsUserRegister)))
-                        .andExpect(status().isCreated())
-                        .andExpect(jsonPath("$.id").exists())
-                        .andExpect(result -> {
-                            String id = JsonPath.read(result.getResponse().getContentAsString(), "$.id");
-                            UUID.fromString(id);
-                        })
-                        .andExpect(jsonPath("$.dni").value(firstsUserRegister.getDni()))
-                        .andExpect(jsonPath("$.email").value(firstsUserRegister.getEmail()))
-                        .andExpect(jsonPath("$.fullName").value(firstsUserRegister.getFirstName() + " " + firstsUserRegister.getLastName()))
-                        .andExpect(jsonPath("$.status").value(CustomerStatus.ACTIVE.name()))
-                        .andExpect(jsonPath("$.createdDate").exists())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        mockMvc
+                .perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(firstsUserRegister)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(result -> {
+                    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.id");
+                    UUID.fromString(id);
+                })
+                .andExpect(jsonPath("$.dni").value(firstsUserRegister.getDni()))
+                .andExpect(jsonPath("$.email").value(firstsUserRegister.getEmail()))
+                .andExpect(jsonPath("$.fullName").value(firstsUserRegister.getFirstName() + " " + firstsUserRegister.getLastName()))
+                .andExpect(jsonPath("$.status").value(CustomerStatus.ACTIVE.name()))
+                .andExpect(jsonPath("$.createdDate").exists())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+    }
+
+    @AfterEach
+    void tearDown() {
+        userRepository.deleteAll();
     }
 
     @Test
@@ -344,4 +355,187 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.description").exists());
         }
     }
+
+
+    @Test
+    void shouldReturn200_whenActiveUserLogsIn() throws Exception {
+        UserEntity user = DataProvider.createMockUser();
+        String password = user.getPassword();
+
+        user.setPassword(passwordEncoder.encode(password));
+
+        UserEntity saved = userRepository.save(user);
+
+        LoginRequest request = LoginRequest.builder()
+                .email(saved.getEmail())
+                .password(password)
+                .build();
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.expiresIn").isNumber())
+                .andExpect(jsonPath("$.customerId").value(saved.getId().toString()));
+    }
+
+    @Test
+    void shouldReturn401_whenPasswordIsWrong() throws Exception {
+
+        UserEntity user = DataProvider.createMockUser();
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        UserEntity saved = userRepository.save(user);
+
+
+        LoginRequest request = LoginRequest.builder()
+                .email(saved.getEmail())
+                .password("wrongPassword123!")
+                .build();
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    void shouldReturn401_whenEmailNotFound() throws Exception {
+        UserEntity user = DataProvider.createMockUser();
+        String password = user.getPassword();
+
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
+        LoginRequest request = LoginRequest.builder()
+                .email("random@email.com")
+                .password(password)
+                .build();
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturn401_whenUserIsBlocked() throws Exception {
+        UserEntity user = DataProvider.createMockUser();
+        user.setStatus(CustomerStatus.BLOCKED);
+        String password = user.getPassword();
+
+        user.setPassword(passwordEncoder.encode(password));
+        UserEntity saved = userRepository.save(user);
+
+        LoginRequest request = LoginRequest.builder()
+                .email(saved.getEmail())
+                .password(password)
+                .build();
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturn401_whenUserIsInactive() throws Exception {
+        UserEntity user = DataProvider.createMockUser();
+        user.setStatus(CustomerStatus.INACTIVE);
+        String password = user.getPassword();
+
+        user.setPassword(passwordEncoder.encode(password));
+        UserEntity saved = userRepository.save(user);
+
+        LoginRequest request = LoginRequest.builder()
+                .email(saved.getEmail())
+                .password(password)
+                .build();
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturn401_whenUserIsPendingVerification() throws Exception {
+        UserEntity user = DataProvider.createMockUser();
+        user.setStatus(CustomerStatus.PENDING_VERIFICATION);
+        String password = user.getPassword();
+
+        user.setPassword(passwordEncoder.encode(password));
+        UserEntity saved = userRepository.save(user);
+
+        LoginRequest request = LoginRequest.builder()
+                .email(saved.getEmail())
+                .password(password)
+                .build();
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturn400_whenEmailIsBlank() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    { "email": "", "password": "Secure@123" }
+                                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenEmailIsInvalid() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    { "email": "not-an-email", "password": "Secure@123" }
+                                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenPasswordIsBlank() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    { "email": "customer@bankcore.com", "password": "" }
+                                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenPasswordIsTooShort() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    { "email": "customer@bankcore.com", "password": "Ab@1" }
+                                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenPasswordHasNoSpecialChar() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                    { "email": "customer@bankcore.com", "password": "Secure1234" }
+                                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400_whenBodyIsEmpty() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
 }

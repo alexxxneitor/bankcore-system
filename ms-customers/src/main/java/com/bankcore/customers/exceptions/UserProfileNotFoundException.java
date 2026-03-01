@@ -8,7 +8,7 @@ package com.bankcore.customers.exceptions;
  * This exception is usually handled to return a 404 Not Found HTTP status.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 public class UserProfileNotFoundException extends RuntimeException {

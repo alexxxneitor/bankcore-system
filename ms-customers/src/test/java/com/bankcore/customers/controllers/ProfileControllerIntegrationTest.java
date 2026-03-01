@@ -85,7 +85,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/customers/me"))
                 .andDo(print())
                 .andExpect(status().isForbidden())
-                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
@@ -97,7 +97,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/customers/me"))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
