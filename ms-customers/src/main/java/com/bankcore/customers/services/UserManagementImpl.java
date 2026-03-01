@@ -158,7 +158,26 @@ public class UserManagementImpl implements UserManagement {
         return userMapper.toCustomerDetailsValidateResponse(customer);
     }
 
+    /**
+     * Validates whether a customer exists and is currently active.
+     *
+     * <p>This method attempts to retrieve a {@link UserEntity} from the {@link UserRepository}
+     * using the provided customer ID. It then checks if the customer exists and whether
+     * their status is {@link CustomerStatus#ACTIVE}. The result is encapsulated in a
+     * {@link CustomerValidateResponse}, which indicates both existence and active state.
+     *
+     * <p>Logging is performed to trace the validation process.
+     *
+     * @param customerId the unique identifier of the customer; must not be null
+     * @return a {@link CustomerValidateResponse} containing the customer ID, existence flag,
+     *         and active status flag
+     * @see UserEntity
+     * @see CustomerValidateResponse
+     * @see CustomerStatus
+     * @see UserRepository
+     */
     @Override
+    @Transactional(readOnly = true)
     public CustomerValidateResponse getCustomerIsActive(UUID customerId) {
 
         log.info("Fetching customer for validation by ID: {}", customerId);

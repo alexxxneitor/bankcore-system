@@ -67,5 +67,13 @@ public interface UserManagement {
      */
     CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId);
 
+    /**
+     * retrieves if the user exists and is active
+     * <p>
+     *     Retrieve the user by their ID and verify their existence and if their status is {@link com.bankcore.customers.utils.enums.CustomerStatus#ACTIVE}
+     * </p>
+     * @param customerId the unique id of the user.
+     * @return A {@link CustomerValidateResponse} containing the customer ID, existence flag and active status flag
+     */
     CustomerValidateResponse getCustomerIsActive(UUID customerId);
 }
