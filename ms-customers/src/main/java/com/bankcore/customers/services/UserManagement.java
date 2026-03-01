@@ -2,6 +2,7 @@ package com.bankcore.customers.services;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.CustomerValidateResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exceptions.ResourceConflictException;
@@ -65,4 +66,6 @@ public interface UserManagement {
      * @throws UserProfileNotFoundException If no user exists with the specified id.
      */
     CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId);
+
+    CustomerValidateResponse getCustomerIsActive(UUID customerId);
 }

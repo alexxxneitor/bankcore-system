@@ -2,6 +2,7 @@ package com.bankcore.customers.services;
 
 import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.CustomerValidateResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exceptions.ResourceConflictException;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -145,14 +147,32 @@ public class UserManagementImpl implements UserManagement {
     @Transactional(readOnly = true)
     public CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId) {
 
-        log.info("Fetching customer by ID: {}", customerId);
+        log.info("Fetching customer for details by ID: {}", customerId);
 
         UserEntity customer = userRepository.findById(customerId)
                 .orElseThrow(() -> {
-                    log.warn("Customer not found. ID: {}", customerId);
+                    log.warn("Customer not found in details. ID: {}", customerId);
                     return new UserProfileNotFoundException("There is no client with the provided ID");
                 });
 
         return userMapper.toCustomerDetailsValidateResponse(customer);
+    }
+
+    @Override
+    public CustomerValidateResponse getCustomerIsActive(UUID customerId) {
+
+        log.info("Fetching customer for validation by ID: {}", customerId);
+
+        Optional<UserEntity> optionalCustomer = userRepository.findById(customerId);
+
+        boolean exists = optionalCustomer.isPresent();
+        boolean isActive = exists &&
+                CustomerStatus.ACTIVE.equals(optionalCustomer.get().getStatus());
+
+        return CustomerValidateResponse.builder()
+                .customerId(customerId)
+                .exist(exists)
+                .isActive(isActive)
+                .build();
     }
 }
