@@ -39,6 +39,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserManagementImpl implements UserManagement {
 
     private final UserRepository userRepository;
@@ -143,8 +144,12 @@ public class UserManagementImpl implements UserManagement {
     @Override
     @Transactional(readOnly = true)
     public CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId) {
+
+        log.info("Fetching customer by ID: {}", customerId);
+
         UserEntity customer = userRepository.findById(customerId)
                 .orElseThrow(() -> {
+                    log.warn("Customer not found. ID: {}", customerId);
                     return new UserProfileNotFoundException("There is no client with the provided ID");
                 });
 
