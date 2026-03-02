@@ -6,8 +6,9 @@ import lombok.Getter;
 import java.time.Instant;
 
 /**
- * Data Transfer Object (DTO) for representing standardized error responses. Typically returned when
- * an exception or validation error occurs in the API.
+ * Response DTO for error information.
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
  */
 @Getter
 @Builder

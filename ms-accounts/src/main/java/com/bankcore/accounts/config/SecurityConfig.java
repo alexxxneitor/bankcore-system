@@ -1,5 +1,7 @@
 package com.bankcore.accounts.config;
 
+import com.bankcore.accounts.exceptions.CustomAccessDeniedHandler;
+import com.bankcore.accounts.exceptions.CustomAuthenticationEntryPoint;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -17,9 +18,14 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
-
+/**
+ * Security configuration class for the Accounts microservice.
+ * This class sets up JWT authentication and authorization, defining how incoming requests are secured.
+ * It includes custom handlers for authentication and access denied exceptions, as well as a converter for extracting roles from JWT tokens.
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
+ */
 @Configuration
-@EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
@@ -58,7 +64,11 @@ public class SecurityConfig {
                                 .accessDeniedHandler(customAccessDeniedHandle))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/accounts/**").hasRole("CUSTOMER")
+                        auth.requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers("/api/accounts/**").hasRole("CUSTOMER")
                                 .anyRequest()
                                 .denyAll())
                 .oauth2ResourceServer(oauth2 ->
