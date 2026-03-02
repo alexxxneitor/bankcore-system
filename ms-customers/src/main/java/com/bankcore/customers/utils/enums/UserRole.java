@@ -20,5 +20,10 @@ public enum UserRole {
      * Administrative user with elevated privileges,
      * including management and system configuration capabilities.
      */
-    ADMIN
+    ADMIN,
+
+    /**
+     * Internal user used only for queries between microservices
+     */
+    SERVICE
 }

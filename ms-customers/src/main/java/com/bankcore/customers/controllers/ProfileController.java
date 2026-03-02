@@ -106,11 +106,13 @@ public class ProfileController {
     }
 
     @GetMapping("/{customerId}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_SERVICE')")
     public ResponseEntity<CustomerDetailsValidateResponse> getCustomerDetailsById(@PathVariable UUID customerId){
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getDetailsCustomer(customerId));
     }
 
     @GetMapping("/{customerId}/validate")
+    @PreAuthorize("hasAnyAuthority('ROLE_SERVICE')")
     public ResponseEntity<CustomerValidateResponse> getCustomerValidateById(@PathVariable UUID customerId){
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getCustomerIsActive(customerId));
     }
