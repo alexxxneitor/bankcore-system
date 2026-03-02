@@ -1,5 +1,6 @@
 package com.bankcore.customers.controller.filter;
 
+import com.bankcore.customers.exception.NoAuthoritiesException;
 import com.bankcore.customers.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,6 +17,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,15 +29,21 @@ import java.util.stream.Collectors;
  * This filter intercepts requests, extracts the JWT from the "Authorization" header,
  * validates it, and sets the security context if the token is valid.
  * It extends {@link OncePerRequestFilter} to ensure a single execution per request dispatch.
+ *
  * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private final HandlerExceptionResolver exceptionResolver;
     private final JwtService jwtService;
+
+    public JwtAuthenticationFilter(JwtService jwtService, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
+        this.jwtService = jwtService;
+        this.exceptionResolver = exceptionResolver;
+    }
 
     /**
      * Intercepts the request to perform JWT authentication.
@@ -61,19 +70,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 String subject = jwtService.getUUIDfromToken(jwt);
 
-                List<GrantedAuthority> authorities =
-                        jwtService.getRolesFromToken(jwt).stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+                List<String> roles = jwtService.getRolesFromToken(jwt);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(subject, null, authorities);
+                if (roles != null && !roles.isEmpty()) {
+                    List<GrantedAuthority> authorities =
+                            roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(subject, null, authorities);
 
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    throw new NoAuthoritiesException("User has no granted authorities");
+                }
             }
         } catch (Exception e) {
             log.error("Could not authenticate user: {}", e.getMessage(), e);
+            exceptionResolver.resolveException(request, response, null, e);
+            return;
         }
 
         filterChain.doFilter(request, response);

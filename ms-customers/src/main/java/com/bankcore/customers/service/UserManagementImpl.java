@@ -124,7 +124,7 @@ public class UserManagementImpl implements UserManagement {
     public LoginResponse login(LoginRequest request) {
 
         UserEntity userEntity = userRepository.findByEmailIgnoreCase(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.getEmail()));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

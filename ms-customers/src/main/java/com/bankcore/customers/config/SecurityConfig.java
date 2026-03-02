@@ -94,7 +94,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/customers/me").hasRole(UserRole.CUSTOMER.name())
+                        .requestMatchers(HttpMethod.GET, "/api/customers/me").hasAnyRole(UserRole.CUSTOMER.name(), UserRole.ADMIN.name())
                         .anyRequest().denyAll()
                 )
                 .authenticationProvider(provider())

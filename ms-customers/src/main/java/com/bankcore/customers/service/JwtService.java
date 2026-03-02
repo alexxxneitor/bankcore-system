@@ -1,6 +1,7 @@
 package com.bankcore.customers.service;
 
 
+import com.bankcore.customers.exception.NoAuthoritiesException;
 import com.bankcore.customers.utils.UserRole;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class JwtService {
                 .collect(Collectors.toList());
 
         if (authorities.isEmpty()) {
-            authorities.add("ROLE_" + UserRole.CUSTOMER.name());
+            throw new NoAuthoritiesException("User has no granted authorities");
         }
 
         return Jwts.builder()

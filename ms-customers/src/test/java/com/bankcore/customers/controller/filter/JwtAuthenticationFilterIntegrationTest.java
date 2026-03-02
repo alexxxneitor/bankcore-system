@@ -3,6 +3,7 @@ package com.bankcore.customers.controller.filter;
 import com.bankcore.customers.AbstractIntegrationTest;
 import com.bankcore.customers.service.JwtService;
 import com.bankcore.customers.utils.UserRole;
+import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -11,6 +12,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.crypto.SecretKey;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -29,6 +32,9 @@ public class JwtAuthenticationFilterIntegrationTest extends AbstractIntegrationT
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private SecretKey secretKey;
+
     //Helper:
     private String generateToken(String uuid, String... role) {
         List<SimpleGrantedAuthority> authorities = Stream.of(role)
@@ -42,6 +48,31 @@ public class JwtAuthenticationFilterIntegrationTest extends AbstractIntegrationT
                 .build();
 
         return jwtService.generateAccessToken(userDetails);
+    }
+
+    private String generateTokenWithNoRolesAndNoRolesClaim(String subject) {
+        return Jwts.builder()
+                .subject(subject)
+                .id(UUID.randomUUID().toString())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 200000))
+                .claim("enabled", true)
+                .issuer("bankcore")
+                .signWith(secretKey)
+                .compact();
+    }
+
+    private String generateTokenWithNoRolesWithRolesClaim(String subject) {
+        return Jwts.builder()
+                        .subject(subject)
+                        .id(UUID.randomUUID().toString())
+                        .issuedAt(new Date())
+                        .claim("roles", List.of())
+                        .claim("enabled", true)
+                        .issuer("bankcore")
+                        .signWith(secretKey)
+                        .compact();
+
     }
 
     // No token:
@@ -100,7 +131,7 @@ public class JwtAuthenticationFilterIntegrationTest extends AbstractIntegrationT
 
     @Test
     void shouldReturn403_whenTokenHasWrongRole() throws Exception {
-        String token = generateToken(UUID.randomUUID().toString(), "ROLE_" + UserRole.ADMIN.name());
+        String token = generateToken(UUID.randomUUID().toString(), "ROLE_USER");
 
         mockMvc.perform(get("/api/customers/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
@@ -108,12 +139,25 @@ public class JwtAuthenticationFilterIntegrationTest extends AbstractIntegrationT
     }
 
     @Test
-    void shouldReturn404_whenTokenhasNoRoles() throws Exception {
-        String token = generateToken(UUID.randomUUID().toString());
+    void shouldReturn403WhenTokenHasNoRolesAndNoRolesClaim() throws Exception {
+        String token = generateTokenWithNoRolesAndNoRolesClaim(UUID.randomUUID().toString());
+
 
         mockMvc.perform(get("/api/customers/me")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotFound());
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturn403_whenTokenHasNoRolesWithRolesClaim() throws Exception {
+        String token = generateTokenWithNoRolesWithRolesClaim(UUID.randomUUID().toString());
+
+
+        mockMvc.perform(get("/api/customers/me")
+                        .header("Authorization", "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     // Valid token
@@ -121,6 +165,15 @@ public class JwtAuthenticationFilterIntegrationTest extends AbstractIntegrationT
     @Test
     void shouldPassFilter_whenValidTokenWithCustomerRole() throws Exception {
         String token = generateToken(UUID.randomUUID().toString(), "ROLE_" + UserRole.CUSTOMER.name());
+
+        mockMvc.perform(get("/api/customers/me").header("Authorization", "Bearer " + token))
+                .andDo(print())
+                .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotIn(401, 403));
+    }
+
+    @Test
+    void shouldPassFilter_whenValidTokenWithAdminRole() throws Exception {
+        String token = generateToken(UUID.randomUUID().toString(), "ROLE_" + UserRole.ADMIN.name());
 
         mockMvc.perform(get("/api/customers/me").header("Authorization", "Bearer " + token))
                 .andDo(print())

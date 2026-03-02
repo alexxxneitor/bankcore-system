@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
      *
      * @param ex the thrown {@code ResourceConflictException}
      * @return a {@link ResponseEntity} containing a structured error response
-     *         with HTTP status {@code 409 Conflict}
+     * with HTTP status {@code 409 Conflict}
      */
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ErrorResponse> handleResourceConflictException(
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
      *
      * @param ex the {@link MethodArgumentNotValidException} containing validation details
      * @return a {@link ResponseEntity} containing a structured error response
-     *         with HTTP status {@code 400 Bad Request}
+     * with HTTP status {@code 400 Bad Request}
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
@@ -81,6 +81,24 @@ public class GlobalExceptionHandler {
         log.error("Security alert: Authenticated user missing from DB: {}", ex.getMessage());
 
         return buildErrorResponse(HttpStatus.NOT_FOUND, "Account error. Please log in again.");
+    }
+
+    /**
+     * Handles {@link NoAuthoritiesException} globally across the application.
+     * <p>
+     * This method logs the security breach or missing permission error and
+     * returns a standardized error response with a 403 Forbidden status.
+     * </p>
+     *
+     * @param ex the caught NoAuthoritiesException containing the error details.
+     * @return a {@link ResponseEntity} containing an {@code ErrorResponse}
+     * object with the HTTP status and a user-friendly error message.
+     */
+    @ExceptionHandler(NoAuthoritiesException.class)
+    public ResponseEntity<ErrorResponse> handleNoAuthoritiesException(NoAuthoritiesException ex) {
+        log.error("NoAuthoritiesException: {}", ex.getMessage());
+
+        return buildErrorResponse(HttpStatus.FORBIDDEN, "Access denied");
     }
 
     /**
