@@ -20,16 +20,15 @@ class UserRepositoryTest extends AbstractIntegrationTest {
     UserRepository userRepository;
 
     @Test
-    void shouldFindByEmail() {
+    void shouldFindById() {
         UserEntity user1 = DataProvider.createMockUser();
 
-       userRepository.save(user1);
+       UserEntity savedUser = userRepository.save(user1);
 
-       Optional<UserEntity> found = userRepository.findByEmail("juan@test.com");
-
+       Optional<UserEntity> found = userRepository.findById(savedUser.getId());
 
         assertTrue(found.isPresent());
-        assertEquals(found.get(), user1);
+        assertEquals(found.get(), savedUser);
 
     }
 

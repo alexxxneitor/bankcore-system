@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 /**
  * Default implementation of {@link UserManagement}.
  * <p>
@@ -104,14 +106,14 @@ public class UserManagementImpl implements UserManagement {
     }
 
     /**
-     * Retrieves the profile data for a specific user based on their email.
+     * Retrieves the profile data for a specific user based on their id.
      * <p>
      * This method performs a read-only transaction to fetch the user entity.
      * It validates the input and ensures that if the user does not exist in the
      * persistence layer, a specific business exception is thrown.
      * </p>
      *
-     * @param email The email of the authenticated user to retrieve.
+     * @param id The id of the authenticated user to retrieve.
      * @return A {@link UserProfileResponse} containing the mapped profile data.
      * @throws IllegalArgumentException      If the provided email is null or empty.
      * @throws UserProfileNotFoundException If no user is found with the given email.
@@ -120,15 +122,15 @@ public class UserManagementImpl implements UserManagement {
      */
     @Override
     @Transactional(readOnly = true)
-    public UserProfileResponse getCurrentUserProfile(String email) {
+    public UserProfileResponse getCurrentUserProfile(String id) {
 
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("Email must not be null or blank");
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Id must not be null or blank");
         }
 
-        UserEntity user = userRepository.findByEmail(email)
+        UserEntity user = userRepository.findById(UUID.fromString(id))
                 .orElseThrow(() ->
-                        new UserProfileNotFoundException("Authenticated user not found: " + email));
+                        new UserProfileNotFoundException("Authenticated user not found: " + id));
 
 
         return userMapper.toUserProfileResponse(user);

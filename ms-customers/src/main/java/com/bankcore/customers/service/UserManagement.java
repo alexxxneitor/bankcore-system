@@ -45,10 +45,10 @@ public interface UserManagement {
      * data is properly mapped to a response DTO.
      * </p>
      *
-     * @param email The unique email address of the user.
+     * @param id The unique id of the user.
      * @return A {@link UserProfileResponse} object containing the user's profile details.
-     * @throws UserProfileNotFoundException If no user exists with the specified email.
-     * @throws IllegalArgumentException      If the email parameter is invalid (null or blank).
+     * @throws UserProfileNotFoundException If no user exists with the specified id.
+     * @throws IllegalArgumentException     If the id parameter is invalid (null or blank).
      */
-    UserProfileResponse getCurrentUserProfile(String email);
+    UserProfileResponse getCurrentUserProfile(String id);
 }
