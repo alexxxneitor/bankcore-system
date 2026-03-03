@@ -1,6 +1,9 @@
 package com.bankcore.customers.service;
 
+
+import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exception.ResourceConflictException;
@@ -11,6 +14,13 @@ import com.bankcore.customers.utils.CustomerStatus;
 import com.bankcore.customers.utils.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,30 +43,18 @@ import java.util.UUID;
  * Business rules and security requirements are enforced at this layer
  * before interacting with the persistence layer.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian
+ * @version 1.0
  */
 @Service
+@RequiredArgsConstructor
 public class UserManagementImpl implements UserManagement {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-
-    /**
-     * Constructs a new {@code UserManagementImpl} with required dependencies.
-     *
-     * @param userRepository repository responsible for user persistence operations
-     * @param passwordEncoder encoder used to securely hash password and ATM PIN
-     * @param userMapper mapper responsible for converting entities to DTOs
-     */
-    public UserManagementImpl(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            UserMapper userMapper) {
-
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userMapper = userMapper;
-    }
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     /**
      * Registers a new customer in the system.
@@ -103,6 +101,45 @@ public class UserManagementImpl implements UserManagement {
         userRepository.save(userEntity);
 
         return userMapper.toRegisterResponse(userEntity);
+    }
+
+    /**
+     * Authenticates a user based on email and password and generates a JWT access token.
+     * <p>
+     * This method performs the following steps:
+     * <ol>
+     * <li>Validates the existence of the user by email.</li>
+     * <li>Authenticates the credentials using the {@code AuthenticationManager}.</li>
+     * <li>Updates the {@code SecurityContextHolder} with the authenticated principal.</li>
+     * <li>Generates a new JWT access token and retrieves its expiration.</li>
+     * </ol>
+     *
+     * @param request the {@link LoginRequest} containing the user's email and password
+     * @return a {@link LoginResponse} containing the JWT, expiration time, and user details
+     * @throws UsernameNotFoundException if no user is found with the provided email
+     * @throws org.springframework.security.core.AuthenticationException if authentication fails
+     * (e.g., invalid credentials or locked account)
+     */
+    @Override
+    public LoginResponse login(LoginRequest request) {
+
+        UserEntity userEntity = userRepository.findByEmailIgnoreCase(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        userEntity.getId(),
+                        request.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String jwt = jwtService.generateAccessToken(userDetails);
+        long expiresIn = JwtService.ACCESS_TOKEN_EXPIRATION / 1000;
+
+        return userMapper.toLoginResponse(userEntity, jwt, expiresIn);
     }
 
     /**
