@@ -137,9 +137,10 @@ public class UserManagementImpl implements UserManagement {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtService.generateAccessToken(userDetails);
-        long expiration = jwtService.getAccessTokenExpiration(jwt);
+        String jwt = jwtService.generateAccessToken(userDetails);
+        long expiresIn = JwtService.ACCESS_TOKEN_EXPIRATION / 1000;
 
-        return userMapper.toLoginResponse(userEntity, jwt, expiration);
+        return userMapper.toLoginResponse(userEntity, jwt, expiresIn);
     }
 
     /**
