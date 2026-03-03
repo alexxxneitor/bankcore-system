@@ -72,7 +72,7 @@ public class ProfileController {
                             responseCode = "200",
                             description = "Profile retrieved successfully",
                             content = @Content(
-                                    mediaType = "application/json",
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = UserProfileResponse.class)
                             )
                     ),
