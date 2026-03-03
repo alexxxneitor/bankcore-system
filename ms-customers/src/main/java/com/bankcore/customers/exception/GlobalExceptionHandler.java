@@ -4,6 +4,7 @@ import com.bankcore.customers.dto.responses.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -99,6 +100,28 @@ public class GlobalExceptionHandler {
         log.error("NoAuthoritiesException: {}", ex.getMessage());
 
         return buildErrorResponse(HttpStatus.FORBIDDEN, "Access denied");
+    }
+
+    /**
+     * Handles Spring Security {@link org.springframework.security.core.AuthenticationException}
+     * and all its subclasses, including but not limited to:
+     * <ul>
+     *   <li>{@link org.springframework.security.authentication.BadCredentialsException} – wrong password</li>
+     *   <li>{@link org.springframework.security.core.userdetails.UsernameNotFoundException} – user not found</li>
+     *   <li>{@link org.springframework.security.authentication.LockedException} – account locked</li>
+     *   <li>{@link org.springframework.security.authentication.DisabledException} – account disabled</li>
+     * </ul>
+     *
+     * <p>Returns a {@code 401 Unauthorized} response with a generic message to prevent
+     * user enumeration attacks (i.e., avoid revealing whether the email exists in the system).
+     *
+     * @param ex the {@code AuthenticationException} thrown during the authentication process
+     * @return a {@link ResponseEntity} containing an {@link ErrorResponse} with HTTP 401 status
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+        log.error("Authentication failed: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Authentication failed.");
     }
 
     /**
