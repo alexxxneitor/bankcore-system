@@ -106,13 +106,122 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getCurrentUserProfile(auth.getName()));
     }
 
+    /**
+     * Retrieves the details of a specific customer by their unique identifier.
+     *
+     * <p>This endpoint exposes a REST resource that allows querying detailed
+     * information about a customer registered in the system. The customer's
+     * identifier is provided as a path variable in the URL.</p>
+     *
+     * @param customerId UUID representing the unique identifier of the customer.
+     * @return ResponseEntity containing a {@link CustomerDetailsValidateResponse}
+     *         object with the customer's details, along with HTTP status 200 (OK).
+     */
     @GetMapping("/{customerId}")
-    public ResponseEntity<CustomerDetailsValidateResponse> getCustomerDetailsById(@PathVariable UUID customerId){
+    @Operation(
+            summary = "User details",
+            description = "Returns the user's details by their id, only if you are an authenticated ADMIN and SERVICE role",
+            security = @SecurityRequirement(name = "Security Token"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "User details successfully retrieved",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = CustomerDetailsValidateResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Validation Error - invalid ID parameter",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - Invalid or missing JWT",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - User does not have CUSTOMER role",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found - The user does not exist nor is registered in the database",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<CustomerDetailsValidateResponse> getCustomerDetailsById(@PathVariable UUID customerId) {
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getDetailsCustomer(customerId));
     }
 
+    /**
+     * Validates whether a specific customer is active in the system.
+     *
+     * <p>This endpoint exposes a REST resource that allows checking the status
+     * of a customer by their unique identifier. The response indicates whether
+     * the customer is currently active or not.</p>
+     *
+     * @param customerId UUID representing the unique identifier of the customer.
+     * @return ResponseEntity containing a {@link CustomerValidateResponse}
+     *         object with the validation result of the customer's status,
+     *         along with HTTP status 200 (OK).
+     */
     @GetMapping("/{customerId}/validate")
-    public ResponseEntity<CustomerValidateResponse> getCustomerValidateById(@PathVariable UUID customerId){
+    @Operation(
+            summary = "User validation",
+            description = "Returns existence of the user queried through the id. Allowed only for SERVICE role",
+            security = @SecurityRequirement(name = "Security Token"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successful return of user existence",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = CustomerValidateResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Validation Error - invalid ID parameter",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized - Invalid or missing JWT",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Forbidden - User does not have CUSTOMER role",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    )
+            }
+    )
+    public ResponseEntity<CustomerValidateResponse> getCustomerValidateById(@PathVariable UUID customerId) {
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getCustomerIsActive(customerId));
     }
 }
