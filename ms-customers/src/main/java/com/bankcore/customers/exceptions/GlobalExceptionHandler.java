@@ -79,9 +79,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserProfileNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserProfileNotFoundException ex) {
 
-        log.error("Security alert: Authenticated user missing from DB: {}", ex.getMessage());
-
-        return buildErrorResponse(HttpStatus.NOT_FOUND, "Account error. Please log in again.");
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     /**
