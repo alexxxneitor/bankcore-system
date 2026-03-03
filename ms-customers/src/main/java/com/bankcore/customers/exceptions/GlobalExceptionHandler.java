@@ -172,6 +172,6 @@ public class GlobalExceptionHandler {
                         .description(description)
                         .build();
 
-        return new ResponseEntity<>(body, status);
+        return ResponseEntity.status(status).body(body);
     }
 }
