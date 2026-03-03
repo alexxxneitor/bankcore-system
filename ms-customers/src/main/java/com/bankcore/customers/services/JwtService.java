@@ -13,7 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import com.bankcore.customers.utils.enums.UserRole;
+import com.bankcore.customers.exceptions.NoAuthoritiesException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -55,7 +55,7 @@ public class JwtService {
                 .collect(Collectors.toList());
 
         if (authorities.isEmpty()) {
-            authorities.add("ROLE_" + UserRole.CUSTOMER.name());
+            throw new NoAuthoritiesException("User has no granted authorities");
         }
 
         return Jwts.builder()
@@ -93,7 +93,7 @@ public class JwtService {
     }
 
     public long getAccessTokenExpiration(String token) {
-        return getClaims(token).get("exp", Long.class);
+        return getClaims(token).getExpiration().getTime() / 1000;
     }
 
     /**

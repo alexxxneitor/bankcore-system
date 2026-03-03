@@ -1,15 +1,7 @@
 package com.bankcore.customers.controllers;
 
-import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
-import com.bankcore.customers.dto.responses.CustomerValidateResponse;
-import com.bankcore.customers.dto.responses.ErrorResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +12,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.CustomerValidateResponse;
+import com.bankcore.customers.dto.responses.ErrorResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.services.UserManagement;
 
-import java.util.UUID;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
 /**
  * REST controller for managing customer profile operations.
@@ -61,7 +62,7 @@ public class ProfileController {
      * @see UserManagement#getCurrentUserProfile(String)
      */
     @GetMapping("/me")
-    @PreAuthorize("isFullyAuthenticated() && hasRole(T(com.bankcore.customers.utils.enums.UserRole).CUSTOMER.name())")
+    @PreAuthorize("isFullyAuthenticated() && hasAnyRole(T(com.bankcore.customers.utils.UserRole).CUSTOMER.name(), T(com.bankcore.customers.utils.UserRole).ADMIN.name())")
     @Operation(
             summary = "View Profile",
             description = "Returns the profile of the authenticated CUSTOMER",

@@ -79,7 +79,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = DataProvider.UUID, roles = "ADMIN")
+    @WithMockUser(username = DataProvider.UUID, roles = "USER")
     void shouldReturn403WhenWrongRole() throws Exception {
 
         mockMvc.perform(get("/api/customers/me"))

@@ -130,7 +130,7 @@ public class UserManagementImpl implements UserManagement {
     public LoginResponse login(LoginRequest request) {
 
         UserEntity userEntity = userRepository.findByEmailIgnoreCase(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.getEmail()));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -143,9 +143,9 @@ public class UserManagementImpl implements UserManagement {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtService.generateAccessToken(userDetails);
-        long expiration = jwtService.getAccessTokenExpiration(jwt);
+        long expiresIn = JwtService.ACCESS_TOKEN_EXPIRATION / 1000;
 
-        return userMapper.toLoginResponse(userEntity, jwt, expiration);
+        return userMapper.toLoginResponse(userEntity, jwt, expiresIn);
     }
 
     /**

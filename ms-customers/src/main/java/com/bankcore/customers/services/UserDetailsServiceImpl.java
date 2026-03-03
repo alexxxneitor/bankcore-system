@@ -1,9 +1,7 @@
 package com.bankcore.customers.services;
 
-import com.bankcore.customers.model.UserEntity;
-import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.utils.enums.CustomerStatus;
-import lombok.RequiredArgsConstructor;
+import java.util.UUID;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,7 +9,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import com.bankcore.customers.model.UserEntity;
+import com.bankcore.customers.repository.UserRepository;
+import com.bankcore.customers.utils.enums.CustomerStatus;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Custom implementation of {@link UserDetailsService} to integrate the application's
@@ -25,6 +28,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
@@ -42,7 +46,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String uuid) throws UsernameNotFoundException {
 
         UserEntity userEntity = userRepository.findById(UUID.fromString(uuid))
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found with uuid: {}", uuid);
+                    return new UsernameNotFoundException("User not found");
+                });
 
         return buildUserDetails(userEntity);
     }

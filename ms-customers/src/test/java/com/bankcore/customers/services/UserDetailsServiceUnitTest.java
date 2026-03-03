@@ -37,8 +37,7 @@ class UserDetailsServiceImplTest {
         when(userRepository.findById(UUID.fromString(testUUID))).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername(testUUID))
-                .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessageContaining(testUUID);
+                .isInstanceOf(UsernameNotFoundException.class);
 
         verify(userRepository, times(1)).findById(UUID.fromString(testUUID));
     }

@@ -1,13 +1,9 @@
 package com.bankcore.customers.services;
 
 
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.List;
-
-import javax.crypto.SecretKey;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.bankcore.customers.exceptions.NoAuthoritiesException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,8 +11,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JwtServiceUnitTest {
 
@@ -91,18 +93,16 @@ public class JwtServiceUnitTest {
     }
 
     @Test
-    void shouldGenerateToken_whenUserHasNoRoles() {
+    void shouldNotGenerateToken_whenUserHasNoRoles() {
         UserDetails userWithNoRoles = User.builder()
                 .username("uuid-sin-roles")
                 .password("password")
                 .authorities(List.of())
                 .build();
 
-        String token = jwtService.generateAccessToken(userWithNoRoles);
-        List<String> roles = jwtService.getRolesFromToken(token);
-
-        assertThat(token).isNotBlank();
-        assertThat(roles).isNotEmpty();
+        assertThrows(NoAuthoritiesException.class, () -> {
+            jwtService.generateAccessToken(userWithNoRoles);
+        });
     }
 
     @Nested
@@ -191,7 +191,7 @@ public class JwtServiceUnitTest {
         }
 
         @Test
-        void shouldReturnNoEmptyList_whenNoRoles() {
+        void shouldReturnNull_whenNoRolesClaim() {
 
             UserDetails noRolesUser = User.builder()
                     .username("uuid-vacio")
@@ -199,11 +199,44 @@ public class JwtServiceUnitTest {
                     .authorities(List.of())
                     .build();
 
-            String token = jwtService.generateAccessToken(noRolesUser);
+            String token =
+                    Jwts.builder()
+                            .subject(noRolesUser.getUsername())
+                            .id(UUID.randomUUID().toString())
+                            .issuedAt(new Date())
+                            .claim("enabled", true)
+                            .issuer("bankcore")
+                            .signWith(secretKey)
+                            .compact();
 
             List<String> roles = jwtService.getRolesFromToken(token);
 
-            assertThat(roles).isNotEmpty();
+            assertThat(roles).isNull();
+        }
+
+        @Test
+        void shouldReturnEmpty_whenNoRolesInRolesClaim() {
+
+            UserDetails noRolesUser = User.builder()
+                    .username("uuid-vacio")
+                    .password("pass")
+                    .authorities(List.of())
+                    .build();
+
+            String token =
+                    Jwts.builder()
+                            .subject(noRolesUser.getUsername())
+                            .id(UUID.randomUUID().toString())
+                            .issuedAt(new Date())
+                            .claim("roles", noRolesUser.getAuthorities())
+                            .claim("enabled", true)
+                            .issuer("bankcore")
+                            .signWith(secretKey)
+                            .compact();
+
+            List<String> roles = jwtService.getRolesFromToken(token);
+
+            assertThat(roles).isEmpty();
         }
     }
 }

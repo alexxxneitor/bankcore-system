@@ -1,31 +1,29 @@
 package com.bankcore.customers.controllers.filter;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.bankcore.customers.exceptions.NoAuthoritiesException;
+import com.bankcore.customers.services.JwtService;
+import com.bankcore.customers.utils.enums.UserRole;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import com.bankcore.customers.services.JwtService;
-import com.bankcore.customers.utils.enums.UserRole;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +34,9 @@ public class JwtAuthenticationFilterUnitTest {
 
     @Mock
     private FilterChain filterChain;
+
+    @Mock
+    private HandlerExceptionResolver exceptionResolver;
 
     @InjectMocks
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -141,20 +142,19 @@ public class JwtAuthenticationFilterUnitTest {
     // Exception Managment:
 
     @Test
-    void shouldContinueFilterChain_whenJwtServiceThrowsException() throws ServletException, IOException {
-        String token = "a token";
-        request.addHeader("Authorization", "Bearer " + token);
+    void shouldNotContinueFilterChain_whenJwtServiceThrowsException() throws Exception {
+        request.addHeader("Authorization", "Bearer some-token");
 
-        when(jwtService.validateToken(token)).thenThrow(new RuntimeException("Token Parsing error"));
-
+        when(jwtService.validateToken(anyString())).thenThrow(new NoAuthoritiesException("no authorities"));
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+
+        verify(exceptionResolver).resolveException(eq(request), eq(response), isNull(), any(NoAuthoritiesException.class));
     }
 
     @Test
-    void shouldContinueFilterChain_whenUUIDThrowsException() throws ServletException, IOException {
+    void shouldNotContinueFilterChain_whenUUIDThrowsException() throws ServletException, IOException {
         String token = "Some token";
         request.addHeader("Authorization", "Bearer " + token);
 
@@ -164,8 +164,8 @@ public class JwtAuthenticationFilterUnitTest {
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(filterChain).doFilter(request, response);
-
+        verify(filterChain, never()).doFilter(request, response);
+        verify(exceptionResolver).resolveException(eq(request), eq(response), isNull(), any(RuntimeException.class));
     }
 
     // JWT parse:
