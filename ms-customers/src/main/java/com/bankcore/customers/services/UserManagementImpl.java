@@ -173,7 +173,7 @@ public class UserManagementImpl implements UserManagement {
 
         UserEntity user = userRepository.findById(UUID.fromString(id))
                 .orElseThrow(() ->
-                        new UserProfileNotFoundException("Authenticated user not found: " + id));
+                        new UserProfileNotFoundException("Authenticated user not found"));
 
 
         return userMapper.toUserProfileResponse(user);
