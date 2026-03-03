@@ -84,7 +84,7 @@ public class JwtService {
     }
 
     public long getAccessTokenExpiration(String token) {
-        return getClaims(token).get("exp", Long.class);
+        return getClaims(token).getExpiration().getTime() / 1000;
     }
 
     /**
