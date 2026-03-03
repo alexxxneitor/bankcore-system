@@ -8,6 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -120,6 +121,37 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
         log.error("Authentication failed: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Authentication failed.");
+    }
+
+    /**
+     * Handles {@link MethodArgumentTypeMismatchException} thrown when a request parameter
+     * cannot be converted to the expected type.
+     *
+     * <p>This exception handler is triggered when a client provides an invalid format
+     * for a request parameter, such as an incorrectly formatted UUID. It inspects the
+     * expected type of the parameter and generates a descriptive error message to help
+     * the client correct their request.</p>
+     *
+     * @param ex the {@link MethodArgumentTypeMismatchException} instance containing
+     *           details about the invalid argument, including its name and expected type.
+     * @return ResponseEntity containing an {@link ErrorResponse} object with a
+     *         descriptive error message and HTTP status 400 (Bad Request).
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException ex) {
+
+        String expectedType = ex.getRequiredType() != null
+                ? ex.getRequiredType().getSimpleName()
+                : "unknown";
+
+        String description = String.format(
+                "Invalid format for parameter '%s'. Expected type: %s",
+                ex.getName(),
+                expectedType
+        );
+
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, description);
     }
 
     /**
