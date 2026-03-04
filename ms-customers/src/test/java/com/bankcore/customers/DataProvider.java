@@ -11,6 +11,8 @@ public class DataProvider {
     public static final String EMAIL = "juan@test.com";
     public static final String UUID = "9e85d91b-3b89-4404-b0ca-12a4b0533510";
     public static final String CUSTOMER_ROLE = "CUSTOMER";
+    public static final String ADMIN_ROLE = "ADMIN";
+    public static final String SERVICE_ROLE = "SERVICE";
 
     public static UserEntity createMockUser(){
         return UserEntity.builder()
@@ -24,8 +26,6 @@ public class DataProvider {
                 .address("Bogotá")
                 .role(UserRole.CUSTOMER)
                 .status(CustomerStatus.ACTIVE)
-                .createdDate(Instant.now())
-                .updatedDate(Instant.now())
                 .build();
     }
 
