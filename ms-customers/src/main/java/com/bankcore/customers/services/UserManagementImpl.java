@@ -244,7 +244,7 @@ public class UserManagementImpl implements UserManagement {
         return CustomerValidateResponse.builder()
                 .customerId(customerId)
                 .exist(exists)
-                .isActive(isActive)
+                .active(isActive)
                 .build();
     }
 }
