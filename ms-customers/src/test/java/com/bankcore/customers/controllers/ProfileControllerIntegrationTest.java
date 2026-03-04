@@ -107,6 +107,75 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @WithMockUser(roles = DataProvider.ADMIN_ROLE)
+    void shouldReturn200WhenAdminRequestsCustomer() throws Exception {
+        mockMvc.perform(get("/api/customers/{id}", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.dni").value(savedUser.getDni()))
+                .andExpect(jsonPath("$.fullName").value(String.join(" ", savedUser.getFirstName(), savedUser.getLastName())))
+                .andExpect(jsonPath("$.email").value(savedUser.getEmail()))
+                .andExpect(jsonPath("$.status").value(savedUser.getStatus().toString()));
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn200WhenServiceRequestsCustomer() throws Exception {
+        mockMvc.perform(get("/api/customers/{id}", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.dni").value(savedUser.getDni()))
+                .andExpect(jsonPath("$.fullName").value(String.join(" ", savedUser.getFirstName(), savedUser.getLastName())))
+                .andExpect(jsonPath("$.email").value(savedUser.getEmail()))
+                .andExpect(jsonPath("$.status").value(savedUser.getStatus().toString()));
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.CUSTOMER_ROLE)
+    void shouldReturn403WhenCustomerRequestsCustomer() throws Exception {
+        mockMvc.perform(get("/api/customers/{id}", savedUser.getId()))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.ADMIN_ROLE)
+    void shouldReturn400WhenServiceRequestsCustomerPathInvalidFormat() throws Exception {
+        mockMvc.perform(get("/api/customers/{id}", DataProvider.INVALID_UUID))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn404WhenServiceRequestsCustomerNotFound() throws Exception {
+        mockMvc.perform(get("/api/customers/{id}", DataProvider.UUID))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    void shouldReturn401WhenServiceRequestsCustomerNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/api/customers/{id}", savedUser.getId()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
     @WithMockUser(roles = DataProvider.SERVICE_ROLE)
     void shouldReturn200WhenServiceRoleCustomerExist() throws Exception {
 
@@ -220,7 +289,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     @WithMockUser(roles = DataProvider.SERVICE_ROLE)
     void shouldReturn400WhenServiceRolePathFormatIncorrect() throws Exception {
 
-        mockMvc.perform(get("/api/customers/{id}/validate", "550e8400-e29b-41d4-a716446655440000"))
+        mockMvc.perform(get("/api/customers/{id}/validate", DataProvider.INVALID_UUID))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
