@@ -2,25 +2,18 @@ package com.bankcore.accounts.client;
 
 import java.util.UUID;
 
+import com.bankcore.accounts.exceptions.CustomerInactiveException;
+import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 import org.springframework.http.HttpStatusCode;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
-import com.bankcore.accounts.exception.CustomerInactiveException;
-import com.bankcore.accounts.exception.CustomerNotFoundException;
-import com.bankcore.accounts.exception.ExternalServiceException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomExternalServiceException;
-import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-
-
-import java.util.UUID;
 
 /**
  * Implementation of the CustomerClient interface that uses WebClient to communicate with the Customer service.
@@ -76,6 +69,10 @@ public class CustomerClientImpl implements CustomerClient {
         if (!response.exists()) {
             log.warn("Customer does not exist according to validation endpoint. ID: {}", id);
             throw new CustomerNotFoundException("The authenticated client is not registered");
+        }
+
+        if (!response.isActive()) {
+            throw new CustomerInactiveException("You do not have permission to access this resource.");
         }
 
         return response;

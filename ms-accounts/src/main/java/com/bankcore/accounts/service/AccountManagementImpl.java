@@ -3,6 +3,7 @@ package com.bankcore.accounts.service;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
@@ -16,6 +17,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,7 +26,7 @@ import java.util.UUID;
  * to perform database operations related to accounts. It also utilizes the IbanGeneratorService to generate unique
  * IBANs for new accounts and the DailyWithdrawalLimit utility to set withdrawal limits based on account types.
  *
- * @author BankCore Team - Sebastian Orjuela
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 @Service
@@ -87,16 +89,34 @@ public class AccountManagementImpl implements AccountManagementService {
         return accountMapper.toAccountRegisterResponse(accountEntity);
     }
 
+    /**
+     * Retrieves all bank accounts associated with the authenticated customer.
+     * <p>
+     * Validates that the provided ID is not null or blank, parses it as a {@link UUID},
+     * verifies the customer exists and is active via the customer service,
+     * and returns the mapped account list.
+     * </p>
+     *
+     * @param id the string representation of the customer's {@link UUID}
+     * @return a {@link List} of {@link UserAccountResponse} associated with the customer,
+     *         or an empty list if no accounts are found
+     * @throws IllegalArgumentException if {@code id} is null, blank, or not a valid UUID format
+     * @throws com.bankcore.accounts.exceptions.CustomerNotFoundException if the customer does not exist in the Customer Service
+     * @throws CustomerInactiveException if the customer account is inactive
+     * @throws com.bankcore.accounts.exceptions.CustomExternalServiceException if the Customer Service returns an error or empty response
+     */
     @Override
     public List<UserAccountResponse> getCurrentUserAccounts(String id) {
-
-        client.getCustomer(UUID.fromString(id));
 
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Id must not be null or blank");
         }
 
-        List<AccountEntity> accounts = accountRepository.findAllByCustomerId(UUID.fromString(id));
+        UUID customerId = UUID.fromString(id);
+
+        customerClient.getCustomerById(customerId);
+
+        List<AccountEntity> accounts = accountRepository.findAllByCustomerId(customerId);
         return accountMapper.toResponseList(accounts);
     }
 }

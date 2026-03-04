@@ -6,7 +6,9 @@ package com.bankcore.accounts.exceptions;
  * @version 1.0
  */
 public class CustomerInactiveException extends RuntimeException{
+
     public CustomerInactiveException(String message) {
         super(message);
     }
+
 }

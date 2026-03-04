@@ -4,8 +4,10 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
@@ -17,13 +19,15 @@ import java.util.UUID;
  * This entity is mapped to the "accounts" table in the database and contains all relevant information about a bank account,
  * including account number, customer ID, account type, currency, balance, alias, status, daily withdrawal limit, and timestamps for creation and updates.
  * The class uses JPA annotations for ORM mapping and Lombok annotations for boilerplate code reduction
- * @author BankCore Team - Sebastian Orjuela
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 @Entity
 @Table(name = "accounts")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AccountEntity {
 
     @Id
