@@ -5,6 +5,8 @@ import com.bankcore.customers.DataProvider;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.services.UserManagementImpl;
+import com.bankcore.customers.utils.enums.CustomerStatus;
+import com.bankcore.customers.utils.enums.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,4 +106,151 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
         ;
     }
 
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn200WhenServiceRoleCustomerExist() throws Exception {
+
+        mockMvc.perform(get("/api/customers/{id}/validate", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.active").value(true));
+
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn200WhenServiceRoleCustomerNotExist() throws Exception {
+
+        mockMvc.perform(get("/api/customers/{id}/validate", DataProvider.UUID))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.customerId").value(DataProvider.UUID))
+                .andExpect(jsonPath("$.exist").value(false))
+                .andExpect(jsonPath("$.active").value(false));
+
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn200WhenServiceRoleCustomerInactive() throws Exception {
+        userRepository.deleteAll();
+        UserEntity user = UserEntity.builder()
+                .dni("12345678")
+                .firstName("Juan")
+                .lastName("Perez")
+                .email("juan@test.com")
+                .password("Password123!")
+                .atmPin("1234")
+                .phone("3001234567")
+                .address("Bogotá")
+                .role(UserRole.CUSTOMER)
+                .status(CustomerStatus.INACTIVE)
+                .build();
+
+        savedUser = userRepository.save(user);
+
+        mockMvc.perform(get("/api/customers/{id}/validate", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.active").value(false));
+
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn200WhenServiceRoleCustomerBlocked() throws Exception {
+        userRepository.deleteAll();
+        UserEntity user = UserEntity.builder()
+                .dni("12345678")
+                .firstName("Juan")
+                .lastName("Perez")
+                .email("juan@test.com")
+                .password("Password123!")
+                .atmPin("1234")
+                .phone("3001234567")
+                .address("Bogotá")
+                .role(UserRole.CUSTOMER)
+                .status(CustomerStatus.BLOCKED)
+                .build();
+
+        savedUser = userRepository.save(user);
+
+        mockMvc.perform(get("/api/customers/{id}/validate", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.active").value(false));
+
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn200WhenServiceRoleCustomerPendingVerification() throws Exception {
+        userRepository.deleteAll();
+        UserEntity user = UserEntity.builder()
+                .dni("12345678")
+                .firstName("Juan")
+                .lastName("Perez")
+                .email("juan@test.com")
+                .password("Password123!")
+                .atmPin("1234")
+                .phone("3001234567")
+                .address("Bogotá")
+                .role(UserRole.CUSTOMER)
+                .status(CustomerStatus.PENDING_VERIFICATION)
+                .build();
+
+        savedUser = userRepository.save(user);
+
+        mockMvc.perform(get("/api/customers/{id}/validate", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
+                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.active").value(false));
+
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn400WhenServiceRolePathFormatIncorrect() throws Exception {
+
+        mockMvc.perform(get("/api/customers/{id}/validate", "550e8400-e29b-41d4-a716446655440000"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.ADMIN_ROLE)
+    void shouldReturn403WhenAdminAccessValidateEndpoint() throws Exception {
+
+        mockMvc.perform(get("/api/customers/{id}/validate", savedUser.getId()))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+
+    }
+
+    @Test
+    void shouldReturn401WhenNotAuthenticatedValidate() throws Exception {
+
+        mockMvc.perform(get("/api/customers/{id}/validate", savedUser.getId()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+
+    }
 }
