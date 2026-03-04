@@ -6,6 +6,13 @@ import lombok.Getter;
 
 import java.util.UUID;
 
+/**
+ * DTO class with response schema for the internal service query,
+ * validation of active and existing client in the system
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
+ */
+
 @Builder
 @Getter
 @AllArgsConstructor

@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
  * them into structured {@link ErrorResponse} objects, ensuring consistent
  * API error responses across the system.
  * </p>
+ * @author Bankcore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
  */
 @Slf4j
 @RestControllerAdvice

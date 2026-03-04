@@ -8,6 +8,8 @@ package com.bankcore.customers.utils.enums;
  * This status controls authentication behavior,
  * transactional permissions, and account access rules.
  * </p>
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 public enum CustomerStatus {
 

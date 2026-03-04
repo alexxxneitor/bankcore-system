@@ -22,6 +22,9 @@ import static java.lang.annotation.ElementType.FIELD;
  * Typical usage includes preventing insecure PIN patterns
  * (e.g., all digits being identical).
  * </p>
+ *
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 @Documented
 @Constraint(validatedBy = AtmPinValidator.class)

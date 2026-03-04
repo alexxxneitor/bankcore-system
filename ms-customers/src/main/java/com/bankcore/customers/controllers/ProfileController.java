@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
  * with the CUSTOMER role can access the data.
  * </p>
  *
- * @author BankCore Team - Cristian Ortiz
+ * @author BankCore Team - Cristian Ortiz - Sebastian Orjuela
  * @version 1.0
  */
 @RestController

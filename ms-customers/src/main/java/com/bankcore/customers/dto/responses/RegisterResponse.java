@@ -16,6 +16,8 @@ import java.util.UUID;
  * during the registration process and returned to the client.
  * Sensitive data such as password or ATM PIN are intentionally excluded.
  * </p>
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 @Getter
 @Setter

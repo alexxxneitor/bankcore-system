@@ -30,6 +30,9 @@ import static java.lang.annotation.ElementType.FIELD;
  *     <li>No whitespace characters</li>
  * </ul>
  * </p>
+ *
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 @Documented
 @Constraint(validatedBy = PasswordConstraintValidator.class)
