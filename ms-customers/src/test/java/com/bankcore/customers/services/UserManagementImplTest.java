@@ -132,7 +132,6 @@ class UserManagementImplTest {
                 .phone(user.getPhone())
                 .address(user.getAddress())
                 .status(user.getStatus().toString())
-                .createdAt(user.getCreatedDate().toString())
                 .build();
 
         when(userRepository.findById(id)).thenReturn(Optional.of(user));
