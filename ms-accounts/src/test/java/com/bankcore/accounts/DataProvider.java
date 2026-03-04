@@ -1,23 +1,27 @@
 package com.bankcore.accounts;
 
-import com.bankcore.accounts.model.AccountEntity;
-import com.bankcore.accounts.utils.AccountStatus;
-import com.bankcore.accounts.utils.AccountType;
+
+import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.utils.enums.AccountStatus;
+import com.bankcore.accounts.utils.enums.AccountType;
+import com.bankcore.accounts.utils.enums.CurrencyCode;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyString;
+
 public class DataProvider {
 
     public static final String CUSTOMER_TEST_UUID = "e7c6be34-c77b-4afa-aebb-327354a9fe0b";
 
-    public static AccountEntity createDummyAccount() {
+    public static AccountEntity createDummyAccount(String accountNumber) {
         return AccountEntity.builder()
-                .accountNumber("1234567890")
+                .accountNumber(accountNumber)
                 .customerId(UUID.fromString(CUSTOMER_TEST_UUID))
                 .accountType(AccountType.SAVINGS)
-                .currency("USD")
+                .currency(CurrencyCode.USD)
                 .balance(new BigDecimal("1500.50"))
                 .alias("Ahorros Nómina")
                 .status(AccountStatus.ACTIVE)

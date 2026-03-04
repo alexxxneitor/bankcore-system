@@ -2,7 +2,7 @@ package com.bankcore.accounts.controller;
 
 import com.bankcore.accounts.AbstractIntegrationTest;
 import com.bankcore.accounts.DataProvider;
-import com.bankcore.accounts.repository.AccountRepository;
+import com.bankcore.accounts.repositries.AccountRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.*;
@@ -35,27 +35,26 @@ public class AccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final MockWebServer mockWebServer = new MockWebServer();
 
+    private static final UUID CUSTOMER_ID = UUID.fromString(DataProvider.CUSTOMER_TEST_UUID);
+
+    @BeforeAll
+    static void startServer() throws IOException {
+        mockWebServer.start();
+    }
+
     @DynamicPropertySource
     static void overrideProps(DynamicPropertyRegistry registry) {
-        registry.add("ms-customers.url", () -> {
-            try {
-                mockWebServer.start();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return mockWebServer.url("/").toString();
-        });
+        registry.add("ms-customers.url", () -> mockWebServer.url("/").toString());
     }
 
     @BeforeEach
     void setupData() {
         repository.deleteAll();
-        repository.saveAll(List.of(DataProvider.createDummyAccount(), DataProvider.createDummyAccount(), DataProvider.createDummyAccount()));
-    }
-
-    @AfterEach
-    void cleanUp() {
-        repository.deleteAll();
+        repository.saveAll(List.of(
+                DataProvider.createDummyAccount("123456"),
+                DataProvider.createDummyAccount("654321"),
+                DataProvider.createDummyAccount("654123")
+        ));
     }
 
     @AfterAll
@@ -63,121 +62,83 @@ public class AccountsControllerIntegrationTest extends AbstractIntegrationTest {
         mockWebServer.shutdown();
     }
 
-    @Test
-    void shouldReturnAccountsWhenCustomerAuthorizedAndActive() throws Exception {
-
-        UUID id = UUID.fromString(DataProvider.CUSTOMER_TEST_UUID);
-
-        mockWebServer.enqueue(new MockResponse()
+    private MockResponse buildCustomerResponse(boolean exists, boolean isActive) {
+        return new MockResponse()
                 .setBody("""
-                        {
-                        "id": "%s",
-                        "exists":true,
-                        "isActive": true
-                        }
-                        """.formatted(id)).addHeader("Content-Type", MediaType.APPLICATION_JSON));
-
-        mockMvc.perform(get("/api/accounts").with(
-                        user(id.toString())
-                                .roles("CUSTOMER")
-                )).andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$").isNotEmpty());
-
+                {
+                    "id": "%s",
+                    "exists": %s,
+                    "isActive": %s
+                }
+                """.formatted(CUSTOMER_ID, exists, isActive))
+                .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
     }
 
     @Test
-    void shouldReturn403WhenCustomerAuthorizedAndInactive() throws Exception {
+    void shouldReturnAccounts_whenCustomerAuthorizedAndActive() throws Exception {
+        mockWebServer.enqueue(buildCustomerResponse(true, true));
 
-        UUID id = UUID.fromString(DataProvider.CUSTOMER_TEST_UUID);
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(CUSTOMER_ID.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
 
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("""
-                        {
-                        "id": "%s",
-                        "exists":true,
-                        "isActive": false
-                        }
-                        """.formatted(id)).addHeader("Content-Type", MediaType.APPLICATION_JSON));
+    @Test
+    void shouldReturnNoAccounts_whenCustomerAuthorizedAndActive() throws Exception {
+        repository.deleteAll(); // override del @BeforeEach para este caso específico
+        mockWebServer.enqueue(buildCustomerResponse(true, true));
 
-        mockMvc.perform(get("/api/accounts").with(
-                        user(id.toString())
-                                .roles("CUSTOMER")
-                )).andDo(print())
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(CUSTOMER_ID.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void shouldReturn403_whenCustomerInactive() throws Exception {
+        mockWebServer.enqueue(buildCustomerResponse(true, false));
+
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(CUSTOMER_ID.toString()).roles("CUSTOMER")))
+                .andDo(print())
                 .andExpect(status().isForbidden())
-                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value("Forbidden"))
                 .andExpect(jsonPath("$.code").value(403))
                 .andExpect(jsonPath("$.description").value("You do not have permission to access this resource."))
                 .andExpect(jsonPath("$.timestamp").exists());
-
     }
 
     @Test
-    void shouldReturn404WhenCustomerNotFound() throws Exception {
+    void shouldReturn404_whenCustomerNotFound() throws Exception {
+        mockWebServer.enqueue(buildCustomerResponse(false, false));
 
-        UUID id = UUID.fromString(DataProvider.CUSTOMER_TEST_UUID);
-
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("""
-                        {
-                        "id": "%s",
-                        "exists":false,
-                        "isActive": false
-                        }
-                        """.formatted(id)).addHeader("Content-Type", MediaType.APPLICATION_JSON));
-
-        mockMvc.perform(get("/api/accounts").with(
-                        user(id.toString())
-                                .roles("CUSTOMER")
-                )).andDo(print())
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(CUSTOMER_ID.toString()).roles("CUSTOMER")))
+                .andDo(print())
                 .andExpect(status().isNotFound())
-                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value("Not Found"))
                 .andExpect(jsonPath("$.code").value(404))
-                .andExpect(jsonPath("$.description").value("Customer not found for id: " + DataProvider.CUSTOMER_TEST_UUID))
+                .andExpect(jsonPath("$.description").value("The authenticated client is not registered"))
                 .andExpect(jsonPath("$.timestamp").exists());
-
     }
 
     @Test
-    void shouldReturnNoAccountsWhenCustomerAuthorizedAndActive() throws Exception {
-
-        repository.deleteAll();
-        UUID id = UUID.fromString(DataProvider.CUSTOMER_TEST_UUID);
-
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("""
-                        {
-                        "id": "%s",
-                        "exists": true,
-                        "isActive": true
-                        }
-                        """.formatted(id)).addHeader("Content-Type", MediaType.APPLICATION_JSON));
-
-        mockMvc.perform(get("/api/accounts").with(
-                        user(id.toString())
-                                .roles("CUSTOMER")
-                )).andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty())
-                .andExpect(jsonPath("$", hasSize(0)));
-
-    }
-
-    @Test
-    void shouldReturn502WhenExternalServiceFails() throws Exception {
+    void shouldReturn502_whenExternalServiceFails() throws Exception {
         mockWebServer.enqueue(new MockResponse().setResponseCode(500));
 
-        mockMvc.perform(get("/api/accounts").with(
-                        user(DataProvider.CUSTOMER_TEST_UUID).roles("CUSTOMER")
-                )).andDo(print())
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(CUSTOMER_ID.toString()).roles("CUSTOMER")))
+                .andDo(print())
                 .andExpect(status().isBadGateway())
-                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value("Bad Gateway"))
                 .andExpect(jsonPath("$.code").value(502))
                 .andExpect(jsonPath("$.description").value("Error communicating with Customer Service"))
@@ -185,20 +146,17 @@ public class AccountsControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void shouldReturn403WhenWrongRole() throws Exception {
-
-        mockMvc.perform(get("/api/accounts").with(
-                        user(DataProvider.CUSTOMER_TEST_UUID).roles("ADMIN")
-                )).andDo(print())
+    void shouldReturn403_whenWrongRole() throws Exception {
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(CUSTOMER_ID.toString()).roles("ADMIN")))
+                .andDo(print())
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void shouldReturn401WhenNotAuthenticated() throws Exception {
+    void shouldReturn401_whenNotAuthenticated() throws Exception {
         mockMvc.perform(get("/api/accounts"))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
-
-
 }
