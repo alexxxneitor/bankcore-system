@@ -1,8 +1,8 @@
-package com.bankcore.customers.controller.filter;
+package com.bankcore.customers.controllers.filter;
 
-import com.bankcore.customers.exception.NoAuthoritiesException;
-import com.bankcore.customers.service.JwtService;
-import com.bankcore.customers.utils.UserRole;
+import com.bankcore.customers.exceptions.NoAuthoritiesException;
+import com.bankcore.customers.services.JwtService;
+import com.bankcore.customers.utils.enums.UserRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;

@@ -1,8 +1,8 @@
-package com.bankcore.customers.controller.filter;
+package com.bankcore.customers.controllers.filter;
 
 import com.bankcore.customers.AbstractIntegrationTest;
-import com.bankcore.customers.service.JwtService;
-import com.bankcore.customers.utils.UserRole;
+import com.bankcore.customers.services.JwtService;
+import com.bankcore.customers.utils.enums.UserRole;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

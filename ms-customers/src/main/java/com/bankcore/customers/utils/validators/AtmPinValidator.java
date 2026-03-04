@@ -19,6 +19,9 @@ import java.util.Map;
  *     <li>Prevents any digit from appearing more than three times</li>
  * </ul>
  * </p>
+ *
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 public class AtmPinValidator implements ConstraintValidator<ValidAtmPin, String> {
 

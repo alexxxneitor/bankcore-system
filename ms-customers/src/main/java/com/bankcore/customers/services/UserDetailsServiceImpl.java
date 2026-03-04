@@ -1,10 +1,7 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
-import com.bankcore.customers.model.UserEntity;
-import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.utils.CustomerStatus;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.UUID;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,7 +9,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import com.bankcore.customers.model.UserEntity;
+import com.bankcore.customers.repository.UserRepository;
+import com.bankcore.customers.utils.enums.CustomerStatus;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Custom implementation of {@link UserDetailsService} to integrate the application's

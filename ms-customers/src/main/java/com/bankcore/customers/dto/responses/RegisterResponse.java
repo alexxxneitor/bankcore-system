@@ -1,6 +1,6 @@
 package com.bankcore.customers.dto.responses;
 
-import com.bankcore.customers.utils.CustomerStatus;
+import com.bankcore.customers.utils.enums.CustomerStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +16,8 @@ import java.util.UUID;
  * during the registration process and returned to the client.
  * Sensitive data such as password or ATM PIN are intentionally excluded.
  * </p>
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 @Getter
 @Setter

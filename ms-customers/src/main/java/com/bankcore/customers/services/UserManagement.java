@@ -1,12 +1,16 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
-import com.bankcore.customers.dto.responses.LoginResponse;
+import java.util.UUID;
+
 import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.CustomerValidateResponse;
+import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
-import com.bankcore.customers.exception.ResourceConflictException;
-import com.bankcore.customers.exception.UserProfileNotFoundException;
+import com.bankcore.customers.exceptions.ResourceConflictException;
+import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 
 /**
  * Application service interface responsible for managing user-related
@@ -56,7 +60,7 @@ public interface UserManagement {
     LoginResponse login(LoginRequest request);
 
     /**
-     * Retrieves the profile information for a user identified by their email.
+     * Retrieves the profile information for a user identified by their id.
      * <p>
      * This method serves as the main entry point for obtaining customer profile details.
      * Implementations are expected to handle validation and ensure the returned
@@ -69,4 +73,25 @@ public interface UserManagement {
      * @throws IllegalArgumentException     If the id parameter is invalid (null or blank).
      */
     UserProfileResponse getCurrentUserProfile(String id);
+
+    /**
+     * Retrieve the user details for the accounts service
+     * <p>
+     *      This method retrieves the user profile and validates its existence, and maps the user to the corresponding DTO
+     * </p>
+     * @param customerId the unique id of the user.
+     * @return A {@link CustomerDetailsValidateResponse} object containing the user's profile details.
+     * @throws UserProfileNotFoundException If no user exists with the specified id.
+     */
+    CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId);
+
+    /**
+     * retrieves if the user exists and is active
+     * <p>
+     *     Retrieve the user by their ID and verify their existence and if their status is {@link com.bankcore.customers.utils.enums.CustomerStatus#ACTIVE}
+     * </p>
+     * @param customerId the unique id of the user.
+     * @return A {@link CustomerValidateResponse} containing the customer ID, existence flag and active status flag
+     */
+    CustomerValidateResponse getCustomerIsActive(UUID customerId);
 }

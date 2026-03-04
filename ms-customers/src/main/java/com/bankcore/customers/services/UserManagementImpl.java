@@ -1,20 +1,24 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
 
 import com.bankcore.customers.dto.requests.LoginRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.CustomerValidateResponse;
 import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
-import com.bankcore.customers.exception.ResourceConflictException;
-import com.bankcore.customers.exception.UserProfileNotFoundException;
+import com.bankcore.customers.exceptions.ResourceConflictException;
+import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.utils.CustomerStatus;
-import com.bankcore.customers.utils.UserRole;
+import com.bankcore.customers.utils.enums.CustomerStatus;
+import com.bankcore.customers.utils.enums.UserRole;
 import com.bankcore.customers.utils.mappers.UserMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -48,12 +53,13 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserManagementImpl implements UserManagement {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
+    private final UserMapper userMapper;
     private final JwtService jwtService;
 
     /**
@@ -167,9 +173,78 @@ public class UserManagementImpl implements UserManagement {
 
         UserEntity user = userRepository.findById(UUID.fromString(id))
                 .orElseThrow(() ->
-                        new UserProfileNotFoundException("Authenticated user not found: " + id));
+                        new UserProfileNotFoundException("Authenticated user not found"));
 
 
         return userMapper.toUserProfileResponse(user);
+    }
+
+    /**
+     * Retrieves detailed information about a customer based on their unique identifier.
+     *
+     * <p>This method queries the {@link UserRepository} to find a {@link UserEntity}
+     * associated with the provided customer ID. If no entity is found, a
+     * {@link UserProfileNotFoundException} is thrown. The retrieved entity is then
+     * mapped into a {@link CustomerDetailsValidateResponse} using the {@link UserMapper}.
+     *
+     * @param customerId the unique identifier of the customer; must not be null
+     * @return a {@link CustomerDetailsValidateResponse} containing the validated customer details
+     * @throws UserProfileNotFoundException if no customer exists with the provided ID
+     * @see UserEntity
+     * @see CustomerDetailsValidateResponse
+     * @see UserRepository
+     * @see UserMapper
+     */
+
+    @Override
+    @Transactional(readOnly = true)
+    public CustomerDetailsValidateResponse getDetailsCustomer(UUID customerId) {
+
+        log.info("Fetching customer for details by ID: {}", customerId);
+
+        UserEntity customer = userRepository.findById(customerId)
+                .orElseThrow(() -> {
+                    log.warn("Customer not found in details. ID: {}", customerId);
+                    return new UserProfileNotFoundException("There is no client with the provided ID");
+                });
+
+        return userMapper.toCustomerDetailsValidateResponse(customer);
+    }
+
+    /**
+     * Validates whether a customer exists and is currently active.
+     *
+     * <p>This method attempts to retrieve a {@link UserEntity} from the {@link UserRepository}
+     * using the provided customer ID. It then checks if the customer exists and whether
+     * their status is {@link CustomerStatus#ACTIVE}. The result is encapsulated in a
+     * {@link CustomerValidateResponse}, which indicates both existence and active state.
+     *
+     * <p>Logging is performed to trace the validation process.
+     *
+     * @param customerId the unique identifier of the customer; must not be null
+     * @return a {@link CustomerValidateResponse} containing the customer ID, existence flag,
+     *         and active status flag
+     * @see UserEntity
+     * @see CustomerValidateResponse
+     * @see CustomerStatus
+     * @see UserRepository
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public CustomerValidateResponse getCustomerIsActive(UUID customerId) {
+
+        log.info("Fetching customer for validation by ID: {}", customerId);
+
+        Optional<UserEntity> optionalCustomer = userRepository.findById(customerId);
+
+        boolean exists = optionalCustomer.isPresent();
+        boolean isActive = exists &&
+                CustomerStatus.ACTIVE.equals(optionalCustomer.get().getStatus());
+
+        return CustomerValidateResponse.builder()
+                .customerId(customerId)
+                .exist(exists)
+                .active(isActive)
+                .build();
     }
 }
