@@ -16,7 +16,7 @@ import org.springframework.http.HttpHeaders;
  * required to access protected endpoints.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 @OpenAPIDefinition(

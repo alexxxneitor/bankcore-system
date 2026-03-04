@@ -22,7 +22,7 @@ import java.io.IOException;
  * return a structured JSON response using {@link ErrorResponse}.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @Component
@@ -58,7 +58,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                         .build();
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(response.getOutputStream(), body);
     }
 }

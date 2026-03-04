@@ -53,10 +53,11 @@ Tabla: `customers`
 
 #### URLs principales
 
-| Endpoint                | Método | Descripción                               |
-|-------------------------|--------|-------------------------------------------|
-| /api/customers/register | POST   | Registro de nuevos clientes               |
-| /api/customers/me        | GET    | Obtener el perfil del cliente autenticado |
+| Endpoint           | Método | Descripción                               |
+|--------------------|--------|-------------------------------------------|
+| /api/auth/register | POST   | Registro de nuevos clientes               |
+| /api/auth/login    | POST   | Login para clientes                       |
+| /api/customers/me  | GET    | Obtener el perfil del cliente autenticado |
 
 ---
 
