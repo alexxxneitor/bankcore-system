@@ -1,6 +1,6 @@
 package com.bankcore.customers.dto.responses;
 
-import com.bankcore.customers.utils.CustomerStatus;
+import com.bankcore.customers.utils.enums.CustomerStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,7 +12,7 @@ import lombok.Data;
  * information, and account metadata.
  * </p>
  *
- * @author BankCore Team
+ * @author BankCore Team - Cristian Ortiz
  * @version 1.0
  */
 @Data

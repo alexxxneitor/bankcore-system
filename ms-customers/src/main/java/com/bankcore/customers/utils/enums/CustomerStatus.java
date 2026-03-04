@@ -1,4 +1,4 @@
-package com.bankcore.customers.utils;
+package com.bankcore.customers.utils.enums;
 
 /**
  * Represents the possible states of a Customer account
@@ -8,6 +8,8 @@ package com.bankcore.customers.utils;
  * This status controls authentication behavior,
  * transactional permissions, and account access rules.
  * </p>
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 public enum CustomerStatus {
 

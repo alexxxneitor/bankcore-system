@@ -1,5 +1,7 @@
 package com.bankcore.customers.utils.mappers;
 
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.LoginResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.model.UserEntity;
@@ -23,6 +25,8 @@ import java.util.stream.Stream;
  * This mapper ensures that only non-sensitive data is exposed
  * to the API layer.
  * </p>
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
  */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -41,18 +45,25 @@ public interface UserMapper {
     RegisterResponse toRegisterResponse(UserEntity user);
 
     /**
-     * Generates the full name of the user by concatenating
-     * non-null first and last name values.
+     * Maps user details and authentication metadata to a {@link LoginResponse} DTO.
+     * <p>
+     * This mapping performs the following transformations:
+     * <ul>
+     * <li>Maps {@code user.id} to {@code customerId}.</li>
+     * <li>Maps the {@code jwt} parameter to the {@code token} field.</li>
+     * <li>Sets the {@code tokenType} to a constant value of <b>"Bearer"</b>.</li>
+     * <li>Passes the {@code expiresIn} duration directly to the response.</li>
+     * </ul>
      *
-     * @param user the user entity
-     * @return a formatted full name string without null components
+     * @param user the {@link UserEntity} containing the customer's unique identifier
+     * @param jwt the generated JSON Web Token string
+     * @param expiresIn the token expiration time in seconds
+     * @return a populated {@link LoginResponse} ready for the API consumer
      */
-    @Named("fullName")
-    default String mapFullName(UserEntity user) {
-        return Stream.of(user.getFirstName(), user.getLastName())
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(" "));
-    }
+    @Mapping(target = "token", source = "jwt")
+    @Mapping(target = "tokenType", constant = "Bearer")
+    @Mapping(target = "customerId", source = "user.id")
+    LoginResponse toLoginResponse(UserEntity user, String jwt, Long expiresIn);
 
     /**
      * Maps a {@link UserEntity} to a {@link UserProfileResponse} DTO.
@@ -69,4 +80,31 @@ public interface UserMapper {
      */
     @Mapping(source = "createdDate", target = "createdAt")
     UserProfileResponse toUserProfileResponse(UserEntity user);
+
+    /**
+     * Converts a {@link UserEntity} into a {@link CustomerDetailsValidateResponse}.
+     * <p>
+     * The {@code fullName} field is derived from the entity's
+     * first and last name using a custom mapping method.
+     * </p>
+     *
+     * @param user the persisted user entity
+     * @return a response DTO containing non-sensitive user information
+     */
+    @Mapping(target = "fullName", source = ".", qualifiedByName = "fullName")
+    CustomerDetailsValidateResponse toCustomerDetailsValidateResponse(UserEntity user);
+
+    /**
+     * Generates the full name of the user by concatenating
+     * non-null first and last name values.
+     *
+     * @param user the user entity
+     * @return a formatted full name string without null components
+     */
+    @Named("fullName")
+    default String mapFullName(UserEntity user) {
+        return Stream.of(user.getFirstName(), user.getLastName())
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" "));
+    }
 }

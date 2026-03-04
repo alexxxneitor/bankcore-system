@@ -30,6 +30,9 @@ import java.util.List;
  * Presence validation must be handled separately using {@code @NotBlank}
  * or {@code @NotNull}.
  * </p>
+ *
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 public class PasswordConstraintValidator
         implements ConstraintValidator<ValidPassword, String> {

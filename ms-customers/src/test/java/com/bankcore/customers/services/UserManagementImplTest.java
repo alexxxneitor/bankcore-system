@@ -1,4 +1,4 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -6,13 +6,15 @@ import static org.mockito.Mockito.*;
 
 import com.bankcore.customers.DataProvider;
 import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
+import com.bankcore.customers.dto.responses.CustomerValidateResponse;
 import com.bankcore.customers.dto.responses.RegisterResponse;
 import com.bankcore.customers.dto.responses.UserProfileResponse;
-import com.bankcore.customers.exception.ResourceConflictException;
-import com.bankcore.customers.exception.UserProfileNotFoundException;
+import com.bankcore.customers.exceptions.ResourceConflictException;
+import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
-import com.bankcore.customers.utils.CustomerStatus;
+import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.bankcore.customers.utils.mappers.UserMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -130,7 +132,6 @@ class UserManagementImplTest {
                 .phone(user.getPhone())
                 .address(user.getAddress())
                 .status(user.getStatus().toString())
-                .createdAt(user.getCreatedDate().toString())
                 .build();
 
         when(userRepository.findById(id)).thenReturn(Optional.of(user));
@@ -159,5 +160,102 @@ class UserManagementImplTest {
         UUID id = UUID.randomUUID();
         when(userRepository.findById(id)).thenReturn(Optional.empty());
         assertThrows(UserProfileNotFoundException.class, () -> userManagement.getCurrentUserProfile(id.toString()));
+    }
+
+    @Test
+    void shouldReturnCustomerDetailsWhenCustomerExists() {
+        UUID id = UUID.randomUUID();
+        UserEntity entity = new UserEntity();
+        CustomerDetailsValidateResponse response =
+                CustomerDetailsValidateResponse.builder()
+                        .id(id)
+                        .dni("101226156")
+                        .fullName("John Doe")
+                        .email("johndoe@test.com")
+                        .status(CustomerStatus.ACTIVE)
+                        .build();
+
+        when(userRepository.findById(id))
+                .thenReturn(Optional.of(entity));
+
+        when(userMapper.toCustomerDetailsValidateResponse(entity))
+                .thenReturn(response);
+
+        CustomerDetailsValidateResponse result =
+                userManagement.getDetailsCustomer(id);
+
+        assertEquals(response, result);
+
+        verify(userRepository).findById(id);
+        verify(userMapper).toCustomerDetailsValidateResponse(entity);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCustomerNotFound() {
+
+        UUID id = UUID.randomUUID();
+
+        when(userRepository.findById(id))
+                .thenReturn(Optional.empty());
+
+        assertThrows(UserProfileNotFoundException.class, () ->
+                userManagement.getDetailsCustomer(id));
+
+        verify(userRepository).findById(id);
+        verifyNoInteractions(userMapper);
+    }
+
+    @Test
+    void shouldReturnTrueWhenCustomerExistsAndIsActive() {
+
+        UUID id = UUID.randomUUID();
+
+        UserEntity entity = new UserEntity();
+        entity.setStatus(CustomerStatus.ACTIVE);
+
+        when(userRepository.findById(id))
+                .thenReturn(Optional.of(entity));
+
+        CustomerValidateResponse result =
+                userManagement.getCustomerIsActive(id);
+
+        assertTrue(result.isExist());
+        assertTrue(result.isActive());
+        assertEquals(id, result.getCustomerId());
+
+        verify(userRepository).findById(id);
+    }
+
+    @Test
+    void shouldReturnInactiveWhenCustomerExistsButNotActive() {
+
+        UUID id = UUID.randomUUID();
+
+        UserEntity entity = new UserEntity();
+        entity.setStatus(CustomerStatus.INACTIVE);
+
+        when(userRepository.findById(id))
+                .thenReturn(Optional.of(entity));
+
+        CustomerValidateResponse result =
+                userManagement.getCustomerIsActive(id);
+
+        assertTrue(result.isExist());
+        assertFalse(result.isActive());
+    }
+
+    @Test
+    void shouldReturnFalseWhenCustomerDoesNotExist() {
+
+        UUID id = UUID.randomUUID();
+
+        when(userRepository.findById(id))
+                .thenReturn(Optional.empty());
+
+        CustomerValidateResponse result =
+                userManagement.getCustomerIsActive(id);
+
+        assertFalse(result.isExist());
+        assertFalse(result.isActive());
     }
 }
