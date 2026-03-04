@@ -62,7 +62,6 @@ public class ProfileController {
      * @see UserManagement#getCurrentUserProfile(String)
      */
     @GetMapping("/me")
-    @PreAuthorize("isFullyAuthenticated() && hasAnyRole(T(com.bankcore.customers.utils.UserRole).CUSTOMER.name(), T(com.bankcore.customers.utils.UserRole).ADMIN.name())")
     @Operation(
             summary = "View Profile",
             description = "Returns the profile of the authenticated CUSTOMER",
