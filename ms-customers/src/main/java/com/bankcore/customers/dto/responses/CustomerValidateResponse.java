@@ -13,5 +13,5 @@ public class CustomerValidateResponse {
 
     private UUID customerId;
     private boolean exist;
-    private boolean isActive;
+    private boolean active;
 }
