@@ -53,11 +53,13 @@ Tabla: `customers`
 
 #### URLs principales
 
-| Endpoint           | Método | Descripción                               |
-|--------------------|--------|-------------------------------------------|
-| /api/auth/register | POST   | Registro de nuevos clientes               |
-| /api/auth/login    | POST   | Login para clientes                       |
-| /api/customers/me  | GET    | Obtener el perfil del cliente autenticado |
+| Endpoint                            | Método | Descripción                                        | Acceso                                   |
+|-------------------------------------|--------|----------------------------------------------------|------------------------------------------|
+| /api/auth/register                  | POST   | Registro de nuevos clientes                        | Publico                                  |
+| /api/auth/login                     | POST   | Login para clientes                                | Publico                                  |
+| /api/customers/me                   | GET    | Obtener el perfil del cliente autenticado          | Restringido solo roles (CUSTOMER, ADMIN) |
+| /api/customers/{customerId}         | GET    | Obtener detalles del cliente consultado            | Restringido solo roles (ADMIN, SERVICE)  |
+| /api/customers/{customerID}         | GET    | Obtener estado y existencia del cliente consultado | Restringido solo rol (SERVICE)           |
 
 ---
 
@@ -91,7 +93,7 @@ Responsable de:
 ## 🛠️ Tecnologías Utilizadas
 
 - Java 17
-- Spring Boot 3.5.10
+- Spring Boot 3.5.11
 - Spring Security + JWT
 - Spring Data JPA
 - PostgreSQL
