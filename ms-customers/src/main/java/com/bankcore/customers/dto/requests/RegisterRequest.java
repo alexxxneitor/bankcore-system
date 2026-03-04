@@ -26,6 +26,8 @@ import lombok.Setter;
  * ensuring that required fields are present and comply with defined
  * formatting and security rules.
  * </p>
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
  */
 @Getter
 @Setter

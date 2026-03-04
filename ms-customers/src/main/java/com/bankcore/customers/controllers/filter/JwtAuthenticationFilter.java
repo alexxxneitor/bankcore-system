@@ -1,12 +1,12 @@
-package com.bankcore.customers.controller.filter;
+package com.bankcore.customers.controllers.filter;
 
-import com.bankcore.customers.exception.NoAuthoritiesException;
-import com.bankcore.customers.service.JwtService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.bankcore.customers.exceptions.NoAuthoritiesException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,9 +19,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.bankcore.customers.services.JwtService;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 
 /**
  * Filter responsible for validating JSON Web Tokens (JWT) on every incoming HTTP request.

@@ -1,4 +1,4 @@
-package com.bankcore.customers.exception;
+package com.bankcore.customers.exceptions;
 
 /**
  * Exception thrown when a user attempts to perform an action but possesses

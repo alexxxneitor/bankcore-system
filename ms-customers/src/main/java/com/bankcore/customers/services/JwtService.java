@@ -1,18 +1,27 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
 
-import com.bankcore.customers.exception.NoAuthoritiesException;
-import com.bankcore.customers.utils.UserRole;
-import io.jsonwebtoken.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.bankcore.customers.exceptions.NoAuthoritiesException;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service responsible for managing JSON Web Tokens (JWT).

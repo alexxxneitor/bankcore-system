@@ -1,7 +1,7 @@
-package com.bankcore.customers.service;
+package com.bankcore.customers.services;
 
 
-import com.bankcore.customers.exception.NoAuthoritiesException;
+import com.bankcore.customers.exceptions.NoAuthoritiesException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;

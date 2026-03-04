@@ -1,10 +1,11 @@
 package com.bankcore.customers.config;
 
-import com.bankcore.customers.controller.filter.JwtAuthenticationFilter;
-import com.bankcore.customers.utils.UserRole;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
+import com.bankcore.customers.exceptions.CustomAccessDeniedHandler;
+import com.bankcore.customers.exceptions.CustomAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +27,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.crypto.SecretKey;
-import java.util.List;
+import com.bankcore.customers.controllers.filter.JwtAuthenticationFilter;
+import com.bankcore.customers.utils.enums.UserRole;
+
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 
 
 /**
@@ -95,6 +100,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/customers/me").hasAnyRole(UserRole.CUSTOMER.name(), UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, "/api/customers/*/validate").hasRole(UserRole.SERVICE.name())
+                        .requestMatchers(HttpMethod.GET, "/api/customers/*").hasAnyRole(UserRole.ADMIN.name(), UserRole.SERVICE.name())
                         .anyRequest().denyAll()
                 )
                 .authenticationProvider(provider())

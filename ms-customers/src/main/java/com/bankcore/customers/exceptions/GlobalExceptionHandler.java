@@ -1,4 +1,4 @@
-package com.bankcore.customers.exception;
+package com.bankcore.customers.exceptions;
 
 import com.bankcore.customers.dto.responses.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -19,6 +20,8 @@ import java.util.stream.Collectors;
  * them into structured {@link ErrorResponse} objects, ensuring consistent
  * API error responses across the system.
  * </p>
+ * @author Bankcore Team - Sebastian Orjuela - Cristian Ortiz
+ * @version 1.0
  */
 @Slf4j
 @RestControllerAdvice
@@ -79,9 +82,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserProfileNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserProfileNotFoundException ex) {
 
-        log.error("Security alert: Authenticated user missing from DB: {}", ex.getMessage());
-
-        return buildErrorResponse(HttpStatus.NOT_FOUND, "Account error. Please log in again.");
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -125,6 +126,37 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles {@link MethodArgumentTypeMismatchException} thrown when a request parameter
+     * cannot be converted to the expected type.
+     *
+     * <p>This exception handler is triggered when a client provides an invalid format
+     * for a request parameter, such as an incorrectly formatted UUID. It inspects the
+     * expected type of the parameter and generates a descriptive error message to help
+     * the client correct their request.</p>
+     *
+     * @param ex the {@link MethodArgumentTypeMismatchException} instance containing
+     *           details about the invalid argument, including its name and expected type.
+     * @return ResponseEntity containing an {@link ErrorResponse} object with a
+     *         descriptive error message and HTTP status 400 (Bad Request).
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException ex) {
+
+        String expectedType = ex.getRequiredType() != null
+                ? ex.getRequiredType().getSimpleName()
+                : "unknown";
+
+        String description = String.format(
+                "Invalid format for parameter '%s'. Expected type: %s",
+                ex.getName(),
+                expectedType
+        );
+
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, description);
+    }
+
+    /**
      * Builds a standardized {@link ErrorResponse} object.
      *
      * @param status      the HTTP status associated with the error
@@ -142,6 +174,6 @@ public class GlobalExceptionHandler {
                         .description(description)
                         .build();
 
-        return new ResponseEntity<>(body, status);
+        return ResponseEntity.status(status).body(body);
     }
 }
