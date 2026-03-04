@@ -65,11 +65,23 @@ Tabla: `customers`
 
 #### 📄 Documentación de la API
 
+*📄 API Documentation:*
+
 para acceder a la documentación de la API del microservicio `ms-customers`, una vez que el servicio esté en ejecución, puedes acceder a través de Swagger UI en la siguiente URL:
 
 ```url
 http://localhost:8081/swagger-ui/index.html
 ```
+
+Swagger UI permite explorar y probar los endpoints directamente desde el navegador.
+
+*📬 Postman Collection:*
+
+También puedes probar la API utilizando la colección oficial de Postman incluida en el proyecto.
+
+[Download Postman Collection](./docs/postman/Bankcore-Collection.postman_collection.json)
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://web.postman.co/workspace/7881e3dd-6f51-41b2-8795-b96d8e8d79aa/collection/35777093-2d47e7ec-516e-47ed-89c7-48d05b9c981b?action=share&source=copy-link&creator=35777093)
 
 ---
 
@@ -109,6 +121,10 @@ Responsable de:
 
 ```text
 bankcore-system/
+|
+├──docs/                  # Documentacion con Postman
+|   └── Postman/
+|       └──Bankcore-Collection.postman_collection.json
 │
 ├── ms-customers/        # Microservicio de clientes y autenticación
 │   ├── Dockerfile
