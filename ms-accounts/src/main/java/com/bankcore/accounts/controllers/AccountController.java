@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -56,7 +57,7 @@ public class AccountController {
             description = "Account registration data",
             required = true,
             content = @Content(
-                    mediaType = "application/json",
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = AccountRegisterRequest.class)
             )
     )
@@ -66,7 +67,7 @@ public class AccountController {
                     responseCode = "201",
                     description = "account registered successfully",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AccountRegisterResponse.class)
                     )
             ),
@@ -75,7 +76,7 @@ public class AccountController {
                     responseCode = "400",
                     description = "Validation error - Invalid input fields",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
@@ -84,7 +85,7 @@ public class AccountController {
                     responseCode = "409",
                     description = "Conflict - alias already registered",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
@@ -92,13 +93,12 @@ public class AccountController {
                     responseCode = "422",
                     description = "Company policies - The request violates a company policy.",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
     })
     @PostMapping()
-    @PreAuthorize("isFullyAuthenticated() && hasRole('CUSTOMER')")
     public ResponseEntity<AccountRegisterResponse> registerAccount(@RequestBody @Valid AccountRegisterRequest request, Authentication auth){
         return ResponseEntity.status(HttpStatus.CREATED).body(accountManagementService.registerAccount(request, UUID.fromString(auth.getName())));
     }
