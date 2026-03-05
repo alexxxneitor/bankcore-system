@@ -51,7 +51,7 @@ public class JwtTokenProviderService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("bankcore")
                 .issuedAt(now)
-                .expiresAt(now.plus(5, ChronoUnit.MINUTES))
+                .expiresAt(now.plus(3, ChronoUnit.MINUTES))
                 .subject("BANKCORE_SYSTEM_ACCOUNTS")
                 .claim("roles", List.of(UserRole.SERVICE.name()))
                 .build();
