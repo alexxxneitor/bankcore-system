@@ -9,7 +9,7 @@ import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
-import com.bankcore.accounts.repositries.AccountRepository;
+import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.config.DailyWithdrawalLimit;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
