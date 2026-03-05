@@ -55,6 +55,7 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
+    //Custom exception handling: captures request errors when the received value cannot be parsed into an enum type.
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> CustomHttpMessageNotReadableException(HttpMessageNotReadableException ex){
         Throwable cause = ex.getCause();
@@ -81,6 +82,7 @@ public class GlobalExceptionHandler {
         return badRequest(message);
     }
 
+    //Custom exception handling: captures and manages errors in the request body when the user submits incorrect or malformed parameters.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> customMethodArgumentNotValidException(MethodArgumentNotValidException ex){
         String description = ex.getBindingResult()
@@ -92,6 +94,7 @@ public class GlobalExceptionHandler {
         return badRequest(description);
     }
 
+    //Handles custom exceptions - invalid parameter exception capture
     @ExceptionHandler(CustomInvalidParameter.class)
     public ResponseEntity<ErrorResponse> handleCustomInvalidParameter(CustomInvalidParameter ex){
         return badRequest(ex.getMessage());

@@ -1,6 +1,14 @@
 package com.bankcore.accounts.exceptions;
 
-public class CustomInvalidParameter extends RuntimeException{
+/**
+ * Exception thrown when a request contains invalid or unsupported parameters.
+ *
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
+ */
+public class CustomInvalidParameter extends RuntimeException {
 
-    public CustomInvalidParameter(String message){super(message);}
+    public CustomInvalidParameter(String message) {
+        super(message);
+    }
 }

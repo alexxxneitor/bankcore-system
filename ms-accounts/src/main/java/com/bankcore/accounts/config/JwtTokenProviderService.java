@@ -11,6 +11,25 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+/**
+ * Service responsible for generating JWT tokens used for internal service-to-service
+ * communication within the Bankcore system.
+ *
+ * <p>This implementation creates a short-lived token with the SERVICE role,
+ * intended to be used exclusively by trusted internal microservices
+ * (e.g., ms-accounts) when invoking protected endpoints.</p>
+ *
+ * <p>The generated token includes:</p>
+ * <ul>
+ *     <li>Issuer: bankcore</li>
+ *     <li>Subject: BANKCORE_SYSTEM_ACCOUNTS</li>
+ *     <li>Role: SERVICE</li>
+ *     <li>Expiration time: 5 minutes</li>
+ * </ul>
+ *
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProviderService {
@@ -18,9 +37,12 @@ public class JwtTokenProviderService {
     private final JwtEncoder jwtEncoder;
 
     /**
-     * Generates a JWT token for a given user.
+     * Generates a signed JWT token for internal system usage.
      *
-     * @return signed JWT token
+     * <p>This token is intended for service-level authentication and
+     * should not be used for end-user authentication flows.</p>
+     *
+     * @return a signed JWT token containing SERVICE role authority
      */
     public String generateServiceToken() {
 
