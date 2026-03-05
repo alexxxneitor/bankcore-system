@@ -2,13 +2,13 @@ package com.bankcore.accounts.client;
 
 import java.util.UUID;
 
+import com.bankcore.accounts.exceptions.CustomInvalidParameter;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomExternalServiceException;
-import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,46 +30,41 @@ public class CustomerClientImpl implements CustomerClient {
     @Override
     public CustomerResponse getCustomerById(UUID id) {
 
-        CustomerResponse response = customersWebClient
+        return customersWebClient
                 .get()
                 .uri("/api/customers/{id}/validate", id)
                 .retrieve()
-                .onStatus(status -> status.value() == 404, clientResponse -> {
-                    log.warn("Customer not found in Customer Service. ID: {}", id);
-                    return Mono.error(
-                            new CustomerNotFoundException("The authenticated client is not registered")
-                    );
+
+                .onStatus(status -> status.value() == 400, response -> {
+                    log.warn("Invalid request to Customer Service. ID: {}", id);
+                    return Mono.error(new CustomInvalidParameter(
+                            "Invalid customer ID format"
+                    ));
                 })
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse ->
-                        clientResponse.bodyToMono(String.class)
+
+                .onStatus(HttpStatusCode::is5xxServerError, response ->
+                        response.bodyToMono(String.class)
                                 .defaultIfEmpty("No body")
                                 .flatMap(body -> {
                                     log.error(
-                                            "5xx error from Customer Service. ID: {}, Status: {}, Body: {}",
+                                            "Customer Service 5xx error. ID: {}, Status: {}, Body: {}",
                                             id,
-                                            clientResponse.statusCode(),
+                                            response.statusCode(),
                                             body
                                     );
-                                    return Mono.error(
-                                            new CustomExternalServiceException(
-                                                    "Error communicating with Customer Service"
-                                            )
-                                    );
+                                    return Mono.error(new CustomExternalServiceException(
+                                            "Customer Service is unavailable"
+                                    ));
                                 })
                 )
+
                 .bodyToMono(CustomerResponse.class)
-                .block();
-
-        if (response == null) {
-            log.error("Customer Service returned empty body. ID: {}", id);
-            throw new CustomExternalServiceException("Empty response from Customer Service");
-        }
-
-        if (!response.exists()) {
-            log.warn("Customer does not exist according to validation endpoint. ID: {}", id);
-            throw new CustomerNotFoundException("The authenticated client is not registered");
-        }
-
-        return response;
+                .blockOptional()
+                .orElseThrow(() -> {
+                    log.error("Customer Service returned empty body. ID: {}", id);
+                    return new CustomExternalServiceException(
+                            "Empty response from Customer Service"
+                    );
+                });
     }
 }
