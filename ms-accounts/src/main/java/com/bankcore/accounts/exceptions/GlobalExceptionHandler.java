@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
     // Handle custom exceptions related to failures in external service calls
     @ExceptionHandler(CustomExternalServiceException.class)
     public ResponseEntity<ErrorResponse> handleExternalServiceError(CustomExternalServiceException ex) {
-        return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
+        return buildErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
     }
 
     //Custom exception handling: captures request errors when the received value cannot be parsed into an enum type.
@@ -94,10 +94,10 @@ public class GlobalExceptionHandler {
         return badRequest(description);
     }
 
-    //Handles custom exceptions - invalid parameter exception capture
-    @ExceptionHandler(CustomInvalidParameter.class)
-    public ResponseEntity<ErrorResponse> handleCustomInvalidParameter(CustomInvalidParameter ex){
-        return badRequest(ex.getMessage());
+    //Handles custom exceptions - system validation error capture
+    @ExceptionHandler(CustomInternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleCustomInvalidParameter(CustomInternalServiceException ex){
+        return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
     /**
