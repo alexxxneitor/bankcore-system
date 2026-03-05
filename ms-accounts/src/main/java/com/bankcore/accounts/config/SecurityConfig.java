@@ -65,7 +65,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/accounts/").hasRole(UserRole.CUSTOMER.name())
+                        .requestMatchers(HttpMethod.POST, "/api/accounts").hasRole(UserRole.CUSTOMER.name())
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth ->
                         oauth.jwt(jwt -> jwt
@@ -114,7 +114,7 @@ public class SecurityConfig {
     public JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter() {
         JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
         converter.setAuthoritiesClaimName("roles");
-        converter.setAuthorityPrefix("ROLE_");
+        converter.setAuthorityPrefix("");
         return converter;
     }
 
@@ -132,7 +132,8 @@ public class SecurityConfig {
             @Value("${spring.security.oauth2.resourceserver.jwt.secret-key}")
             String secret) {
 
-        byte[] decodedKey = Base64.getDecoder().decode(secret);
+        byte[] decodedKey = Base64.getUrlDecoder().decode(secret.trim());
+
         return new SecretKeySpec(decodedKey, MacAlgorithm.HS256.getName());
     }
 
