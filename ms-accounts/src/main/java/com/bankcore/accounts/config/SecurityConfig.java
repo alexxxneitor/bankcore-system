@@ -3,6 +3,7 @@ package com.bankcore.accounts.config;
 import com.bankcore.accounts.exceptions.CustomAccessDeniedHandler;
 import com.bankcore.accounts.exceptions.CustomAuthenticationEntryPoint;
 import com.bankcore.accounts.utils.enums.UserRole;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,6 +26,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -123,7 +128,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    public SecretKey secretKey(
+            @Value("${spring.security.oauth2.resourceserver.jwt.secret-key}")
+            String secret) {
+
+        byte[] decodedKey = Base64.getDecoder().decode(secret);
+        return new SecretKeySpec(decodedKey, MacAlgorithm.HS256.getName());
+    }
+
+    @Bean
     public JwtDecoder jwtDecoder(SecretKey secretKey) {
-        return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
+        return NimbusJwtDecoder
+                .withSecretKey(secretKey)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
+    }
+
+    @Bean
+    public JwtEncoder jwtEncoder(SecretKey secretKey) {
+        return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
     }
 }
