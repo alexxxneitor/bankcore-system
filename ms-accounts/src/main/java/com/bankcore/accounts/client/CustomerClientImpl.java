@@ -2,7 +2,7 @@ package com.bankcore.accounts.client;
 
 import java.util.UUID;
 
-import com.bankcore.accounts.exceptions.CustomInvalidParameter;
+import com.bankcore.accounts.exceptions.CustomInternalServiceException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -35,12 +35,22 @@ public class CustomerClientImpl implements CustomerClient {
                 .uri("/api/customers/{id}/validate", id)
                 .retrieve()
 
-                .onStatus(status -> status.value() == 400, response -> {
-                    log.warn("Invalid request to Customer Service. ID: {}", id);
-                    return Mono.error(new CustomInvalidParameter(
-                            "Invalid customer ID format"
-                    ));
-                })
+                .onStatus(HttpStatusCode::is4xxClientError, response ->
+                        response.bodyToMono(String.class)
+                                .defaultIfEmpty("No body")
+                                .flatMap(body -> {
+                                    log.error(
+                                            "Customer Service 4xx error. ID: {}, Status: {}, Body: {}",
+                                            id,
+                                            response.statusCode(),
+                                            body
+                                    );
+
+                                    return Mono.error(new CustomInternalServiceException(
+                                            "Customer Service rejected the request"
+                                    ));
+                                })
+                )
 
                 .onStatus(HttpStatusCode::is5xxServerError, response ->
                         response.bodyToMono(String.class)
@@ -62,7 +72,7 @@ public class CustomerClientImpl implements CustomerClient {
                 .blockOptional()
                 .orElseThrow(() -> {
                     log.error("Customer Service returned empty body. ID: {}", id);
-                    return new CustomExternalServiceException(
+                    return new CustomInternalServiceException(
                             "Empty response from Customer Service"
                     );
                 });
