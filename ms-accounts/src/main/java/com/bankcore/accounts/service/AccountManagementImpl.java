@@ -47,7 +47,7 @@ public class AccountManagementImpl implements AccountManagementService{
      */
     private void validateCustomerIsActive(UUID idCustomer){
         CustomerResponse customer = customerClient.getCustomerById(idCustomer);
-        if(!customer.exists()){
+        if(!customer.exist()){
            throw new CustomerNotFoundException("The customer is not registered in the system");
         }
 
