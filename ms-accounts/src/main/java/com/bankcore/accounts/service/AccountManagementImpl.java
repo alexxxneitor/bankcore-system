@@ -6,6 +6,7 @@ import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
+import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositries.AccountRepository;
@@ -41,13 +42,18 @@ public class AccountManagementImpl implements AccountManagementService{
      * If the customer is not active, a CustomerInactiveException is thrown.
      *
      * @param idCustomer the UUID of the customer to validate
+     * @throws CustomerNotFoundException if the consulted client does not exist
      * @throws CustomerInactiveException if the customer is not active
      */
     private void validateCustomerIsActive(UUID idCustomer){
         CustomerResponse customer = customerClient.getCustomerById(idCustomer);
-         if(!customer.isActive()){
+        if(!customer.exists()){
+           throw new CustomerNotFoundException("The customer is not registered in the system");
+        }
+
+        if(!customer.active()){
              throw new CustomerInactiveException("The authenticated client is not active");
-         }
+        }
     }
 
     /// Registers a new account for a customer
