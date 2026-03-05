@@ -1,4 +1,4 @@
-package com.bankcore.accounts.service;
+package com.bankcore.accounts.services;
 
 import org.springframework.stereotype.Service;
 
