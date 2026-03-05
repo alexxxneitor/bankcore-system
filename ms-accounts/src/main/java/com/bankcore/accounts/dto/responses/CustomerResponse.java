@@ -7,5 +7,5 @@ import java.util.UUID;
  * @author BankCore Team - Sebastian Orjuela
  * @version 1.0
  */
-public record CustomerResponse(UUID customerId, boolean exists, boolean active) {
+public record CustomerResponse(UUID customerId, boolean exist, boolean active) {
 }
