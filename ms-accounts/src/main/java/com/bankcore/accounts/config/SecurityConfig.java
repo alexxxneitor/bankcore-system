@@ -2,22 +2,29 @@ package com.bankcore.accounts.config;
 
 import com.bankcore.accounts.exceptions.CustomAccessDeniedHandler;
 import com.bankcore.accounts.exceptions.CustomAuthenticationEntryPoint;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import com.bankcore.accounts.utils.enums.UserRole;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
+import java.util.List;
+
 /**
  * Security configuration class for the Accounts microservice.
  * This class sets up JWT authentication and authorization, defining how incoming requests are secured.
@@ -30,51 +37,93 @@ import javax.crypto.SecretKey;
 public class SecurityConfig {
 
     @Bean
-    public SecretKey jwtSecretKey(@Value("${spring.security.oauth2.resourceserver.jwt.secret-key}") String secret) {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+    SecurityFilterChain filterChain(
+            HttpSecurity http,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler,
+            CorsConfigurationSource corsConfigurationSource
+    ) throws Exception {
+        http
+                .exceptionHandling(e ->
+                        e.authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .accessDeniedHandler(customAccessDeniedHandler)
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .headers(headers -> headers
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .cacheControl(Customizer.withDefaults())
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/accounts/").hasRole(UserRole.CUSTOMER.name())
+                        .anyRequest().denyAll())
+                .oauth2ResourceServer(oauth ->
+                        oauth.jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter(jwtGrantedAuthoritiesConverter()))
+                        )
+                );
+
+        return http.build();
+    }
+
+    /**
+     * Configures the Cross-Origin Resource Sharing (CORS) settings for the application.
+     * <p>
+     * This bean defines a global CORS policy that allows controlled access from external origins,
+     * configuring allowed methods, headers, and the preflight cache duration.
+     *
+     * @param allowedOrigins List of permitted origin URLs.
+     * @param allowedMethods List of permitted HTTP methods (e.g., GET, POST).
+     * @param maxAge         Maximum time (in seconds) the browser should cache the preflight response.
+     * @return A {@link CorsConfigurationSource} applied to all application paths.
+     * @see org.springframework.web.cors.CorsConfiguration
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins}")
+            List<String> allowedOrigins,
+            @Value("${app.cors.allowed-methods}")
+            List<String> allowedMethods,
+            @Value("${app.cors.max-age}")
+            long maxAge
+    ) {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(allowedMethods);
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setMaxAge(maxAge);
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter() {
+        JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
+        converter.setAuthoritiesClaimName("roles");
+        converter.setAuthorityPrefix("ROLE_");
+        return converter;
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter(
+            JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter) {
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+        return converter;
     }
 
     @Bean
     public JwtDecoder jwtDecoder(SecretKey secretKey) {
         return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
-    }
-
-    @Bean
-    JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
-        converter.setAuthorityPrefix("ROLE_");
-        converter.setAuthoritiesClaimName("roles");
-
-        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
-
-        return jwtConverter;
-    }
-
-    @Bean
-    SecurityFilterChain filterChain(
-            HttpSecurity http,
-            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-            CustomAccessDeniedHandler customAccessDeniedHandle
-    ) throws Exception {
-        http
-                .exceptionHandling(
-                        e -> e.authenticationEntryPoint(customAuthenticationEntryPoint)
-                                .accessDeniedHandler(customAccessDeniedHandle))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
-                        .requestMatchers("/api/accounts/**").hasRole("CUSTOMER")
-                                .anyRequest()
-                                .denyAll())
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(
-                                jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        ));
-        return http.build();
     }
 }
