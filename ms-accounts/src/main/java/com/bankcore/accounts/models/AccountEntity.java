@@ -4,8 +4,10 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
@@ -24,6 +26,8 @@ import java.util.UUID;
 @Table(name = "accounts")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AccountEntity {
 
     @Id
