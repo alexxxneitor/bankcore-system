@@ -61,7 +61,6 @@ public class AccountController {
             )
     )
     @ApiResponses(value = {
-
             @ApiResponse(
                     responseCode = "201",
                     description = "account registered successfully",
@@ -70,7 +69,6 @@ public class AccountController {
                             schema = @Schema(implementation = AccountRegisterResponse.class)
                     )
             ),
-
             @ApiResponse(
                     responseCode = "400",
                     description = "Validation error - Invalid input fields",
@@ -79,7 +77,22 @@ public class AccountController {
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
-
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Authentication credentials were not provided or are invalid",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "The authenticated user does not have permission to access this endpoint.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Conflict - alias already registered",
@@ -91,6 +104,22 @@ public class AccountController {
             @ApiResponse(
                     responseCode = "422",
                     description = "Company policies - The request violates a company policy.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "502",
+                    description = "Unexpected response received from the Customers service",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "503",
+                    description = "The Customers service is currently unavailable.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
