@@ -6,17 +6,22 @@ import com.bankcore.accounts.exceptions.CustomInternalServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -122,6 +127,70 @@ public class CustomerClientImplTest {
         assertThrows(
                 CustomInternalServiceException.class,
                 () -> customerClient.getCustomerById(customerId)
+        );
+    }
+
+    @Test
+    void shouldExecute4xxLambda() {
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(anyString(), any(UUID.class)))
+                .thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+
+        ArgumentCaptor<Function<ClientResponse, Mono<? extends Throwable>>> captor =
+                ArgumentCaptor.forClass(Function.class);
+
+        when(responseSpec.onStatus(any(), captor.capture()))
+                .thenReturn(responseSpec);
+
+        when(responseSpec.bodyToMono(CustomerResponse.class))
+                .thenReturn(Mono.error(new CustomInternalServiceException("error")));
+
+        assertThrows(
+                CustomInternalServiceException.class,
+                () -> customerClient.getCustomerById(customerId)
+        );
+
+        ClientResponse response = mock(ClientResponse.class);
+        when(response.statusCode()).thenReturn(HttpStatus.BAD_REQUEST);
+        when(response.bodyToMono(String.class)).thenReturn(Mono.just("error"));
+
+        assertThrows(
+                CustomExternalServiceException.class,
+                () -> captor.getValue().apply(response).block()
+        );
+    }
+
+    @Test
+    void shouldExecute5xxLambda() {
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(anyString(), any(UUID.class)))
+                .thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+
+        ArgumentCaptor<Function<ClientResponse, Mono<? extends Throwable>>> captor =
+                ArgumentCaptor.forClass(Function.class);
+
+        when(responseSpec.onStatus(any(), captor.capture()))
+                .thenReturn(responseSpec);
+
+        when(responseSpec.bodyToMono(CustomerResponse.class))
+                .thenReturn(Mono.error(new CustomExternalServiceException("error")));
+
+        assertThrows(
+                CustomExternalServiceException.class,
+                () -> customerClient.getCustomerById(customerId)
+        );
+
+        ClientResponse response = mock(ClientResponse.class);
+        when(response.statusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+        when(response.bodyToMono(String.class)).thenReturn(Mono.just("error"));
+
+        assertThrows(
+                CustomExternalServiceException.class,
+                () -> captor.getValue().apply(response).block()
         );
     }
 }
