@@ -40,3 +40,6 @@ Thumbs.db
 
 # Env
 .env
+
+# data persistence
+bankcore-system-data/

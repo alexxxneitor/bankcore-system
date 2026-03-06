@@ -8,16 +8,82 @@ Proyecto backend desarrollado con **arquitectura de microservicios**, enfocado e
 
 ## 🧩 Arquitectura General
 
-El sistema está compuesto por **dos microservicios independientes**, cada uno con su propia base de datos y responsabilidades bien definidas:
+El sistema está compuesto por **dos microservicios independientes**, cada uno con su propia base de datos y responsabilidades bien definidas.  
+La comunicación entre servicios se realiza a través de HTTP sobre la red interna de Docker.
 
 ### 🔵 ms-customers (Puerto 8081)
 
 Responsable de:
 
-- Registro de clientes
+- Registro y gestión de clientes
 - Autenticación y generación de JWT
 - Gestión del perfil del cliente
 - Validación del estado del cliente para otros servicios
+
+🗄 Base de Datos independiente:
+
+- Motor: PostgreSQL
+- Base de datos: `customers_db`
+- Puerto que expone 5432
+- Sin compartir esquema con otros servicios
+
+---
+
+#### Modelo de base de datos
+
+Tabla: `customers`
+
+| Campo        | Tipo      | Restricciones    | Descripción                                |
+|--------------|-----------|------------------|--------------------------------------------|
+| id           | UUID      | PK               | Identificador único del cliente            |
+| dni          | VARCHAR   | UNIQUE, NOT NULL | Documento nacional de identidad            |
+| first_name   | VARCHAR   | NOT NULL         | Nombre del cliente                         |
+| last_name    | VARCHAR   | NOT NULL         | Apellido del cliente                       |
+| email        | VARCHAR   | UNIQUE, NOT NULL | Correo electrónico                         |
+| password     | VARCHAR   | NOT NULL         | Contraseña encriptada (BCrypt)             |
+| atm_pin      | VARCHAR   | NOT NULL         | PIN de la tarjeta ATM (BCrypt)             |
+| phone        | VARCHAR   | NOT NULL         | Número de teléfono                         |
+| address      | VARCHAR   | NOT NULL         | Dirección del cliente                      |
+| role         | VARCHAR   | NOT NULL         | Rol del usuario (CUSTOMER / ADMIN)         |
+| status       | VARCHAR   | NOT NULL         | Estado del cliente (ACTIVE, BLOCKED, etc.) |
+| created_date | TIMESTAMP | NOT NULL         | Fecha de creación                          |
+| updated_date | TIMESTAMP |                  | Fecha de última actualización              |
+
+---
+
+#### URLs principales
+
+| Endpoint                            | Método | Descripción                                        | Acceso                                   |
+|-------------------------------------|--------|----------------------------------------------------|------------------------------------------|
+| /api/auth/register                  | POST   | Registro de nuevos clientes                        | Publico                                  |
+| /api/auth/login                     | POST   | Login para clientes                                | Publico                                  |
+| /api/customers/me                   | GET    | Obtener el perfil del cliente autenticado          | Restringido solo roles (CUSTOMER, ADMIN) |
+| /api/customers/{customerId}         | GET    | Obtener detalles del cliente consultado            | Restringido solo roles (ADMIN, SERVICE)  |
+| /api/customers/{customerID}         | GET    | Obtener estado y existencia del cliente consultado | Restringido solo rol (SERVICE)           |
+
+---
+
+#### 📄 Documentación de la API
+
+*📄 API Documentation:*
+
+para acceder a la documentación de la API del microservicio `ms-customers`, una vez que el servicio esté en ejecución, puedes acceder a través de Swagger UI en la siguiente URL:
+
+```url
+http://localhost:8081/swagger-ui/index.html
+```
+
+Swagger UI permite explorar y probar los endpoints directamente desde el navegador.
+
+*📬 Postman Collection:*
+
+También puedes probar la API utilizando la colección oficial de Postman incluida en el proyecto.
+
+[Download Postman Collection](./docs/postman/Bankcore-Collection.postman_collection.json)
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://web.postman.co/workspace/7881e3dd-6f51-41b2-8795-b96d8e8d79aa/collection/35777093-2d47e7ec-516e-47ed-89c7-48d05b9c981b?action=share&source=copy-link&creator=35777093)
+
+---
 
 ### 🟢 ms-accounts (Puerto 8082)
 
@@ -27,19 +93,26 @@ Responsable de:
 - Asociación de cuentas a clientes
 - Comunicación con `ms-customers` para validaciones
 
+🗄 Base de Datos independiente:
+
+- Motor: PostgreSQL
+- Base de datos: `accounts_db`
+- Puerto que expone 5432
+- Sin compartir esquema con otros servicios
+
 ---
 
 ## 🛠️ Tecnologías Utilizadas
 
 - Java 17
-- Spring Boot 3.5.10
+- Spring Boot 3.5.11
 - Spring Security + JWT
 - Spring Data JPA
 - PostgreSQL
-- OpenFeign (comunicación entre microservicios)
 - Docker & Docker Compose
 - Maven
 - Lombok
+- MapStruct
 - Swagger / OpenAPI (en progreso)
 
 ---
@@ -48,7 +121,59 @@ Responsable de:
 
 ```text
 bankcore-system/
-├── ms-customers/     # Microservicio de clientes y autenticación
-├── ms-accounts/      # Microservicio de cuentas bancarias
+|
+├──docs/                  # Documentacion con Postman
+|   └── Postman/
+|       └──Bankcore-Collection.postman_collection.json
+│
+├── ms-customers/        # Microservicio de clientes y autenticación
+│   ├── Dockerfile
+│   └── src/
+│
+├── ms-accounts/         # Microservicio de cuentas bancarias
+│   ├── Dockerfile
+│   └── src/
+│
 ├── docker-compose.yml
+├── .env.example
 └── README.md
+```
+
+## 📋  Requisitos Previos antes del despliegue local
+
+Antes de ejecutar el proyecto, asegúrate de tener instalado:
+
+- Java 17
+- Un IDE que soporte Java (IntelliJ IDEA, Eclipse o VS Code)
+- Docker Desktop
+- Docker Compose (incluido en Docker Desktop)
+
+### ⚙️ Configuración de Variables de Entorno
+
+El proyecto utiliza variables de entorno para la configuración de bases de datos.
+Crea un archivo `.env` en la raíz del proyecto basándote en el archivo `.env.template`
+
+> ⚠️ Recordar actualizar el `.env.template` si se agregan nuevas variables.
+
+### 🚀 Despliegue Local con Docker
+
+Desde la raíz del proyecto, ejecuta el siguiente comando:
+
+```bash
+docker-compose up --build
+```
+
+Este comando:
+
+- Construye las imágenes Docker
+- Inicializa los contenedores
+- Levanta las bases de datos PostgreSQL
+- Arranca ambos microservicios
+
+### 🌐 Puertos Expuestos
+
+| Servicio             | Puerto |
+| -------------------- | ------ |
+| ms-customers         | 8081   |
+| ms-accounts          | 8082   |
+| postgres-system-data | 5432   |
