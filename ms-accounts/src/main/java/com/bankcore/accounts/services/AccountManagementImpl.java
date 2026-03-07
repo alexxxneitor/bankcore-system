@@ -10,10 +10,11 @@ import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
-import com.bankcore.accounts.config.DailyWithdrawalLimit;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import java.util.UUID;
  * @author BankCore Team - Sebastian Orjuela
  * @version 1.0
  */
+@Slf4j
 @Service
 @AllArgsConstructor
 public class AccountManagementImpl implements AccountManagementService{
@@ -34,8 +36,10 @@ public class AccountManagementImpl implements AccountManagementService{
     private final CustomerClient customerClient;
     private final AccountRepository accountRepository;
     private final IbanGeneratorService ibanGeneratorService;
-    private final DailyWithdrawalLimit dailyWithdrawalLimit;
+    private final WithdrawalService withdrawalService;
     private final AccountMapper accountMapper;
+
+    private static final int MAX_IBAN_GENERATION_ATTEMPTS = 5;
 
     /**
      * Validates if the customer associated with the given ID is active.
@@ -58,22 +62,20 @@ public class AccountManagementImpl implements AccountManagementService{
 
     /// Registers a new account for a customer
     @Override
+    @Transactional
     public AccountRegisterResponse registerAccount(AccountRegisterRequest request, UUID id) {
-       validateCustomerIsActive(id);
+
+        validateCustomerIsActive(id);
 
         if (accountRepository.countByCustomerId(id) >= 3) {
             throw new BusinessException("Customer has reached the maximum number of accounts allowed");
         }
 
-        if(accountRepository.existsByAliasAndCustomerId(request.getAlias(), id)){
+        if (accountRepository.existsByAliasAndCustomerId(request.getAlias(), id)) {
             throw new ResourceConflictException("The alias is already in use on an account under your name");
         }
 
-        String iban;
-
-        do {
-            iban = ibanGeneratorService.generateSpanishIban();
-        } while (accountRepository.existsByAccountNumber(iban));
+        String iban = generateUniqueIban();
 
         AccountEntity accountEntity =
                 AccountEntity.builder()
@@ -84,11 +86,28 @@ public class AccountManagementImpl implements AccountManagementService{
                         .balance(BigDecimal.ZERO)
                         .alias(request.getAlias())
                         .status(AccountStatus.ACTIVE)
-                        .dailyWithdrawalLimit(dailyWithdrawalLimit.resolveDailyLimit(request.getAccountType()))
+                        .dailyWithdrawalLimit(withdrawalService.resolveDailyLimit(request.getAccountType()))
                         .build();
 
         accountRepository.save(accountEntity);
 
         return accountMapper.toAccountRegisterResponse(accountEntity);
+    }
+
+    //IBAN generation
+    private String generateUniqueIban() {
+
+        for (int attempt = 1; attempt <= MAX_IBAN_GENERATION_ATTEMPTS; attempt++) {
+
+            String iban = ibanGeneratorService.generateSpanishIban();
+
+            if (!accountRepository.existsByAccountNumber(iban)) {
+                return iban;
+            }
+
+            log.warn("IBAN collision detected (attempt {}): {}", attempt, iban);
+        }
+
+        throw new ResourceConflictException("Unable to generate a unique IBAN after multiple attempts");
     }
 }
