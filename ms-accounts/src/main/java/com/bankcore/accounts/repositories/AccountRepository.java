@@ -1,4 +1,4 @@
-package com.bankcore.accounts.repositries;
+package com.bankcore.accounts.repositories;
 
 import com.bankcore.accounts.models.AccountEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

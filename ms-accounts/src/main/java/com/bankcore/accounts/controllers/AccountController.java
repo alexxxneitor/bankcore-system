@@ -4,7 +4,7 @@ import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.dto.responses.ErrorResponse;
-import com.bankcore.accounts.service.AccountManagementService;
+import com.bankcore.accounts.services.AccountManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -18,7 +18,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,7 +46,7 @@ public class AccountController {
      * body of the request, and returns the corresponding response
      *
      * @param request the {@link AccountRegisterRequest} contains the data for the creation of the account
-     * @param auth    The {@link Authentication} object containing the security context of the user
+     * @param auth The {@link Authentication} object containing the security context of the user
      * @return a {@link ResponseEntity} that contains the {@link AccountRegisterResponse} along with its Http code 201
      */
     @Operation(
@@ -59,35 +58,48 @@ public class AccountController {
             description = "Account registration data",
             required = true,
             content = @Content(
-                    mediaType = "application/json",
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = AccountRegisterRequest.class)
             )
     )
     @ApiResponses(value = {
-
             @ApiResponse(
                     responseCode = "201",
                     description = "account registered successfully",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AccountRegisterResponse.class)
                     )
             ),
-
             @ApiResponse(
                     responseCode = "400",
                     description = "Validation error - Invalid input fields",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
-
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Authentication credentials were not provided or are invalid",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "The authenticated user does not have permission to access this endpoint.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Conflict - alias already registered",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
@@ -95,14 +107,29 @@ public class AccountController {
                     responseCode = "422",
                     description = "Company policies - The request violates a company policy.",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "502",
+                    description = "Unexpected response received from the Customers service",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "503",
+                    description = "The Customers service is currently unavailable.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
     })
     @PostMapping()
-    @PreAuthorize("isFullyAuthenticated() && hasRole('CUSTOMER')")
-    public ResponseEntity<AccountRegisterResponse> registerAccount(@RequestBody @Valid AccountRegisterRequest request, Authentication auth) {
+    public ResponseEntity<AccountRegisterResponse> registerAccount(@RequestBody @Valid AccountRegisterRequest request, Authentication auth){
         return ResponseEntity.status(HttpStatus.CREATED).body(accountManagementService.registerAccount(request, UUID.fromString(auth.getName())));
     }
 
@@ -162,7 +189,6 @@ public class AccountController {
             ),
     })
     @GetMapping
-    @PreAuthorize("isFullyAuthenticated() && hasRole('CUSTOMER')")
     public ResponseEntity<List<UserAccountResponse>> getCustomerAccounts(Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(accountManagementService.getCurrentUserAccounts(auth.getName()));

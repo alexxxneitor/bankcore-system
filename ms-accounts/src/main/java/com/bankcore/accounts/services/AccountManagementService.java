@@ -1,4 +1,4 @@
-package com.bankcore.accounts.service;
+package com.bankcore.accounts.services;
 
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;

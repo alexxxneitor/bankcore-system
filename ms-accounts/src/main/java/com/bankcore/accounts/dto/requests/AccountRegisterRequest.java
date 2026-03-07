@@ -4,6 +4,7 @@ import com.bankcore.accounts.utils.enums.AccountType;
 
 import com.bankcore.accounts.utils.enums.CurrencyCode;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,10 +21,10 @@ import lombok.Setter;
 @Builder
 public class AccountRegisterRequest {
 
-    @NotBlank(message = "Customer ID is required")
+    @NotNull(message = "Customer ID is required")
     private AccountType accountType;
 
-    @NotBlank(message = "Customer ID is required")
+    @NotNull(message = "Customer ID is required")
     private CurrencyCode currency;
 
     @NotBlank(message = "Customer ID is required")

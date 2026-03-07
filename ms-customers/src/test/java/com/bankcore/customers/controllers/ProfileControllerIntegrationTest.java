@@ -1,5 +1,21 @@
 package com.bankcore.customers.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.bankcore.customers.AbstractIntegrationTest;
 import com.bankcore.customers.DataProvider;
 import com.bankcore.customers.model.UserEntity;
@@ -7,21 +23,6 @@ import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.services.UserManagementImpl;
 import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.bankcore.customers.utils.enums.UserRole;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @Transactional
@@ -183,7 +184,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(true));
 
     }
@@ -196,7 +197,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(DataProvider.UUID))
-                .andExpect(jsonPath("$.exist").value(false))
+                .andExpect(jsonPath("$.exists").value(false))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
@@ -224,7 +225,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
@@ -252,7 +253,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
@@ -280,7 +281,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
