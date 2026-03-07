@@ -15,6 +15,6 @@ import java.util.List;
 public interface AccountManagementService {
 
     AccountRegisterResponse registerAccount(AccountRegisterRequest request, UUID id);
-    List<UserAccountResponse> getCurrentUserAccounts(String id);
+    List<UserAccountResponse> getCurrentUserAccounts(UUID id);
 
 }

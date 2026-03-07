@@ -181,7 +181,15 @@ public class AccountController {
             ),
             @ApiResponse(
                     responseCode = "502",
-                    description = "Error communicating with Customer Service",
+                    description = "Unexpected response received from the Customers service",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "503",
+                    description = "The Customers service is currently unavailable.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -191,6 +199,6 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<List<UserAccountResponse>> getCustomerAccounts(Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(accountManagementService.getCurrentUserAccounts(auth.getName()));
+                .body(accountManagementService.getCurrentUserAccounts(UUID.fromString(auth.getName())));
     }
 }

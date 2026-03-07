@@ -13,10 +13,10 @@ import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -101,31 +101,29 @@ public class AccountManagementImpl implements AccountManagementService {
     /**
      * Retrieves all bank accounts associated with the authenticated customer.
      * <p>
-     * Validates that the provided ID is not null or blank, parses it as a {@link UUID},
-     * verifies the customer exists and is active via the customer service,
-     * and returns the mapped account list.
+     * Validates that the provided {@link UUID} is not null, verifies the customer
+     * exists and is active via the customer service, and returns the mapped account list.
      * </p>
      *
-     * @param id the string representation of the customer's {@link UUID}
+     * @param id the {@link UUID} of the customer whose accounts are to be retrieved
      * @return a {@link List} of {@link UserAccountResponse} associated with the customer,
-     * or an empty list if no accounts are found
-     * @throws IllegalArgumentException                                        if {@code id} is null, blank, or not a valid UUID format
+     *         or an empty list if no accounts are found
+     * @throws IllegalArgumentException                                        if {@code id} is null
      * @throws com.bankcore.accounts.exceptions.CustomerNotFoundException      if the customer does not exist in the Customer Service
      * @throws CustomerInactiveException                                       if the customer account is inactive
      * @throws com.bankcore.accounts.exceptions.CustomExternalServiceException if the Customer Service returns an error or empty response
      */
     @Override
-    public List<UserAccountResponse> getCurrentUserAccounts(String id) {
+    @Transactional(readOnly = true)
+    public List<UserAccountResponse> getCurrentUserAccounts(UUID id) {
 
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("Id must not be null or blank");
+        if (id == null) {
+            throw new IllegalArgumentException("Customer ID must not be null");
         }
 
-        UUID customerId = UUID.fromString(id);
+        validateCustomerIsActive(id);
 
-        customerClient.getCustomerById(customerId);
-
-        List<AccountEntity> accounts = accountRepository.findAllByCustomerId(customerId);
+        List<AccountEntity> accounts = accountRepository.findAllByCustomerId(id);
         return accountMapper.toResponseList(accounts);
     }
 
