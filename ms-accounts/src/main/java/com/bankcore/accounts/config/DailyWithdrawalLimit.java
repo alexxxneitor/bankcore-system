@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -16,23 +17,22 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "accounts.withdrawal")
 public class DailyWithdrawalLimit {
 
-    private Map<AccountType, BigDecimal> limits;
-
-    public BigDecimal resolveDailyLimit(AccountType type) {
-        BigDecimal limit = limits.get(type);
-
-        if (limit == null) {
-            throw new IllegalArgumentException("No withdrawal limit configured for account type: " + type);
-        }
-
-        return limit;
-    }
+    private Map<AccountType, BigDecimal> limits = new EnumMap<>(AccountType.class);
 
     public Map<AccountType, BigDecimal> getLimits() {
         return limits;
     }
 
     public void setLimits(Map<AccountType, BigDecimal> limits) {
+
+        limits.forEach((type, value) -> {
+            if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException(
+                        "Withdrawal limit must be greater than zero for account type: " + type
+                );
+            }
+        });
+
         this.limits = limits;
     }
 }
