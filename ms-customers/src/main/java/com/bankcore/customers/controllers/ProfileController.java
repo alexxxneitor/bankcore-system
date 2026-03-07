@@ -2,20 +2,15 @@ package com.bankcore.customers.controllers;
 
 import java.util.UUID;
 
+import com.bankcore.customers.dto.requests.PinValidateRequest;
+import com.bankcore.customers.dto.responses.*;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
-import com.bankcore.customers.dto.responses.CustomerValidateResponse;
-import com.bankcore.customers.dto.responses.ErrorResponse;
-import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.services.UserManagement;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -222,5 +217,10 @@ public class ProfileController {
     )
     public ResponseEntity<CustomerValidateResponse> getCustomerValidateById(@PathVariable UUID customerId) {
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getCustomerIsActive(customerId));
+    }
+
+    @PostMapping("/{customerId}/validate-pin")
+    public ResponseEntity<PinValidateResponse> getPinValidateCustomerById(@PathVariable UUID customerId, @RequestBody @Valid PinValidateRequest request){
+        return ResponseEntity.status(HttpStatus.OK).body(userManagement.getPinValidateCustomer(request, customerId));
     }
 }
