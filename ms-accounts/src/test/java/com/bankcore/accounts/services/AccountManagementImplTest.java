@@ -1,7 +1,6 @@
 package com.bankcore.accounts.services;
 
 import com.bankcore.accounts.client.CustomerClient;
-import com.bankcore.accounts.config.DailyWithdrawalLimit;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
@@ -42,7 +41,7 @@ public class AccountManagementImplTest {
     private IbanGeneratorService ibanGeneratorService;
 
     @Mock
-    private DailyWithdrawalLimit dailyWithdrawalLimit;
+    private WithdrawalService withdrawalService;
 
     @Mock
     private AccountMapper accountMapper;
@@ -145,7 +144,7 @@ public class AccountManagementImplTest {
         when(accountRepository.existsByAccountNumber("IBAN2"))
                 .thenReturn(false);
 
-        when(dailyWithdrawalLimit.resolveDailyLimit(any()))
+        when(withdrawalService.resolveDailyLimit(any()))
                 .thenReturn(BigDecimal.valueOf(1000));
 
         when(accountMapper.toAccountRegisterResponse(any()))
@@ -177,7 +176,7 @@ public class AccountManagementImplTest {
         when(accountRepository.existsByAccountNumber("VALID_IBAN"))
                 .thenReturn(false);
 
-        when(dailyWithdrawalLimit.resolveDailyLimit(any()))
+        when(withdrawalService.resolveDailyLimit(any()))
                 .thenReturn(BigDecimal.valueOf(1000));
 
         AccountRegisterResponse mappedResponse = AccountRegisterResponse.builder()

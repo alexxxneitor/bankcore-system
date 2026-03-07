@@ -54,7 +54,8 @@ public class IbanGeneratorServiceTest {
         StringBuilder result = new StringBuilder();
         for (char ch : input.toCharArray()) {
             if (Character.isLetter(ch)) {
-                result.append((int) ch - 55);
+                char upper = Character.toUpperCase(ch);
+                result.append(upper - 'A' + 10);
             } else {
                 result.append(ch);
             }

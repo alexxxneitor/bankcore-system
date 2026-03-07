@@ -7,6 +7,7 @@ import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.services.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
@@ -46,7 +47,7 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
     private AccountRepository accountRepository;
 
     @Autowired
-    private DailyWithdrawalLimit dailyWithdrawalLimit;
+    private WithdrawalService withdrawalService;
 
     @BeforeEach
     void setUp() {
@@ -161,7 +162,7 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .currency(CurrencyCode.EUR)
                 .balance(BigDecimal.ZERO)
                 .status(AccountStatus.ACTIVE)
-                .dailyWithdrawalLimit(dailyWithdrawalLimit.resolveDailyLimit(AccountType.CHECKING))
+                .dailyWithdrawalLimit(withdrawalService.resolveDailyLimit(AccountType.CHECKING))
                 .build();
         accountRepository.save(existingAccount);
 
@@ -199,7 +200,7 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
                     .balance(BigDecimal.ZERO)
                     .status(AccountStatus.ACTIVE)
                     .dailyWithdrawalLimit(
-                            dailyWithdrawalLimit.resolveDailyLimit(AccountType.SAVINGS)
+                            withdrawalService.resolveDailyLimit(AccountType.SAVINGS)
                     )
                     .build();
 
