@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public class AccountDataProvider {
 
+    public static final String CUSTOMER_TEST_UUID = "e7c6be34-c77b-4afa-aebb-327354a9fe0b";
+
     public static AccountEntity createMockAccount() {
         return AccountEntity.builder()
                 .accountNumber(generateRandomIban())

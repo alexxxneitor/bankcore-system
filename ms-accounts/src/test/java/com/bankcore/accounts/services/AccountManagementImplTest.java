@@ -4,6 +4,7 @@ import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.CustomerNotFoundException;
@@ -21,12 +22,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountManagementImplTest {
@@ -52,6 +55,17 @@ public class AccountManagementImplTest {
     private UUID customerId;
     private AccountRegisterRequest request;
 
+    private CustomerResponse activeCustomer() {
+        return new CustomerResponse(UUID.randomUUID(), true, true);
+    }
+
+    private CustomerResponse inactiveCustomer() {
+        return new CustomerResponse(UUID.randomUUID(), true, false);
+    }
+
+    private CustomerResponse nonExistentCustomer() {
+        return new CustomerResponse(UUID.randomUUID(), false, false);
+    }
     @BeforeEach
     void setUp() {
         customerId = UUID.randomUUID();
@@ -193,5 +207,135 @@ public class AccountManagementImplTest {
         assertEquals("VALID_IBAN", response.getAccountNumber());
 
         verify(accountRepository).save(any(AccountEntity.class));
+    }
+
+    @Test
+    void shouldReturnMappedAccounts_whenCustomerExistsAndHasAccounts() {
+        List<AccountEntity> entities = List.of(mock(AccountEntity.class), mock(AccountEntity.class));
+        List<UserAccountResponse> expected = List.of(mock(UserAccountResponse.class), mock(UserAccountResponse.class));
+
+        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
+        when(accountRepository.findAllByCustomerId(customerId)).thenReturn(entities);
+        when(accountMapper.toResponseList(entities)).thenReturn(expected);
+
+        List<UserAccountResponse> result = accountManagement.getCurrentUserAccounts(customerId);
+
+        assertThat(result)
+                .isNotNull()
+                .hasSize(2)
+                .isEqualTo(expected);
+    }
+
+    @Test
+    void shouldReturnEmptyList_whenCustomerExistsButHasNoAccounts() {
+        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
+        when(accountRepository.findAllByCustomerId(customerId)).thenReturn(List.of());
+        when(accountMapper.toResponseList(List.of())).thenReturn(List.of());
+
+        List<UserAccountResponse> result = accountManagement.getCurrentUserAccounts(customerId);
+
+        assertThat(result).isNotNull().isEmpty();
+    }
+
+    @Test
+    void shouldThrowException_whenIdIsNull() {
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentException_whenIdIsNotValidUUID() {
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(UUID.fromString("not-a-uuid")))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldThrowException_whenIdIsBlank() {
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(UUID.fromString(" ")))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldPropagateException_whenCustomerNotFound() {
+        RuntimeException notFound = new RuntimeException("Customer not found.");
+        when(customerClient.getCustomerById(customerId)).thenThrow(notFound);
+
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Customer not found");
+
+        verifyNoInteractions(accountRepository, accountMapper);
+    }
+
+    @Test
+    void shouldPropagateException_whenCustomerIsInactive() {
+        RuntimeException inactive = new RuntimeException("Customer is inactive");
+        when(customerClient.getCustomerById(customerId)).thenThrow(inactive);
+
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("inactive");
+
+        verifyNoInteractions(accountRepository, accountMapper);
+    }
+
+    @Test
+    void shouldPropagateException_whenExternalServiceFails() {
+        RuntimeException serviceError = new RuntimeException("Error communicating with Customer Service");
+        when(customerClient.getCustomerById(customerId)).thenThrow(serviceError);
+
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Customer Service");
+
+        verifyNoInteractions(accountRepository, accountMapper);
+    }
+
+    @Test
+    void shouldAlwaysCallClientBeforeRepository() {
+        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
+        when(accountRepository.findAllByCustomerId(customerId)).thenReturn(List.of());
+        when(accountMapper.toResponseList(any())).thenReturn(List.of());
+
+        accountManagement.getCurrentUserAccounts(customerId);
+
+        var order = inOrder(customerClient, accountRepository);
+        order.verify(customerClient).getCustomerById(customerId);
+        order.verify(accountRepository).findAllByCustomerId(customerId);
+    }
+
+    @Test
+    void shouldNeverCallRepository_whenClientFails() {
+        when(customerClient.getCustomerById(customerId)).thenThrow(new RuntimeException("fail"));
+
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
+                .isInstanceOf(RuntimeException.class);
+
+        verifyNoInteractions(accountRepository, accountMapper);
+    }
+
+    @Test
+    void shouldPassRepositoryResultDirectlyToMapper() {
+        List<AccountEntity> entities = List.of(mock(AccountEntity.class));
+
+        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
+        when(accountRepository.findAllByCustomerId(customerId)).thenReturn(entities);
+        when(accountMapper.toResponseList(entities)).thenReturn(List.of(mock(UserAccountResponse.class)));
+
+        accountManagement.getCurrentUserAccounts(customerId);
+
+        verify(accountMapper).toResponseList(entities);
+    }
+
+    @Test
+    void shouldNeverCallMapper_whenRepositoryFails() {
+        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
+        when(accountRepository.findAllByCustomerId(customerId)).thenThrow(new RuntimeException("DB error"));
+
+        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("DB error");
+
+        verifyNoInteractions(accountMapper);
     }
 }
