@@ -2,20 +2,17 @@ package com.bankcore.customers.controllers;
 
 import java.util.UUID;
 
+import com.bankcore.customers.dto.requests.PinValidateRequest;
+import com.bankcore.customers.dto.requests.RegisterRequest;
+import com.bankcore.customers.dto.responses.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
-import com.bankcore.customers.dto.responses.CustomerValidateResponse;
-import com.bankcore.customers.dto.responses.ErrorResponse;
-import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.services.UserManagement;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -148,7 +145,7 @@ public class ProfileController {
                     ),
                     @ApiResponse(
                             responseCode = "403",
-                            description = "Forbidden - User does not have CUSTOMER role",
+                            description = "Forbidden - The user does not have the SERVICE role",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ErrorResponse.class)
@@ -212,7 +209,7 @@ public class ProfileController {
                     ),
                     @ApiResponse(
                             responseCode = "403",
-                            description = "Forbidden - User does not have CUSTOMER role",
+                            description = "Forbidden - The user does not have the SERVICE role",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ErrorResponse.class)
@@ -222,5 +219,76 @@ public class ProfileController {
     )
     public ResponseEntity<CustomerValidateResponse> getCustomerValidateById(@PathVariable UUID customerId) {
         return ResponseEntity.status(HttpStatus.OK).body(userManagement.getCustomerIsActive(customerId));
+    }
+
+    /**
+     * Validates the ATM PIN for a specific customer.
+     *
+     * <p>This endpoint receives a PIN provided by the client and verifies whether it
+     * matches the encrypted PIN stored for the given customer. The validation is
+     * delegated to the service layer.</p>
+     *
+     * @param customerId the unique identifier of the customer whose PIN will be validated.
+     * @param request the request body containing the PIN to validate.
+     * @return a {@link ResponseEntity} containing a {@link PinValidateResponse} that
+     * indicates whether the provided PIN is valid.
+     */
+    @PostMapping("/{customerId}/validate-pin")
+    @Operation(
+            summary = "PIN validation by client",
+            description = "returns if the pin to validate corresponds to the queried user"
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Pin to validate",
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = PinValidateRequest.class)
+            )
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Returns whether the pin is valid or not",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PinValidateResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error - Pin with invalid format and UUID with bad format",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - Invalid or missing JWT",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - The user does not have the SERVICE role",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found - The user does not exist nor is registered in the database",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponse.class)
+                    )
+            )
+    })
+    public ResponseEntity<PinValidateResponse> getPinValidateCustomerById(@PathVariable UUID customerId, @RequestBody @Valid PinValidateRequest request){
+        return ResponseEntity.status(HttpStatus.OK).body(userManagement.getPinValidateCustomer(request, customerId));
     }
 }

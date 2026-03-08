@@ -173,6 +173,46 @@
             "description": "# 🧾 Validate Customer (Internal)\n\n## 📌 Endpoint\n\n`GET {{base_url_customers}}/api/customers/{{customerId}}/validate`\n\n## 📖 Description\n\nValidates whether a customer exists in the system and whether the account is currently active.\n\nThis endpoint is intended for internal service-to-service communication.\n\n---\n\n## 🔐 Access\n\nThis endpoint is protected.\n\nAuthentication is required using a valid JWT token.\n\nAllowed role:\n\n- `SERVICE`\n    \n\n---\n\n## 📥 Request\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| customerId | UUID | ✅ Yes | Unique identifier of the customer |\n\n### Example Request\n\n---\n\n## 📤 Responses\n\n`GET /api/customers/f4c86734-4ad0-4073-bb1b-237d9b446822/validate`\n\n---\n\n### ✅ 200 OK\n\nThe validation process was executed successfully.\n\n#### Response Body (JSON)\n\n``` json\n{\n    \"customerId\": \"f4c86734-4ad0-4073-bb1b-237d9b446822\",\n    \"exist\": true,\n    \"active\": true\n}\n\n ```\n\n### Response Fields\n\n| Field | Type | Description |\n| --- | --- | --- |\n| customerId | UUID | Customer identifier |\n| exist | boolean | Indicates whether the customer exists in the system |\n| active | boolean | Indicates whether the customer is active |\n\n---\n\n### ❌ 400 Bad Request\n\nThe provided `customerId` has an invalid format.\n\n#### Possible Causes:\n\n- The `customerId` is not a valid UUID.\n    \n- The path parameter is malformed.\n    \n\nExample:\n\n`GET /api/customers/invalid-id/validate`\n\n---\n\n### 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\n#### Possible Causes:\n\n- Missing JWT token.\n    \n- Expired token.\n    \n- Invalid token signature.\n    \n\n---\n\n### ⛔ 403 Forbidden\n\nThe authenticated user does not have the required role (`SERVICE`) to access this endpoint.\n\n---\n\n### ❌ 500 Internal Server Error\n\nAn unexpected error occurred while processing the request.\n\n#### Possible Causes:\n\n- Database access error.\n    \n- Unexpected system failure.\n    \n- Internal processing exception."
           },
           "response": []
+        },
+        {
+          "name": "Validate Pin Customer (intern)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_sercice}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"pin\":\"1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_customers}}/api/customers/{{id_customer}}/validate-pin",
+              "host": [
+                "{{base_url_customers}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{id_customer}}",
+                "validate-pin"
+              ]
+            },
+            "description": "# 🔐 Validate Customer PIN\n\n## 📌 Endpoint\n\n**POST**  \n`/api/customers/{id_customer}/validate-pin`\n\n---\n\n# 📖 Description\n\nValidates whether the **PIN provided by the customer is correct**.\n\nThis endpoint is mainly used by the **ms-accounts** service to verify the customer's PIN before executing **sensitive banking operations**, such as withdrawals, transfers, or other financial movements.\n\nThe service compares the provided PIN with the **securely stored PIN** of the customer and returns a boolean value indicating whether the PIN is valid.\n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `SERVICE`\n    \n\nThis restriction ensures that only **internal services** (such as `ms-accounts`) can validate customer PINs.\n\n---\n\n# 📥 Request\n\n## Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id_customer | UUID | ✅ Yes | Unique identifier of the customer |\n\nExample:\n\n`POST /api/customers/f4c86734-4ad0-4073-bb1b-237d9b446822/validate-pin`\n\n---\n\n## Request Body (JSON)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| pin | String | ✅ Yes | Customer PIN to validate |\n\n### Validation Rules\n\nThe `pin` field must comply with the following rules:\n\n- Cannot be **null**\n    \n- Cannot be **blank**\n    \n- Must contain **exactly 4 digits**\n    \n- **Only numeric characters** are allowed\n    \n- **Repeated digits are not allowed** (e.g. `1111`, `2222`, `9999`)\n    \n\n---\n\n### Example Request\n\n`POST /api/customers/{id_customer}/validate-pin`\n\n``` json\n{\n  \"pin\": \"1234\"\n}\n\n ```\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 200 OK\n\nThe PIN validation was processed successfully.\n\nThe response indicates whether the PIN is valid or not.\n\n### Response Body\n\n``` json\n{\n  \"valid\": true\n}\n\n ```\n\nPossible values:\n\n| Value | Meaning |\n| --- | --- |\n| true | The PIN is correct |\n| false | The PIN is incorrect |\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid data.\n\nPossible Causes:\n\n- The `id_customer` is not a valid UUID\n    \n- The `pin` field is null or empty\n    \n- The `pin` does not contain exactly **4 digits**\n    \n- The `pin` contains **letters or non-numeric characters**\n    \n- The `pin` contains **repeated digits** (e.g. `1111`)\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have the required permissions to access this endpoint.\n\nPossible Causes:\n\n- The user does not have the required role (`SERVICE`)\n    \n\n---\n\n## ⚠️ 404 Not Found\n\nThe customer with the provided `id_customer` does not exist in the system.\n\nPossible Causes:\n\n- The customer ID is valid but **no customer is associated with it**\n    \n\n---\n\n### ❌ 500 Internal Server Error\n\nAn unexpected error occurred while processing the request.\n\n#### Possible Causes:\n\n- Database access error.\n    \n- Unexpected system failure.\n    \n- Internal processing exception."
+          },
+          "response": []
         }
       ],
       "description": "This folder contains all the API requests related to the **Customers** microservice.\n\nIt is intended to support **manual testing and validation** of customer-related operations, allowing controlled interaction with the service endpoints and verification of their expected behavior.\n\nThe requests in this folder cover the main customer flows and can be used during development, debugging, and QA processes."

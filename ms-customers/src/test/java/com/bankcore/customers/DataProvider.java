@@ -1,5 +1,6 @@
 package com.bankcore.customers;
 
+import com.bankcore.customers.dto.requests.PinValidateRequest;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.bankcore.customers.utils.enums.UserRole;
@@ -27,6 +28,12 @@ public class DataProvider {
                 .address("Bogotá")
                 .role(UserRole.CUSTOMER)
                 .status(CustomerStatus.ACTIVE)
+                .build();
+    }
+
+    public static PinValidateRequest createMockPinValidate(String pin){
+        return PinValidateRequest.builder()
+                .pin(pin)
                 .build();
     }
 

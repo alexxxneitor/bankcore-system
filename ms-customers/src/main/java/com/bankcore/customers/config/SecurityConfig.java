@@ -101,6 +101,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/customers/me").hasAnyRole(UserRole.CUSTOMER.name(), UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/api/customers/*/validate").hasRole(UserRole.SERVICE.name())
+                        .requestMatchers(HttpMethod.POST, "/api/customers/*/validate-pin").hasRole(UserRole.SERVICE.name())
                         .requestMatchers(HttpMethod.GET, "/api/customers/*").hasAnyRole(UserRole.ADMIN.name(), UserRole.SERVICE.name())
                         .anyRequest().denyAll()
                 )
