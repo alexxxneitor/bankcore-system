@@ -53,13 +53,14 @@ Tabla: `customers`
 
 #### URLs principales
 
-| Endpoint                            | Método | Descripción                                        | Acceso                                   |
-|-------------------------------------|--------|----------------------------------------------------|------------------------------------------|
-| /api/auth/register                  | POST   | Registro de nuevos clientes                        | Publico                                  |
-| /api/auth/login                     | POST   | Login para clientes                                | Publico                                  |
-| /api/customers/me                   | GET    | Obtener el perfil del cliente autenticado          | Restringido solo roles (CUSTOMER, ADMIN) |
-| /api/customers/{customerId}         | GET    | Obtener detalles del cliente consultado            | Restringido solo roles (ADMIN, SERVICE)  |
-| /api/customers/{customerID}         | GET    | Obtener estado y existencia del cliente consultado | Restringido solo rol (SERVICE)           |
+| Endpoint                                  | Método | Descripción                                        | Acceso                                   |
+|-------------------------------------------|--------|----------------------------------------------------|------------------------------------------|
+| /api/auth/register                        | POST   | Registro de nuevos clientes                        | Publico                                  |
+| /api/auth/login                           | POST   | Login para clientes                                | Publico                                  |
+| /api/customers/me                         | GET    | Obtener el perfil del cliente autenticado          | Restringido solo roles (CUSTOMER, ADMIN) |
+| /api/customers/{customerId}               | GET    | Obtener detalles del cliente consultado            | Restringido solo roles (ADMIN, SERVICE)  |
+| /api/customers/{customerId}/validate      | GET    | Obtener estado y existencia del cliente consultado | Restringido solo rol (SERVICE)           |
+| /api/customers/{customerId}/validate-pin  | POST   | Obtener validacion del pin del cliente             | Restringido solo rol (SERVICE)           |
 
 ---
 

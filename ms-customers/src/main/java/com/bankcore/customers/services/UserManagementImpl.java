@@ -2,12 +2,9 @@ package com.bankcore.customers.services;
 
 
 import com.bankcore.customers.dto.requests.LoginRequest;
+import com.bankcore.customers.dto.requests.PinValidateRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
-import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
-import com.bankcore.customers.dto.responses.CustomerValidateResponse;
-import com.bankcore.customers.dto.responses.LoginResponse;
-import com.bankcore.customers.dto.responses.RegisterResponse;
-import com.bankcore.customers.dto.responses.UserProfileResponse;
+import com.bankcore.customers.dto.responses.*;
 import com.bankcore.customers.exceptions.ResourceConflictException;
 import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
@@ -245,6 +242,41 @@ public class UserManagementImpl implements UserManagement {
                 .customerId(customerId)
                 .exists(exists)
                 .active(isActive)
+                .build();
+    }
+
+    /**
+     * Validates the ATM PIN provided by a customer.
+     *
+     * <p>This method retrieves the user associated with the given {@code customerId}
+     * and compares the provided PIN with the encrypted PIN stored in the database
+     * using {@link org.springframework.security.crypto.password.PasswordEncoder#matches(CharSequence, String)}.
+     * </p>
+     *
+     * <p>The comparison is performed securely against the encoded PIN, ensuring that
+     * the raw PIN value is never stored or compared in plain text.</p>
+     *
+     * @param request the request containing the PIN to be validated.
+     * @param customerId the unique identifier of the customer whose PIN will be validated.
+     * @return a {@link PinValidateResponse} indicating whether the provided PIN matches
+     * the stored encoded PIN.
+     * @throws UserProfileNotFoundException if no user exists with the provided {@code customerId}.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public PinValidateResponse getPinValidateCustomer(PinValidateRequest request, UUID customerId) {
+
+        log.info("Obtaining customer pin for validation: {}", customerId);
+
+        UserEntity user = userRepository.findById(customerId)
+                .orElseThrow(() ->
+                        new UserProfileNotFoundException("User not found")
+                );
+
+        boolean isValid = passwordEncoder.matches(request.getPin(), user.getAtmPin());
+
+        return PinValidateResponse.builder()
+                .valid(isValid)
                 .build();
     }
 }

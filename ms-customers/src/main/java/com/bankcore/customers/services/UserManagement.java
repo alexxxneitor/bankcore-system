@@ -3,12 +3,9 @@ package com.bankcore.customers.services;
 import java.util.UUID;
 
 import com.bankcore.customers.dto.requests.LoginRequest;
+import com.bankcore.customers.dto.requests.PinValidateRequest;
 import com.bankcore.customers.dto.requests.RegisterRequest;
-import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
-import com.bankcore.customers.dto.responses.CustomerValidateResponse;
-import com.bankcore.customers.dto.responses.LoginResponse;
-import com.bankcore.customers.dto.responses.RegisterResponse;
-import com.bankcore.customers.dto.responses.UserProfileResponse;
+import com.bankcore.customers.dto.responses.*;
 import com.bankcore.customers.exceptions.ResourceConflictException;
 import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 
@@ -94,4 +91,16 @@ public interface UserManagement {
      * @return A {@link CustomerValidateResponse} containing the customer ID, existence flag and active status flag
      */
     CustomerValidateResponse getCustomerIsActive(UUID customerId);
+
+    /**
+     * Validates the customer's PIN against the stored credential.
+     *
+     * <p>The method retrieves the customer's PIN using the provided customer ID
+     * and compares it with the PIN received in the request.</p>
+     *
+     * @param request the request containing the PIN to validate
+     * @param customerId the unique identifier of the customer
+     * @return a {@link PinValidateResponse} indicating whether the provided PIN is valid
+     */
+    PinValidateResponse getPinValidateCustomer(PinValidateRequest request, UUID customerId);
 }
