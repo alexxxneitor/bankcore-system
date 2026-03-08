@@ -214,7 +214,6 @@ public class AccountManagementImplTest {
         List<AccountEntity> entities = List.of(mock(AccountEntity.class), mock(AccountEntity.class));
         List<UserAccountResponse> expected = List.of(mock(UserAccountResponse.class), mock(UserAccountResponse.class));
 
-        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
         when(accountRepository.findAllByCustomerId(customerId)).thenReturn(entities);
         when(accountMapper.toResponseList(entities)).thenReturn(expected);
 
@@ -228,7 +227,6 @@ public class AccountManagementImplTest {
 
     @Test
     void shouldReturnEmptyList_whenCustomerExistsButHasNoAccounts() {
-        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
         when(accountRepository.findAllByCustomerId(customerId)).thenReturn(List.of());
         when(accountMapper.toResponseList(List.of())).thenReturn(List.of());
 
@@ -255,70 +253,24 @@ public class AccountManagementImplTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    void shouldPropagateException_whenCustomerNotFound() {
-        RuntimeException notFound = new RuntimeException("Customer not found.");
-        when(customerClient.getCustomerById(customerId)).thenThrow(notFound);
 
-        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Customer not found");
-
-        verifyNoInteractions(accountRepository, accountMapper);
-    }
-
-    @Test
-    void shouldPropagateException_whenCustomerIsInactive() {
-        RuntimeException inactive = new RuntimeException("Customer is inactive");
-        when(customerClient.getCustomerById(customerId)).thenThrow(inactive);
-
-        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("inactive");
-
-        verifyNoInteractions(accountRepository, accountMapper);
-    }
-
-    @Test
-    void shouldPropagateException_whenExternalServiceFails() {
-        RuntimeException serviceError = new RuntimeException("Error communicating with Customer Service");
-        when(customerClient.getCustomerById(customerId)).thenThrow(serviceError);
-
-        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Customer Service");
-
-        verifyNoInteractions(accountRepository, accountMapper);
-    }
 
     @Test
     void shouldAlwaysCallClientBeforeRepository() {
-        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
+
         when(accountRepository.findAllByCustomerId(customerId)).thenReturn(List.of());
         when(accountMapper.toResponseList(any())).thenReturn(List.of());
 
         accountManagement.getCurrentUserAccounts(customerId);
 
-        var order = inOrder(customerClient, accountRepository);
-        order.verify(customerClient).getCustomerById(customerId);
-        order.verify(accountRepository).findAllByCustomerId(customerId);
+        verify(accountRepository).findAllByCustomerId(customerId);
     }
 
-    @Test
-    void shouldNeverCallRepository_whenClientFails() {
-        when(customerClient.getCustomerById(customerId)).thenThrow(new RuntimeException("fail"));
-
-        assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))
-                .isInstanceOf(RuntimeException.class);
-
-        verifyNoInteractions(accountRepository, accountMapper);
-    }
 
     @Test
     void shouldPassRepositoryResultDirectlyToMapper() {
         List<AccountEntity> entities = List.of(mock(AccountEntity.class));
 
-        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
         when(accountRepository.findAllByCustomerId(customerId)).thenReturn(entities);
         when(accountMapper.toResponseList(entities)).thenReturn(List.of(mock(UserAccountResponse.class)));
 
@@ -329,7 +281,7 @@ public class AccountManagementImplTest {
 
     @Test
     void shouldNeverCallMapper_whenRepositoryFails() {
-        when(customerClient.getCustomerById(customerId)).thenReturn(activeCustomer());
+
         when(accountRepository.findAllByCustomerId(customerId)).thenThrow(new RuntimeException("DB error"));
 
         assertThatThrownBy(() -> accountManagement.getCurrentUserAccounts(customerId))

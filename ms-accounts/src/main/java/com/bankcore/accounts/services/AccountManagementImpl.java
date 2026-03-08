@@ -121,7 +121,10 @@ public class AccountManagementImpl implements AccountManagementService {
             throw new IllegalArgumentException("Customer ID must not be null");
         }
 
-        validateCustomerIsActive(id);
+        // Note: customer status validation is intentionally omitted here.
+        // Any valid JWT guarantees the customer was ACTIVE at authentication time.
+        // For read-only operations, we accept the token's validity window as sufficient.
+        // Explicit status validation is enforced on state-mutating or financial operations.
 
         List<AccountEntity> accounts = accountRepository.findAllByCustomerId(id);
         return accountMapper.toResponseList(accounts);

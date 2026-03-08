@@ -171,30 +171,6 @@ public class AccountController {
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "The authenticated customer is not registered",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "502",
-                    description = "Unexpected response received from the Customers service",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "503",
-                    description = "The Customers service is currently unavailable.",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class)
-                    )
-            ),
     })
     @GetMapping
     public ResponseEntity<List<UserAccountResponse>> getCustomerAccounts(Authentication auth) {

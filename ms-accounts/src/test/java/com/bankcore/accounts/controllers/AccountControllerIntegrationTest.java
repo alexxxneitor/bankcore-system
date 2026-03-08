@@ -297,8 +297,6 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     void shouldReturnNoAccounts_whenCustomerAuthorizedAndActive() throws Exception {
         UUID customerId = UUID.randomUUID();
-        Mockito.when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
 
         mockMvc.perform(get("/api/accounts")
                         .with(user(customerId.toString()).roles("CUSTOMER")))
@@ -307,58 +305,6 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(0)));
-    }
-
-    @Test
-    void shouldReturn403_whenCustomerInactive() throws Exception {
-        UUID customerId = UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID);
-        Mockito.when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, false));
-
-        mockMvc.perform(get("/api/accounts")
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value("Forbidden"))
-                .andExpect(jsonPath("$.code").value(403))
-                .andExpect(jsonPath("$.description").value("The authenticated client is not active"))
-                .andExpect(jsonPath("$.timestamp").exists());
-    }
-
-    @Test
-    void shouldReturn404_whenCustomerNotFound() throws Exception {
-        UUID customerId = UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID);
-        Mockito.when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, false, false));
-
-        mockMvc.perform(get("/api/accounts")
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value("Not Found"))
-                .andExpect(jsonPath("$.code").value(404))
-                .andExpect(jsonPath("$.description").value("The customer is not registered in the system"))
-                .andExpect(jsonPath("$.timestamp").exists());
-    }
-
-    @Test
-    void shouldReturn503_whenExternalServiceFails() throws Exception {
-        UUID customerId = UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID);
-
-        Mockito.when(customerClient.getCustomerById(customerId))
-                .thenThrow(new CustomExternalServiceException("Customer Service is unavailable"));
-
-        mockMvc.perform(get("/api/accounts")
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
-                .andDo(print())
-                .andExpect(status().isServiceUnavailable())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value("Service Unavailable"))
-                .andExpect(jsonPath("$.code").value(503))
-                .andExpect(jsonPath("$.description").value("Customer Service is unavailable"))
-                .andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
