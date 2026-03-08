@@ -126,9 +126,10 @@ Cuando la entidad se guarda por primera vez en la base de datos:
 
 #### URLs principales
 
-| Endpoint                            | Método | Descripción                                        | Acceso                             |
-|-------------------------------------|--------|----------------------------------------------------|------------------------------------|
-| /api/accounts                       | POST   | Registro de Cuentas Bancarias                      | Restringido solo Role CUSTOMER     |
+| Endpoint                            | Método | Descripción                           | Acceso                             |
+|-------------------------------------|--------|---------------------------------------|------------------------------------|
+| /api/accounts                       | POST   | Registro de Cuentas Bancarias         | Restringido solo Role CUSTOMER     |
+| /api/accounts                       | GET    | Obtener Cuentas Bancarias del cliente | Restringido solo Role CUSTOMER     |
 
 ---
 

@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "2d47e7ec-516e-47ed-89c7-48d05b9c981b",
+    "_postman_id": "641ec8df-50c7-49fa-a8d0-51554f26af3f",
     "name": "Bankcore-Collection",
     "description": "This Postman collection contains all the requests related to the **Customers** and **Accounts** microservices.\n\nIts main purpose is to enable **controlled and structured manual testing**, allowing developers and testers to interact with the system, validate business flows, and verify the behavior of each endpoint in an isolated and predictable way.\n\nThe collection serves as a centralized tool to:\n\n- Perform manual API testing\n    \n- Validate request and response contracts\n    \n- Simulate real usage scenarios\n    \n- Support development, debugging, and QA processes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "35777093"
+    "_exporter_id": "30666637"
   },
   "item": [
     {
@@ -47,7 +47,8 @@
               "script": {
                 "exec": [
                   "const res = pm.response.json();\r",
-                  "pm.environment.set(\"jwt\", res.token);"
+                  "pm.collectionVariables.set(\"jwt\", res.token);\r",
+                  "pm.collectionVariables.set(\"id_customer\", res.customerId);"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -120,7 +121,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{jwt_sercice}}",
+                  "value": "{{jwt_service}}",
                   "type": "string"
                 }
               ]
@@ -150,7 +151,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{jwt_sercice}}",
+                  "value": "{{jwt_service}}",
                   "type": "string"
                 }
               ]
@@ -256,6 +257,35 @@
             "description": "# 🏦 Account Creation\n\n## 📌 Endpoint\n\n**POST**  \n`/api/accounts`\n\n---\n\n## 📖 Description\n\nCreates a new bank account associated with the authenticated customer.\n\nThe system automatically generates a unique **account number** and assigns the account to the authenticated user.  \nEach customer can have **a maximum of three accounts** in the system.\n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `CUSTOMER`\n    \n\nThe authenticated user will be used to determine the **customerId** associated with the account.\n\n---\n\n# 📥 Request\n\n## Headers\n\n| Header | Type | Required | Description |\n| --- | --- | --- | --- |\n| Authorization | Bearer Token | ✅ Yes | JWT access token |\n\nExample:\n\n```\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\n---\n\n## Body (JSON)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| accountType | Enum | ✅ Yes | Type of account to create |\n| currency | Enum | ✅ Yes | Currency of the account |\n| alias | String | ✅ Yes | Custom name for the account |\n\n### Allowed Values\n\n**accountType**\n\n- `SAVINGS`\n    \n- `CHECKING`\n    \n\n**currency**\n\n- `COP`\n    \n- `USD`\n    \n\n---\n\n### Example Request\n\n``` http\nPOST /api/accounts\n\n ```\n\n``` json\n{\n    \"accountType\": \"SAVINGS\",\n    \"currency\": \"COP\",\n    \"alias\": \"Mi cuenta de Deposito\"\n}\n\n ```\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 201 Created\n\nThe account was successfully created.\n\nResponse Body:\n\n``` json\n{\n    \"id\": \"f7002851-65ff-4b12-9acd-fe1408f13ddb\",\n    \"accountNumber\": \"ES8832107988618167785749\",\n    \"customerId\": \"f4c86734-4ad0-4073-bb1b-237d9b446822\",\n    \"accountType\": \"SAVINGS\",\n    \"currency\": \"COP\",\n    \"balance\": 0,\n    \"alias\": \"Mi cuenta de Deposito\",\n    \"status\": \"ACTIVE\",\n    \"createdAt\": \"2026-03-06T21:15:50.996462400Z\"\n}\n\n ```\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid data.\n\nPossible Causes:\n\n- `accountType` contains an invalid value\n    \n- `currency` contains an invalid value\n    \n- `alias` does not meet validation rules\n    \n- Missing required fields\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have permission to access this endpoint.\n\nPossible Causes:\n\n- The user does not have the required role (`CUSTOMER`)\n    \n- The customer exists but is **inactive** according to the **Customers service**\n    \n\n---\n\n## ⚠️ 409 Conflict\n\nThe customer does not exist in the **Customers service**.\n\nPossible Causes:\n\n- The authenticated user ID does not correspond to a registered customer\n    \n\n---\n\n## ⚠️ 422 Unprocessable Entity\n\nA business rule was violated.\n\nPossible Causes:\n\n- The customer has reached the **maximum limit of three accounts**\n    \n\n---\n\n## 🔌 502 Bad Gateway\n\nUnexpected response received from the **Customers service**.\n\nPossible Causes:\n\n- Invalid or malformed response\n    \n- Communication error between services\n    \n- Unexpected status code returned by the external service\n    \n\n---\n\n## 🚨 503 Service Unavailable\n\nThe **Customers service** is currently unavailable.\n\nPossible Causes:\n\n- Service is down\n    \n- Network communication failure\n    \n- Timeout while calling the external service"
           },
           "response": []
+        },
+        {
+          "name": "Get user accounts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_accounts}}/api/accounts",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            },
+            "description": "## 📋 View Customer Accounts\n\n---\n\n### Endpoint\n\n`GET api/accounts`\n\n---\n\n### Description\n\nReturns the list of accounts associated with the currently authenticated customer. The client identity is resolved automatically from the JWT token — no user ID is required in the request.\n\n---\n\n### Access\n\n| Property | Value |\n| --- | --- |\n| Authentication | ✅ Required (Bearer JWT) |\n| Required Role | `CUSTOMER` |\n| Account Status | Must be **active** |\n\n---\n\n### Request\n\n#### Headers\n\n| Header | Type | Required | Description |\n| --- | --- | --- | --- |\n| `Authorization` | `string` | ✅ Yes | Bearer token. Format: `Bearer` |\n\n#### Body\n\n> This endpoint does not require a request body. \n  \n\n#### HTTP Example\n\n``` http\nGET /accounts HTTP/1.1\nHost: api.example.com\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\n> 💡 The customer's UUID is extracted internally from the JWT (`auth.getName()`). The client does not need to provide an ID explicitly. \n  \n\n---\n\n### Responses\n\n---\n\n#### ✅ 200 — Accounts retrieved successfully\n\nThe authenticated customer's accounts were found and returned.\n\n**Example response:**\n\n``` json\n[\n    {\n        \"id\": \"27670a6d-e5d8-4584-b465-3413bbed92b5\",\n        \"accountNumber\": \"ES6237649763684125645131\",\n        \"accountType\": \"SAVINGS\",\n        \"currency\": \"COP\",\n        \"balance\": 0.00,\n        \"alias\": \"Mi cuenta de Deposito\",\n        \"status\": \"ACTIVE\"\n    },\n    {......}\n]\n\n ```\n\n---\n\n#### 🔐 401 — Customer is not authenticated\n\nThe request could not be authenticated.\n\n**Possible Causes:**\n\n- The `Authorization` header is missing from the request.\n    \n- The JWT token is expired.\n    \n- The JWT token has an invalid signature or is malformed.\n    \n\n---\n\n#### ⛔ 403 — Access denied\n\nThe token is valid but the customer is not authorized to access this resource.\n\n**Possible Causes:**\n\n- The authenticated user does not have the `CUSTOMER` role.\n    \n- The customer's account is inactive or suspended."
+          },
+          "response": []
         }
       ],
       "description": "This folder contains all the API requests related to the **Accounts** microservice.\n\nIt is intended to support **manual testing and validation** of account-related operations, allowing controlled interaction with the service endpoints and verification of their expected behavior.\n\nThe requests in this folder cover the main account lifecycle and transactional flows and are used during development, debugging, and QA processes."
@@ -297,7 +327,7 @@
       "description": "Identification token for CUSTOMER or ADMIN user"
     },
     {
-      "key": "jwt_sercice",
+      "key": "jwt_service",
       "value": "",
       "description": "Identification token for SERVICE role"
     },

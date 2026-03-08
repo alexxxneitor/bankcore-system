@@ -27,13 +27,13 @@ public class GlobalExceptionHandler {
 
     // Handle custom exceptions related to customer status and resource conflicts
     @ExceptionHandler(CustomerInactiveException.class)
-    public ResponseEntity<ErrorResponse> hanldeCustomerInactiveException(CustomerInactiveException ex) {
+    public ResponseEntity<ErrorResponse> handleCustomerInactiveException(CustomerInactiveException ex) {
         return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     // Handle custom exception for when a customer is not found
     @ExceptionHandler(CustomerNotFoundException.class)
-    public ResponseEntity<ErrorResponse> hanldeCustomerNotFoundException(CustomerNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleCustomerNotFoundException(CustomerNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 

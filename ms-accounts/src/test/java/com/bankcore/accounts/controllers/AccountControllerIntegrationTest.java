@@ -1,10 +1,11 @@
 package com.bankcore.accounts.controllers;
 
 import com.bankcore.accounts.AbstractIntegrationTest;
+import com.bankcore.accounts.AccountDataProvider;
 import com.bankcore.accounts.client.CustomerClient;
-import com.bankcore.accounts.config.DailyWithdrawalLimit;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.exceptions.CustomExternalServiceException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.services.WithdrawalService;
@@ -21,17 +22,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
+@Transactional
 public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -51,7 +56,13 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        Mockito.reset(customerClient);
         accountRepository.deleteAll();
+        accountRepository.saveAll(List.of(
+                AccountDataProvider.createMockAccount(UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID), "Some alias"),
+                AccountDataProvider.createMockAccount(UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID), "Some alias"),
+                AccountDataProvider.createMockAccount(UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID), "Some alias")
+        ));
     }
 
     @TestConfiguration
@@ -102,6 +113,7 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
@@ -249,12 +261,12 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
         UUID customerId = UUID.randomUUID();
 
         String invalidJson = """
-        {
-            "accountType": "EnumNotPermited",
-            "currency": "EnumNotPermited",
-            "alias": "my-alias"
-        }
-        """;
+                {
+                    "accountType": "EnumNotPermited",
+                    "currency": "EnumNotPermited",
+                    "alias": "my-alias"
+                }
+                """;
 
         mockMvc.perform(post("/api/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -264,5 +276,59 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    void shouldReturnAccounts_whenCustomerAuthorizedAndActive() throws Exception {
+        UUID customerId = UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID);
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
+
+
+    @Test
+    void shouldReturnNoAccounts_whenCustomerAuthorizedAndActive() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void shouldReturn403_whenWrongRole() throws Exception {
+        UUID customerId = UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID);
+
+        mockMvc.perform(get("/api/accounts")
+                        .with(user(customerId.toString()).roles("ADMIN")))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.name").value("Forbidden"))
+                .andExpect(jsonPath("$.code").value(403))
+                .andExpect(jsonPath("$.description").value("You do not have permission to access this resource."))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void shouldReturn401_whenNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/api/accounts"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.name").value("Unauthorized"))
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.description").value("Authentication is required to access this resource."))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 }

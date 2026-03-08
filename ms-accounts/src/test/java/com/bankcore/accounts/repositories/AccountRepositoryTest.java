@@ -7,9 +7,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -66,5 +68,23 @@ public class AccountRepositoryTest extends AbstractIntegrationTest {
 
         assertTrue(accountRepository.existsByAccountNumber(saved.getAccountNumber()));
         assertFalse(accountRepository.existsByAccountNumber("IBAN999"));
+    }
+
+    @Test
+    void shouldFindAllByCustomerId() {
+        UUID customerId = UUID.fromString(AccountDataProvider.CUSTOMER_TEST_UUID);
+
+        List<AccountEntity> accounts = List.of(
+                AccountDataProvider.createMockAccount(customerId, "Some alias 1"),
+                AccountDataProvider.createMockAccount(customerId, "Some alias 2"),
+                AccountDataProvider.createMockAccount(customerId, "Some alias 3")
+        );
+
+        accountRepository.saveAll(accounts);
+
+        List<AccountEntity> result = accountRepository.findAllByCustomerId(customerId);
+
+        assertThat(result).hasSize(3);
+        assertThat(result).allMatch(account -> account.getCustomerId().equals(customerId));
     }
 }

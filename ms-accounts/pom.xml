@@ -215,8 +215,8 @@
                     </execution>
                 </executions>
             </plugin>
-		</plugins>
-		<finalName>ms-accounts</finalName>
-	</build>
+        </plugins>
+        <finalName>ms-accounts</finalName>
+    </build>
 
 </project>

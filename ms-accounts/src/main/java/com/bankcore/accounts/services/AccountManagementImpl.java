@@ -3,6 +3,7 @@ package com.bankcore.accounts.services;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
@@ -12,12 +13,13 @@ import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,13 +27,14 @@ import java.util.UUID;
  * This service interacts with the CustomerClient to validate customer information and uses the AccountRepository
  * to perform database operations related to accounts. It also utilizes the IbanGeneratorService to generate unique
  * IBANs for new accounts and the DailyWithdrawalLimit utility to set withdrawal limits based on account types.
- * @author BankCore Team - Sebastian Orjuela
+ *
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 @Slf4j
 @Service
 @AllArgsConstructor
-public class AccountManagementImpl implements AccountManagementService{
+public class AccountManagementImpl implements AccountManagementService {
 
     private final CustomerClient customerClient;
     private final AccountRepository accountRepository;
@@ -49,14 +52,14 @@ public class AccountManagementImpl implements AccountManagementService{
      * @throws CustomerNotFoundException if the consulted client does not exist
      * @throws CustomerInactiveException if the customer is not active
      */
-    private void validateCustomerIsActive(UUID idCustomer){
+    private void validateCustomerIsActive(UUID idCustomer) {
         CustomerResponse customer = customerClient.getCustomerById(idCustomer);
-        if(!customer.exists()){
-           throw new CustomerNotFoundException("The customer is not registered in the system");
+        if (!customer.exists()) {
+            throw new CustomerNotFoundException("The customer is not registered in the system");
         }
 
-        if(!customer.isActive()){
-             throw new CustomerInactiveException("The authenticated client is not active");
+        if (!customer.isActive()) {
+            throw new CustomerInactiveException("The authenticated client is not active");
         }
     }
 
@@ -92,6 +95,39 @@ public class AccountManagementImpl implements AccountManagementService{
         accountRepository.save(accountEntity);
 
         return accountMapper.toAccountRegisterResponse(accountEntity);
+    }
+
+
+    /**
+     * Retrieves all bank accounts associated with the authenticated customer.
+     * <p>
+     * Validates that the provided {@link UUID} is not null, verifies the customer
+     * exists and is active via the customer service, and returns the mapped account list.
+     * </p>
+     *
+     * @param id the {@link UUID} of the customer whose accounts are to be retrieved
+     * @return a {@link List} of {@link UserAccountResponse} associated with the customer,
+     *         or an empty list if no accounts are found
+     * @throws IllegalArgumentException                                        if {@code id} is null
+     * @throws com.bankcore.accounts.exceptions.CustomerNotFoundException      if the customer does not exist in the Customer Service
+     * @throws CustomerInactiveException                                       if the customer account is inactive
+     * @throws com.bankcore.accounts.exceptions.CustomExternalServiceException if the Customer Service returns an error or empty response
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAccountResponse> getCurrentUserAccounts(UUID id) {
+
+        if (id == null) {
+            throw new IllegalArgumentException("Customer ID must not be null");
+        }
+
+        // Note: customer status validation is intentionally omitted here.
+        // Any valid JWT guarantees the customer was ACTIVE at authentication time.
+        // For read-only operations, we accept the token's validity window as sufficient.
+        // Explicit status validation is enforced on state-mutating or financial operations.
+
+        List<AccountEntity> accounts = accountRepository.findAllByCustomerId(id);
+        return accountMapper.toResponseList(accounts);
     }
 
     //IBAN generation

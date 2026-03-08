@@ -3,6 +3,7 @@ package com.bankcore.accounts.repositories;
 import com.bankcore.accounts.models.AccountEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -34,4 +35,17 @@ public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
      * @return true if an account with the specified IBAN exists, false otherwise.
      */
     boolean existsByAccountNumber(String iban);
+
+    /**
+     * Retrieves all bank accounts associated with the given customer ID.
+     * <p>
+     * Derived query method resolved by Spring Data JPA based on the {@code customerId} field
+     * of {@link AccountEntity}.
+     * </p>
+     *
+     * @param id the {@link UUID} of the customer whose accounts are to be retrieved
+     * @return a {@link List} of {@link AccountEntity} belonging to the specified customer,
+     *         or an empty list if no accounts are found
+     */
+    List<AccountEntity> findAllByCustomerId(UUID id);
 }

@@ -19,7 +19,7 @@ import java.util.UUID;
  * This entity is mapped to the "accounts" table in the database and contains all relevant information about a bank account,
  * including account number, customer ID, account type, currency, balance, alias, status, daily withdrawal limit, and timestamps for creation and updates.
  * The class uses JPA annotations for ORM mapping and Lombok annotations for boilerplate code reduction
- * @author BankCore Team - Sebastian Orjuela
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 @Entity
