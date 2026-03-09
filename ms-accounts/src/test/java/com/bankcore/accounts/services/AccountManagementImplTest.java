@@ -1,14 +1,13 @@
 package com.bankcore.accounts.services;
 
+import com.bankcore.accounts.AccountDataProvider;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
-import com.bankcore.accounts.exceptions.BusinessException;
-import com.bankcore.accounts.exceptions.CustomerInactiveException;
-import com.bankcore.accounts.exceptions.CustomerNotFoundException;
-import com.bankcore.accounts.exceptions.ResourceConflictException;
+import com.bankcore.accounts.exceptions.*;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.utils.enums.AccountType;
@@ -23,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +66,7 @@ public class AccountManagementImplTest {
     private CustomerResponse nonExistentCustomer() {
         return new CustomerResponse(UUID.randomUUID(), false, false);
     }
+
     @BeforeEach
     void setUp() {
         customerId = UUID.randomUUID();
@@ -254,7 +255,6 @@ public class AccountManagementImplTest {
     }
 
 
-
     @Test
     void shouldAlwaysCallClientBeforeRepository() {
 
@@ -289,5 +289,69 @@ public class AccountManagementImplTest {
                 .hasMessageContaining("DB error");
 
         verifyNoInteractions(accountMapper);
+    }
+
+    @Test
+    void getAccountDetails_whenAccountExists_returnsMappedResponse() {
+
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount(customerId, "Some Alias");
+
+        UserAccountDetailResponse detailResponse = UserAccountDetailResponse.builder()
+                .id(mockAccount.getId())
+                .accountNumber(mockAccount.getAccountNumber())
+                .customerId(mockAccount.getCustomerId())
+                .accountType(mockAccount.getAccountType())
+                .currency(String.valueOf(mockAccount.getCurrency()))
+                .balance(mockAccount.getBalance())
+                .alias(mockAccount.getAlias())
+                .status(mockAccount.getStatus())
+                .createdAt(mockAccount.getCreatedAt())
+                .lastTransactionAt(null)
+                .build();
+
+        UUID accountId = mockAccount.getId();
+
+        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
+                .thenReturn(Optional.of(mockAccount));
+        when(accountMapper.toDetailResponse(mockAccount))
+                .thenReturn(detailResponse);
+
+        UserAccountDetailResponse result = accountManagement.getAccountDetails(accountId, customerId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(accountId);
+        assertThat(result.getAccountNumber()).isEqualTo(mockAccount.getAccountNumber());
+        verify(accountRepository).findByIdAndCustomerId(accountId, customerId);
+        verify(accountMapper).toDetailResponse(mockAccount);
+    }
+
+    @Test
+    void getAccountDetails_whenAccountNotFound_throwsAccountNotFoundException() {
+
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount(customerId, "Some Alias");
+        UUID accountId = mockAccount.getId();
+
+        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountManagement.getAccountDetails(accountId, customerId))
+                .isInstanceOf(AccountNotFoundException.class);
+
+        verify(accountMapper, never()).toDetailResponse(any());
+    }
+
+    @Test
+    void getAccountDetails_whenAccountBelongsToAnotherCustomer_throwsAccountNotFoundException() {
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount(customerId, "Some Alias");
+        UUID accountId = mockAccount.getId();
+
+        UUID anotherCustomerId = UUID.randomUUID();
+        when(accountRepository.findByIdAndCustomerId(accountId, anotherCustomerId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountManagement.getAccountDetails(accountId, anotherCustomerId))
+                .isInstanceOf(AccountNotFoundException.class);
+
+        verify(accountMapper, never()).toDetailResponse(any());
     }
 }

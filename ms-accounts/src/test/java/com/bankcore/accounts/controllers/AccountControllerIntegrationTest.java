@@ -25,6 +25,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -331,4 +333,83 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.description").value("Authentication is required to access this resource."))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
+
+    @Test
+    void getAccountDetails_whenValidOwner_returns200() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+
+        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId())
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(jsonPath("$.id").value(saved.getId().toString()))
+                .andExpect(jsonPath("$.accountNumber").exists())
+                .andExpect(jsonPath("$.accountNumber").isNotEmpty())
+                .andExpect(jsonPath("$.customerId").value(customerId.toString()))
+                .andExpect(jsonPath("$.accountType").value("SAVINGS"))
+                .andExpect(jsonPath("$.currency").value("EUR"))
+                .andExpect(jsonPath("$.balance").value(0))
+                .andExpect(jsonPath("$.alias").exists())
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.lastTransactionAt").doesNotExist());
+    }
+
+    @Test
+    void getAccountDetails_whenAccountHasLastTransaction_returnsLastTransactionAt() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+
+        Instant lastTx = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        accountRepository.findById(saved.getId()).ifPresent(account -> {
+            account.setLastTransactionAt(lastTx);
+            accountRepository.save(account);
+        });
+
+        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId())
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lastTransactionAt").value(lastTx.toString()));
+    }
+
+
+    @Test
+    void getAccountDetails_whenAccountBelongsToAnotherCustomer_returns404() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+
+        UUID anotherCustomerId = UUID.randomUUID();
+        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId())
+                        .with(user(anotherCustomerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAccountDetails_whenAccountDoesNotExist_returns404() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/accounts/{accountId}", UUID.randomUUID())
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAccountDetails_whenNoToken_returns401() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getAccountDetails_whenInvalidAccountIdFormat_returns400() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/accounts/{accountId}", "not-a-uuid")
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
 }

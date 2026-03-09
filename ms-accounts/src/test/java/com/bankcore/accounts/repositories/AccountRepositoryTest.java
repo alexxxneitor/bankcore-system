@@ -87,4 +87,42 @@ public class AccountRepositoryTest extends AbstractIntegrationTest {
         assertThat(result).hasSize(3);
         assertThat(result).allMatch(account -> account.getCustomerId().equals(customerId));
     }
+
+    @Test
+    void findByIdAndCustomerId_whenBothMatch_returnsAccount() {
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount();
+        AccountEntity saved = accountRepository.save(mockAccount);
+
+        Optional<AccountEntity> result = accountRepository.findByIdAndCustomerId(saved.getId(), saved.getCustomerId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(saved.getId());
+        assertThat(result.get().getCustomerId()).isEqualTo(saved.getCustomerId());
+    }
+
+    @Test
+    void findByIdAndCustomerId_whenCustomerIdDoesNotMatch_returnsEmpty() {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount(customerId, "Some Alias");
+        UUID accountId = mockAccount.getId();
+        Optional<AccountEntity> result = accountRepository.findByIdAndCustomerId(accountId, UUID.randomUUID());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findByIdAndCustomerId_whenAccountIdDoesNotExist_returnsEmpty() {
+        UUID customerId = UUID.randomUUID();
+
+        Optional<AccountEntity> result = accountRepository.findByIdAndCustomerId(UUID.randomUUID(), customerId);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findByIdAndCustomerId_whenBothDoNotMatch_returnsEmpty() {
+        Optional<AccountEntity> result = accountRepository.findByIdAndCustomerId(UUID.randomUUID(), UUID.randomUUID());
+
+        assertThat(result).isEmpty();
+    }
 }
