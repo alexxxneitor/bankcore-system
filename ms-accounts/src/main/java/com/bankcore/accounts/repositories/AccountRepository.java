@@ -4,6 +4,7 @@ import com.bankcore.accounts.models.AccountEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -48,4 +49,21 @@ public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
      *         or an empty list if no accounts are found
      */
     List<AccountEntity> findAllByCustomerId(UUID id);
+
+    /**
+     * Retrieves an account matching both the given account ID and customer ID.
+     * <p>
+     * This query enforces ownership validation at the database level, ensuring that
+     * a customer can only access accounts that belong to them. Returns an empty
+     * {@link Optional} if no match is found, whether the account does not exist
+     * or belongs to a different customer — intentionally indistinguishable to prevent
+     * account enumeration.
+     * </p>
+     *
+     * @param id         the unique identifier of the account
+     * @param customerId the unique identifier of the customer who should own the account
+     * @return an {@link Optional} containing the matching {@link AccountEntity},
+     *         or {@link Optional#empty()} if no account is found for the given combination
+     */
+    Optional<AccountEntity> findByIdAndCustomerId(UUID id, UUID customerId);
 }

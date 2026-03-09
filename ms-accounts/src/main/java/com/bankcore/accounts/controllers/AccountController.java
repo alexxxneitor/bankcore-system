@@ -2,10 +2,12 @@ package com.bankcore.accounts.controllers;
 
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.dto.responses.ErrorResponse;
 import com.bankcore.accounts.services.AccountManagementService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -176,5 +178,58 @@ public class AccountController {
     public ResponseEntity<List<UserAccountResponse>> getCustomerAccounts(Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(accountManagementService.getCurrentUserAccounts(UUID.fromString(auth.getName())));
+    }
+
+    /**
+     * Retrieves the full details of a specific account belonging to the authenticated customer.
+     *
+     * @param accountId the unique identifier of the account to retrieve
+     * @param auth      the authentication object containing the authenticated customer's JWT claims
+     * @return a {@link ResponseEntity} containing the {@link UserAccountDetailResponse} with full account details
+     * @throws com.bankcore.accounts.exceptions.AccountNotFoundException if no account is found for the given ID and authenticated customer
+     */
+    @Operation(
+            summary = "Get account details",
+            description = "Retrieves the full details of a specific account belonging to the authenticated customer.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Account details retrieved successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserAccountDetailResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid account ID format",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - missing or invalid JWT token",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - insufficient permissions to access this resource",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Account not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
+    @GetMapping("/{accountId}")
+    public ResponseEntity<UserAccountDetailResponse> getAccountDetails(
+            @Parameter(description = "Unique identifier of the account to retrieve", required = true)
+            @PathVariable UUID accountId,
+            Authentication auth) {
+        return ResponseEntity.ok(
+                accountManagementService.getAccountDetails(accountId, UUID.fromString(auth.getName()))
+        );
     }
 }

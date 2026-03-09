@@ -3,12 +3,10 @@ package com.bankcore.accounts.services;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
-import com.bankcore.accounts.exceptions.BusinessException;
-import com.bankcore.accounts.exceptions.CustomerInactiveException;
-import com.bankcore.accounts.exceptions.CustomerNotFoundException;
-import com.bankcore.accounts.exceptions.ResourceConflictException;
+import com.bankcore.accounts.exceptions.*;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.utils.enums.AccountStatus;
@@ -128,6 +126,32 @@ public class AccountManagementImpl implements AccountManagementService {
 
         List<AccountEntity> accounts = accountRepository.findAllByCustomerId(id);
         return accountMapper.toResponseList(accounts);
+    }
+
+    /**
+     * Retrieves the full details of a specific account belonging to the authenticated customer.
+     * <p>
+     * Validates ownership by matching both the account ID and the customer ID extracted
+     * from the JWT token, preventing unauthorized access to accounts owned by other customers.
+     * If no matching account is found, a warning is logged internally and a generic exception
+     * is thrown to avoid exposing sensitive information to the caller.
+     * </p>
+     *
+     * @param accountId  the unique identifier of the account to retrieve
+     * @param customerId the unique identifier of the authenticated customer, extracted from the JWT token
+     * @return a {@link UserAccountDetailResponse} containing the full account details
+     * @throws AccountNotFoundException if no account is found matching both the given account ID
+     *                                  and customer ID, or if the account belongs to a different customer
+     */
+    @Override
+    public UserAccountDetailResponse getAccountDetails(UUID accountId, UUID customerId) {
+        return accountRepository
+                .findByIdAndCustomerId(accountId, customerId)
+                .map(accountMapper::toDetailResponse)
+                .orElseThrow(() -> {
+                    log.warn("Account not found for accountId={} customerId={}", accountId, customerId);
+                    return new AccountNotFoundException();
+                });
     }
 
     //IBAN generation

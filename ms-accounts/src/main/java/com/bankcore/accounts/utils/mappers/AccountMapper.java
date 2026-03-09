@@ -1,6 +1,7 @@
 package com.bankcore.accounts.utils.mappers;
 
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.models.AccountEntity;
 import org.mapstruct.Mapper;
@@ -36,8 +37,15 @@ public interface AccountMapper {
      * Converts a list of {@link AccountEntity} instances to a list of {@link UserAccountResponse}.
      *
      * @param accounts the list of account entities to convert
-     * @return a {@link List} of {@link UserAccountResponse}
+     * @return a {@link List} of mapped {@link UserAccountResponse}
      */
     List<UserAccountResponse> toResponseList(List<AccountEntity> accounts);
 
+    /**
+     * Converts an {@link AccountEntity} to a {@link UserAccountDetailResponse}.
+     *
+     * @param account the account entity to convert
+     * @return the mapped {@link UserAccountDetailResponse}
+     */
+    UserAccountDetailResponse toDetailResponse(AccountEntity account);
 }
