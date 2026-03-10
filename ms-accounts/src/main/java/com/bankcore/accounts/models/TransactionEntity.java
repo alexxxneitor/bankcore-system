@@ -125,4 +125,9 @@ public class TransactionEntity {
         this.createdAt = Instant.now();
         generateReferenceNumber();
     }
+
+    public UUID getAccountId() {
+        return account.getId();
+    }
+
 }

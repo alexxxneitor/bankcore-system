@@ -1,34 +1,24 @@
 package com.bankcore.accounts.utils.enums;
 
 /**
- * Enumeration representing the possible statuses of a financial transaction.
+ * Represents the processing status of a financial transaction.
  * <p>
- * Each status reflects the current lifecycle state of the transaction
- * within the system.
+ * Tracks the lifecycle state of a {@code TransactionEntity}
+ * from creation through to final settlement or failure.
  * </p>
- *
- * <ul>
- *   <li>{@link #COMPLETED} – The transaction has been successfully processed.</li>
- *   <li>{@link #PENDING} – The transaction is awaiting processing or confirmation.</li>
- *   <li>{@link #FAILED} – The transaction could not be completed due to an error or rejection.</li>
- *   <li>{@link #REVERSED} – The transaction was rolled back or canceled after initial processing.</li>
- * </ul>
- *
- * <p>
- * Usage:
- * <ul>
- *   <li>Used in {@code TransactionEntity} to indicate the current state of a transaction.</li>
- *   <li>Helps clients and services handle business logic based on transaction outcomes.</li>
- * </ul>
- * </p>
- *
- * @author Bankcore Team - Sebastian Orjuela
- * @version 1.0
+ * @author BankCore Team - Cristian Ortiz
  */
 public enum TransactionStatus {
 
+    /** The transaction was successfully processed and settled. */
     COMPLETED,
+
+    /** The transaction has been initiated but not yet processed. */
     PENDING,
+
+    /** The transaction could not be completed due to an error or rejection. */
     FAILED,
+
+    /** A previously completed transaction that has been reversed or refunded. */
     REVERSED
 }

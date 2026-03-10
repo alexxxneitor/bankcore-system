@@ -93,7 +93,6 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
-        ;
     }
 
     @Test
@@ -107,7 +106,6 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
-        ;
     }
 
     @Test
@@ -119,7 +117,6 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
-        ;
     }
 
     @Test

@@ -3,7 +3,6 @@ package com.bankcore.customers.controllers;
 import java.util.UUID;
 
 import com.bankcore.customers.dto.requests.PinValidateRequest;
-import com.bankcore.customers.dto.requests.RegisterRequest;
 import com.bankcore.customers.dto.responses.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;

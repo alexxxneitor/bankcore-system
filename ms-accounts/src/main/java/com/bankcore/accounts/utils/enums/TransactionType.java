@@ -1,35 +1,27 @@
 package com.bankcore.accounts.utils.enums;
 
 /**
- * Enumeration representing the types of financial transactions supported by the system.
+ * Represents the type of a financial transaction within the system.
  * <p>
- * Each type indicates the nature of the transaction and its effect on the account balance.
+ * Each value describes the direction and nature of the monetary movement
+ * associated with a {@code TransactionEntity}.
  * </p>
- *
- * <ul>
- *   <li>{@link #DEPOSIT} – Funds added to the account.</li>
- *   <li>{@link #WITHDRAWAL} – Funds removed from the account.</li>
- *   <li>{@link #TRANSFER_IN} – Incoming transfer from another account.</li>
- *   <li>{@link #TRANSFER_OUT} – Outgoing transfer to another account.</li>
- *   <li>{@link #FEE} – Deduction applied as a service or transaction fee.</li>
- * </ul>
- *
- * <p>
- * Usage:
- * <ul>
- *   <li>Used in {@code TransactionEntity} and DTOs to classify transactions.</li>
- *   <li>Supports business logic for calculating balances and auditing activity.</li>
- * </ul>
- * </p>
- *
- * @author BankcoreTeam - Sebastian Orjuela
- * @version 1.0
+ * @author BankCore Team - Cristian Ortiz
  */
 public enum TransactionType {
 
+    /** Funds added to the account from an external source. */
     DEPOSIT,
+
+    /** Funds removed from the account by the account holder. */
     WITHDRAWAL,
+
+    /** Funds received into the account as part of a transfer from another account. */
     TRANSFER_IN,
+
+    /** Funds sent out of the account as part of a transfer to another account. */
     TRANSFER_OUT,
+
+    /** A charge applied to the account for a service or penalty. */
     FEE
 }

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * JSON response with details about the error using the {@link ErrorResponse} DTO.
  * </p>
  *
- * @author BankCore Team - Sebastian Orjuela
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 @RestControllerAdvice
@@ -34,13 +34,13 @@ public class GlobalExceptionHandler {
     // Handle custom exception for when a customer is not found
     @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleCustomerNotFoundException(CustomerNotFoundException ex) {
-        return notFound(ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     // Handle custom exception for resource conflicts, such as duplicate entries
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ErrorResponse> handleResourceConflictException(ResourceConflictException ex) {
-        return conflict(ex.getMessage());
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     // Handle custom business logic exceptions that may occur during processing
@@ -98,6 +98,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CustomInternalServiceException.class)
     public ResponseEntity<ErrorResponse> handleCustomInvalidParameter(CustomInternalServiceException ex){
         return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    }
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String value = ex.getValue() != null ? ex.getValue().toString() : "null";
+        String message = String.format("Invalid value '%s' for parameter '%s'", value, ex.getName());
+        return badRequest(message);
     }
 
     @ExceptionHandler(AccountInactiveException.class)

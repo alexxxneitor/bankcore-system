@@ -2,12 +2,16 @@ package com.bankcore.accounts.controllers;
 
 import com.bankcore.accounts.AbstractIntegrationTest;
 import com.bankcore.accounts.AccountDataProvider;
+import com.bankcore.accounts.TransactionDataProvider;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.services.complements.WithdrawalService;
+import com.bankcore.accounts.repositories.TransactionRepository;
+import com.bankcore.accounts.services.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
@@ -49,6 +53,9 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @Autowired
     private WithdrawalService withdrawalService;
@@ -330,4 +337,83 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.description").value("Authentication is required to access this resource."))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
+
+    @Test
+    void getAccountDetails_whenValidOwner_returns200() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+
+        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId())
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(jsonPath("$.id").value(saved.getId().toString()))
+                .andExpect(jsonPath("$.accountNumber").exists())
+                .andExpect(jsonPath("$.accountNumber").isNotEmpty())
+                .andExpect(jsonPath("$.customerId").value(customerId.toString()))
+                .andExpect(jsonPath("$.accountType").value("SAVINGS"))
+                .andExpect(jsonPath("$.currency").value("EUR"))
+                .andExpect(jsonPath("$.balance").value(0))
+                .andExpect(jsonPath("$.alias").exists())
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.lastTransactionAt").doesNotExist());
+    }
+
+    @Test
+    void getAccountDetails_whenAccountHasLastTransaction_returnsLastTransactionAt() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity savedAccount = accountRepository.save(
+                AccountDataProvider.createMockAccount(customerId, "Random Alias")
+        );
+
+        TransactionEntity savedTransaction = transactionRepository.save(
+                TransactionDataProvider.createMockTransaction(savedAccount)
+        );
+
+        mockMvc.perform(get("/api/accounts/{accountId}", savedAccount.getId())
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lastTransactionAt").value(savedTransaction.getCreatedAt().toString()));
+    }
+
+
+    @Test
+    void getAccountDetails_whenAccountBelongsToAnotherCustomer_returns404() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+
+        UUID anotherCustomerId = UUID.randomUUID();
+        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId())
+                        .with(user(anotherCustomerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAccountDetails_whenAccountDoesNotExist_returns404() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/accounts/{accountId}", UUID.randomUUID())
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAccountDetails_whenNoToken_returns401() throws Exception {
+        UUID customerId = UUID.randomUUID();
+        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getAccountDetails_whenInvalidAccountIdFormat_returns400() throws Exception {
+        UUID customerId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/accounts/{accountId}", "not-a-uuid")
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
 }
