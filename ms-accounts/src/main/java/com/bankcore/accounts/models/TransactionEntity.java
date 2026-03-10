@@ -70,9 +70,20 @@ public class TransactionEntity {
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant createdAt;
 
+
+    protected void generateReferenceNumber() {
+        if (this.id != null) {
+            String uuidPart = this.id.toString()
+                    .replace("-", "")
+                    .substring(0, 16)
+                    .toUpperCase();
+            this.referenceNumber = String.join("","TXN", uuidPart);
+        }
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
-        this.referenceNumber = "TXN" + this.id.toString().replace("-", "").substring(0, 16).toUpperCase();
+        generateReferenceNumber();
     }
 }
