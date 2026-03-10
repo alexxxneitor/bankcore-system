@@ -1,4 +1,4 @@
-package com.bankcore.accounts.services.complemets;
+package com.bankcore.accounts.services.complements;
 
 import com.bankcore.accounts.config.DailyWithdrawalLimit;
 import com.bankcore.accounts.utils.enums.AccountType;

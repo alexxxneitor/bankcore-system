@@ -1,4 +1,4 @@
-package com.bankcore.accounts.services.complemets;
+package com.bankcore.accounts.services.complements;
 
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.responses.CustomerResponse;

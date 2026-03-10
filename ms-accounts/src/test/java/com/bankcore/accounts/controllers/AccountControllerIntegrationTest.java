@@ -7,7 +7,7 @@ import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
-import com.bankcore.accounts.services.complemets.WithdrawalService;
+import com.bankcore.accounts.services.complements.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
