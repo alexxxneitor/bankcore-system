@@ -3,14 +3,14 @@ package com.bankcore.accounts.services;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
-import com.bankcore.accounts.exceptions.BusinessException;
-import com.bankcore.accounts.exceptions.CustomerInactiveException;
-import com.bankcore.accounts.exceptions.CustomerNotFoundException;
-import com.bankcore.accounts.exceptions.ResourceConflictException;
+import com.bankcore.accounts.exceptions.*;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
 import lombok.AllArgsConstructor;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +39,7 @@ public class AccountManagementImpl implements AccountManagementService {
 
     private final CustomerClient customerClient;
     private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
     private final IbanGeneratorService ibanGeneratorService;
     private final WithdrawalService withdrawalService;
     private final AccountMapper accountMapper;
@@ -128,6 +130,41 @@ public class AccountManagementImpl implements AccountManagementService {
 
         List<AccountEntity> accounts = accountRepository.findAllByCustomerId(id);
         return accountMapper.toResponseList(accounts);
+    }
+
+    /**
+     * Retrieves the full details of a specific account belonging to the authenticated customer.
+     * <p>
+     * Ownership is validated by matching both the account ID and the customer ID extracted
+     * from the JWT token, preventing unauthorized access to accounts owned by other customers.
+     * If no matching account is found, a generic exception
+     * is thrown to avoid exposing sensitive information to the caller.
+     * </p>
+     * <p>
+     * The timestamp of the most recent transaction is included in the response when available,
+     * and omitted entirely if the account has no transaction history yet.
+     * </p>
+     *
+     * @param accountId  the unique identifier of the account to retrieve
+     * @param customerId the unique identifier of the authenticated customer, extracted from the JWT token
+     * @return a {@link UserAccountDetailResponse} containing the full account details,
+     *         including the timestamp of the last transaction if one exists
+     * @throws AccountNotFoundException if no account is found matching both the given account ID
+     *                                  and customer ID, or if the account belongs to a different customer
+     */
+    @Override
+    public UserAccountDetailResponse getAccountDetails(UUID accountId, UUID customerId) {
+
+        AccountEntity account = accountRepository
+                .findByIdAndCustomerId(accountId, customerId)
+                .orElseThrow(AccountNotFoundException::new);
+
+        Instant lastTransactionAt = transactionRepository
+                .findTopByAccount_IdOrderByCreatedAtDesc(accountId)
+                .map(TransactionEntity::getCreatedAt)
+                .orElse(null);
+
+        return accountMapper.toDetailResponse(account, lastTransactionAt);
     }
 
     //IBAN generation

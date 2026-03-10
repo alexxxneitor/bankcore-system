@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
  * JSON response with details about the error using the {@link ErrorResponse} DTO.
  * </p>
  *
- * @author BankCore Team - Sebastian Orjuela
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 @RestControllerAdvice
@@ -100,6 +101,17 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String value = ex.getValue() != null ? ex.getValue().toString() : "null";
+        String message = String.format("Invalid value '%s' for parameter '%s'", value, ex.getName());
+        return badRequest(message);
+    }
     /**
      * Helper method for building a 400 BAD_REQUEST error response.
      *

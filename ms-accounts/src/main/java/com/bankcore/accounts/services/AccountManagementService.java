@@ -2,6 +2,7 @@ package com.bankcore.accounts.services;
 
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
+import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 
 import java.util.UUID;
@@ -16,5 +17,6 @@ public interface AccountManagementService {
 
     AccountRegisterResponse registerAccount(AccountRegisterRequest request, UUID id);
     List<UserAccountResponse> getCurrentUserAccounts(UUID id);
+    UserAccountDetailResponse getAccountDetails(UUID accountId, UUID id);
 
 }

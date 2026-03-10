@@ -126,10 +126,11 @@ Cuando la entidad se guarda por primera vez en la base de datos:
 
 #### URLs principales
 
-| Endpoint                            | Método | Descripción                           | Acceso                             |
-|-------------------------------------|--------|---------------------------------------|------------------------------------|
-| /api/accounts                       | POST   | Registro de Cuentas Bancarias         | Restringido solo Role CUSTOMER     |
-| /api/accounts                       | GET    | Obtener Cuentas Bancarias del cliente | Restringido solo Role CUSTOMER     |
+| Endpoint                  | Método | Descripción                                      | Acceso                             |
+|---------------------------|--------|--------------------------------------------------|------------------------------------|
+| /api/accounts             | POST   | Registro de Cuentas Bancarias                    | Restringido solo Role CUSTOMER     |
+| /api/accounts             | GET    | Obtener Cuentas Bancarias del cliente            | Restringido solo Role CUSTOMER     |
+| /api/accounts/{accountId} | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado | Restringido solo Role CUSTOMER     |
 
 ---
 
