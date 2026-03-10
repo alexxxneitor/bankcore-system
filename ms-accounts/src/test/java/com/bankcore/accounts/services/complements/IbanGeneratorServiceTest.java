@@ -1,6 +1,5 @@
-package com.bankcore.accounts.services;
+package com.bankcore.accounts.services.complements;
 
-import com.bankcore.accounts.services.complements.IbanGeneratorService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -33,7 +32,7 @@ public class IbanGeneratorServiceTest {
         // Rearrange for validation (move first 4 chars to the end)
         String rearranged = iban.substring(4) + iban.substring(0, 4);
 
-        String numeric = convertLettersToNumbers(rearranged);
+        String numeric = ibanGeneratorService.convertLettersToNumbers(rearranged);
 
         BigInteger bigInt = new BigInteger(numeric);
         int mod = bigInt.mod(BigInteger.valueOf(97)).intValue();
@@ -48,19 +47,5 @@ public class IbanGeneratorServiceTest {
         String iban2 = ibanGeneratorService.generateSpanishIban();
 
         assertNotEquals(iban1, iban2);
-    }
-
-    // Helper method for test validation
-    private String convertLettersToNumbers(String input) {
-        StringBuilder result = new StringBuilder();
-        for (char ch : input.toCharArray()) {
-            if (Character.isLetter(ch)) {
-                char upper = Character.toUpperCase(ch);
-                result.append(upper - 'A' + 10);
-            } else {
-                result.append(ch);
-            }
-        }
-        return result.toString();
     }
 }

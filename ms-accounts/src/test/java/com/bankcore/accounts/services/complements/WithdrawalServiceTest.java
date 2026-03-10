@@ -1,7 +1,6 @@
-package com.bankcore.accounts.services;
+package com.bankcore.accounts.services.complements;
 
 import com.bankcore.accounts.config.DailyWithdrawalLimit;
-import com.bankcore.accounts.services.complements.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
