@@ -22,12 +22,24 @@ import java.util.UUID;
  * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
-@Entity
-@Table(name = "accounts")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(
+        name = "accounts",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_account_number",
+                        columnNames = "accountNumber"
+                )
+        },
+        indexes = {
+                @Index(name = "idx_account_customer", columnList = "customerId"),
+                @Index(name = "idx_account_number", columnList = "accountNumber")
+        }
+)
 public class AccountEntity {
 
     @Id
@@ -35,7 +47,7 @@ public class AccountEntity {
     @UuidGenerator
     private UUID id;
 
-    @Column(unique = true, nullable = false, length = 24)
+    @Column(nullable = false, length = 24)
     private String accountNumber;
 
     @Column(nullable = false)

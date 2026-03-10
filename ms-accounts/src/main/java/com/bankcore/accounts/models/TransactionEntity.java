@@ -13,12 +13,25 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
-@Table(name = "transactions")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(
+        name = "transactions",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_reference_number",
+                        columnNames = "referenceNumber"
+                )
+        },
+        indexes = {
+                @Index(name = "idx_transaction_account", columnList = "account_id"),
+                @Index(name = "idx_transaction_reference", columnList = "referenceNumber"),
+                @Index(name = "idx_transaction_account_created", columnList = "account_id, createdAt DESC")
+        }
+)
 public class TransactionEntity {
 
     @Id
@@ -49,7 +62,7 @@ public class TransactionEntity {
     @Column
     private String counterpartyName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String referenceNumber;
 
     @Column(nullable = false)
