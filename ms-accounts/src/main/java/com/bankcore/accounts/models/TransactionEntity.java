@@ -83,8 +83,8 @@ public class TransactionEntity {
     @Column(nullable = false, precision = 19, scale = 4, updatable = false)
     private BigDecimal balanceAfter;
 
-    @Column(nullable = false, updatable = false)
-    private String concept;
+    @Column(updatable = false)
+    private String description;
 
     @Column(updatable = false)
     private String counterpartyAccountNumber;
