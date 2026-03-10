@@ -11,6 +11,38 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Represents a financial transaction associated with an {@link AccountEntity}.
+ * <p>
+ * This entity is immutable and mapped to the {@code transactions} table.
+ * Each transaction is uniquely identified by a generated {@link UUID} and
+ * a derived {@code referenceNumber}. The entity captures essential details
+ * such as type, amount, balance after the transaction, concept, counterparty
+ * information, and status.
+ * </p>
+ *
+ * <p>
+ * Constraints and indexes:
+ * <ul>
+ *   <li>Unique constraint on {@code referenceNumber}.</li>
+ *   <li>Index on {@code account_id} for efficient lookups by account.</li>
+ *   <li>Index on {@code referenceNumber} for quick retrieval by reference.</li>
+ *   <li>Composite index on {@code account_id, createdAt DESC} for chronological queries.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Lifecycle:
+ * <ul>
+ *   <li>On persist, {@code createdAt} is set to the current timestamp.</li>
+ *   <li>A {@code referenceNumber} is generated based on the transaction {@link UUID}.</li>
+ * </ul>
+ * </p>
+ *
+ * @author Bankcore Team - Sebastian Orjuela
+ * @version 1.0
+ */
+
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -70,7 +102,14 @@ public class TransactionEntity {
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant createdAt;
 
-
+    /**
+     * Generates a unique reference number for the transaction.
+     * <p>
+     * The reference number is composed of the prefix {@code TXN}
+     * followed by the first 16 characters of the transaction {@link UUID},
+     * formatted in uppercase.
+     * </p>
+     */
     protected void generateReferenceNumber() {
         if (this.id != null) {
             String uuidPart = this.id.toString()
