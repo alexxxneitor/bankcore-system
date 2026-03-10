@@ -11,6 +11,7 @@ import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.services.complements.CustomerValidationService;
 import com.bankcore.accounts.services.complements.IbanGeneratorService;
 import com.bankcore.accounts.services.complements.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountType;
@@ -37,13 +38,13 @@ import static org.mockito.Mockito.*;
 public class AccountManagementImplTest {
 
     @Mock
-    private CustomerClient customerClient;
-
-    @Mock
     private AccountRepository accountRepository;
 
     @Mock
     private IbanGeneratorService ibanGeneratorService;
+
+    @Mock
+    private CustomerValidationService validationService;
 
     @Mock
     private WithdrawalService withdrawalService;
@@ -80,36 +81,9 @@ public class AccountManagementImplTest {
     }
 
     @Test
-    void shouldThrowCustomerNotFound_whenCustomerDoesNotExist() {
-
-        CustomerResponse response = new CustomerResponse(customerId, false, false);
-
-        when(customerClient.getCustomerById(customerId)).thenReturn(response);
-
-        assertThrows(
-                CustomerNotFoundException.class,
-                () -> accountManagement.registerAccount(request, customerId)
-        );
-    }
-
-    @Test
-    void shouldThrowCustomerInactive_whenCustomerIsInactive() {
-
-        CustomerResponse response = new CustomerResponse(customerId, true, false);
-
-        when(customerClient.getCustomerById(customerId)).thenReturn(response);
-
-        assertThrows(
-                CustomerInactiveException.class,
-                () -> accountManagement.registerAccount(request, customerId)
-        );
-    }
-
-    @Test
     void shouldThrowBusinessException_whenCustomerHasThreeAccounts() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(3L);
@@ -123,8 +97,7 @@ public class AccountManagementImplTest {
     @Test
     void shouldThrowConflict_whenAliasAlreadyExists() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(1L);
@@ -141,8 +114,7 @@ public class AccountManagementImplTest {
     @Test
     void shouldGenerateNewIban_ifGeneratedIbanAlreadyExists() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(0L);
@@ -177,8 +149,7 @@ public class AccountManagementImplTest {
     @Test
     void shouldRegisterAccountSuccessfully() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(0L);
