@@ -11,7 +11,6 @@ import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.services.complements.WithdrawalService;
 import com.bankcore.accounts.repositories.TransactionRepository;
-import com.bankcore.accounts.services.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;

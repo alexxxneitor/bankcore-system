@@ -5,12 +5,14 @@ import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
+import com.bankcore.accounts.exceptions.AccountNotFoundException;
 import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.services.complements.CustomerValidationService;
 import com.bankcore.accounts.services.complements.IbanGeneratorService;
 import com.bankcore.accounts.services.complements.WithdrawalService;
@@ -49,25 +51,6 @@ public class AccountManagementImpl implements AccountManagementService {
     private final CustomerValidationService validationService;
 
     private static final int MAX_IBAN_GENERATION_ATTEMPTS = 5;
-
-    /**
-     * Validates if the customer associated with the given ID is active.
-     * If the customer is not active, a CustomerInactiveException is thrown.
-     *
-     * @param idCustomer the UUID of the customer to validate
-     * @throws CustomerNotFoundException if the consulted client does not exist
-     * @throws CustomerInactiveException if the customer is not active
-     */
-    private void validateCustomerIsActive(UUID idCustomer) {
-        CustomerResponse customer = customerClient.getCustomerById(idCustomer);
-        if (!customer.exists()) {
-            throw new CustomerNotFoundException("The customer is not registered in the system");
-        }
-
-        if (!customer.isActive()) {
-            throw new CustomerInactiveException("The authenticated client is not active");
-        }
-    }
 
     /// Registers a new account for a customer
     @Override

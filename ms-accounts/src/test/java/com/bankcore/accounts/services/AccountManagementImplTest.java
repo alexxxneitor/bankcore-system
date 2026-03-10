@@ -4,7 +4,6 @@ import com.bankcore.accounts.AccountDataProvider;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
-import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.exceptions.*;
@@ -224,8 +223,6 @@ public class AccountManagementImplTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-
-
     @Test
     void shouldAlwaysCallClientBeforeRepository() {
 
@@ -236,8 +233,7 @@ public class AccountManagementImplTest {
 
         verify(accountRepository).findAllByCustomerId(customerId);
     }
-
-
+    
     @Test
     void shouldPassRepositoryResultDirectlyToMapper() {
         List<AccountEntity> entities = List.of(mock(AccountEntity.class));

@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -34,13 +35,13 @@ public class GlobalExceptionHandler {
     // Handle custom exception for when a customer is not found
     @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleCustomerNotFoundException(CustomerNotFoundException ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+        return notFound(ex.getMessage());
     }
 
     // Handle custom exception for resource conflicts, such as duplicate entries
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ErrorResponse> handleResourceConflictException(ResourceConflictException ex) {
-        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+        return conflict(ex.getMessage());
     }
 
     // Handle custom business logic exceptions that may occur during processing
