@@ -74,7 +74,7 @@ public class TransactionEntity {
     private Instant executedAt;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt;;
+    private Instant createdAt;
 
     @PrePersist
     private void prePersist() {

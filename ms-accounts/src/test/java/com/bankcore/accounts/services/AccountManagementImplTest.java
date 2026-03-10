@@ -31,7 +31,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,18 +59,6 @@ public class AccountManagementImplTest {
 
     private UUID customerId;
     private AccountRegisterRequest request;
-
-    private CustomerResponse activeCustomer() {
-        return new CustomerResponse(UUID.randomUUID(), true, true);
-    }
-
-    private CustomerResponse inactiveCustomer() {
-        return new CustomerResponse(UUID.randomUUID(), true, false);
-    }
-
-    private CustomerResponse nonExistentCustomer() {
-        return new CustomerResponse(UUID.randomUUID(), false, false);
-    }
 
     @BeforeEach
     void setUp() {

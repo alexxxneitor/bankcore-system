@@ -1,6 +1,5 @@
 package com.bankcore.accounts;
 
-import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;

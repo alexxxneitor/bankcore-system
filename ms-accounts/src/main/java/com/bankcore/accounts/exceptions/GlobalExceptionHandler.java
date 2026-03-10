@@ -2,7 +2,6 @@ package com.bankcore.accounts.exceptions;
 
 import com.bankcore.accounts.dto.responses.ErrorResponse;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
  * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
