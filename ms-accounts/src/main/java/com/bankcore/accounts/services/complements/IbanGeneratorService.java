@@ -90,7 +90,7 @@ public class IbanGeneratorService {
      * @param input alphanumeric IBAN string
      * @return numeric-only string ready for MOD 97 calculation
      */
-    private String convertLettersToNumbers(String input) {
+    public String convertLettersToNumbers(String input) {
         StringBuilder result = new StringBuilder();
         for (char ch : input.toCharArray()) {
             if (Character.isLetter(ch)) {
