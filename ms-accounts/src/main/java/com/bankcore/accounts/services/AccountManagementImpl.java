@@ -41,34 +41,16 @@ public class AccountManagementImpl implements AccountManagementService {
     private final IbanGeneratorService ibanGeneratorService;
     private final WithdrawalService withdrawalService;
     private final AccountMapper accountMapper;
+    private final CustomerValidationService validationService;
 
     private static final int MAX_IBAN_GENERATION_ATTEMPTS = 5;
-
-    /**
-     * Validates if the customer associated with the given ID is active.
-     * If the customer is not active, a CustomerInactiveException is thrown.
-     *
-     * @param idCustomer the UUID of the customer to validate
-     * @throws CustomerNotFoundException if the consulted client does not exist
-     * @throws CustomerInactiveException if the customer is not active
-     */
-    private void validateCustomerIsActive(UUID idCustomer) {
-        CustomerResponse customer = customerClient.getCustomerById(idCustomer);
-        if (!customer.exists()) {
-            throw new CustomerNotFoundException("The customer is not registered in the system");
-        }
-
-        if (!customer.isActive()) {
-            throw new CustomerInactiveException("The authenticated client is not active");
-        }
-    }
 
     /// Registers a new account for a customer
     @Override
     @Transactional
     public AccountRegisterResponse registerAccount(AccountRegisterRequest request, UUID id) {
 
-        validateCustomerIsActive(id);
+        validationService.validateCustomerIsActive(id);
 
         if (accountRepository.countByCustomerId(id) >= 3) {
             throw new BusinessException("Customer has reached the maximum number of accounts allowed");
