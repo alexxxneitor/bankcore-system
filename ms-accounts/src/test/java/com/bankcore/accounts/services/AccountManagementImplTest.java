@@ -233,7 +233,7 @@ public class AccountManagementImplTest {
 
         verify(accountRepository).findAllByCustomerId(customerId);
     }
-    
+
     @Test
     void shouldPassRepositoryResultDirectlyToMapper() {
         List<AccountEntity> entities = List.of(mock(AccountEntity.class));
