@@ -61,7 +61,7 @@ public class AccountEntity {
     @Enumerated(EnumType.STRING)
     private CurrencyCode currency;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
 
     @Column(nullable = false)
@@ -71,7 +71,7 @@ public class AccountEntity {
     @Enumerated(EnumType.STRING)
     private AccountStatus status;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal dailyWithdrawalLimit;
 
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")

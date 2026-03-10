@@ -77,10 +77,10 @@ public class TransactionEntity {
     @Enumerated(EnumType.STRING)
     private TransactionType type;
 
-    @Column(nullable = false, precision = 19, scale = 4, updatable = false)
+    @Column(nullable = false, precision = 19, scale = 2, updatable = false)
     private BigDecimal amount;
 
-    @Column(nullable = false, precision = 19, scale = 4, updatable = false)
+    @Column(nullable = false, precision = 19, scale = 2, updatable = false)
     private BigDecimal balanceAfter;
 
     @Column(updatable = false)
