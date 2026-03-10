@@ -47,10 +47,10 @@ public class AccountEntity {
     @UuidGenerator
     private UUID id;
 
-    @Column(nullable = false, length = 24)
+    @Column(nullable = false, length = 24, updatable = false)
     private String accountNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private UUID customerId;
 
     @Column(nullable = false)
