@@ -4,6 +4,7 @@ import com.bankcore.accounts.models.AccountEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -48,4 +49,6 @@ public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
      *         or an empty list if no accounts are found
      */
     List<AccountEntity> findAllByCustomerId(UUID id);
+
+    Optional<AccountEntity> findByIdAndCustomerId(UUID id, UUID customerId);
 }
