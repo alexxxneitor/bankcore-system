@@ -68,9 +68,6 @@ public class AccountEntity {
     @Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant updatedAt;
 
-    @Column(name = "last_transaction_at", nullable = true, updatable = true)
-    private Instant lastTransactionAt;
-
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();

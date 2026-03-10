@@ -9,7 +9,9 @@ import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.exceptions.*;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
@@ -21,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,6 +42,9 @@ public class AccountManagementImplTest {
 
     @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private TransactionRepository transactionRepository;
 
     @Mock
     private IbanGeneratorService ibanGeneratorService;
@@ -292,9 +298,10 @@ public class AccountManagementImplTest {
     }
 
     @Test
-    void getAccountDetails_whenAccountExists_returnsMappedResponse() {
+    void getAccountDetails_whenAccountExistsWithNoTransactions_returnsMappedResponseWithNullLastTransactionAt() {
 
         AccountEntity mockAccount = AccountDataProvider.createMockAccount(customerId, "Some Alias");
+        UUID accountId = mockAccount.getId();
 
         UserAccountDetailResponse detailResponse = UserAccountDetailResponse.builder()
                 .id(mockAccount.getId())
@@ -309,11 +316,11 @@ public class AccountManagementImplTest {
                 .lastTransactionAt(null)
                 .build();
 
-        UUID accountId = mockAccount.getId();
-
         when(accountRepository.findByIdAndCustomerId(accountId, customerId))
                 .thenReturn(Optional.of(mockAccount));
-        when(accountMapper.toDetailResponse(mockAccount))
+        when(transactionRepository.findTopByAccount_IdOrderByCreatedAtDesc(accountId))
+                .thenReturn(Optional.empty());
+        when(accountMapper.toDetailResponse(mockAccount, null))
                 .thenReturn(detailResponse);
 
         UserAccountDetailResponse result = accountManagement.getAccountDetails(accountId, customerId);
@@ -321,8 +328,52 @@ public class AccountManagementImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(accountId);
         assertThat(result.getAccountNumber()).isEqualTo(mockAccount.getAccountNumber());
+        assertThat(result.getLastTransactionAt()).isNull();
         verify(accountRepository).findByIdAndCustomerId(accountId, customerId);
-        verify(accountMapper).toDetailResponse(mockAccount);
+        verify(transactionRepository).findTopByAccount_IdOrderByCreatedAtDesc(accountId);
+        verify(accountMapper).toDetailResponse(mockAccount, null);
+    }
+
+    @Test
+    void getAccountDetails_whenAccountExistsWithTransactions_returnsMappedResponseWithLastTransactionAt() {
+
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount(customerId, "Some Alias");
+        UUID accountId = mockAccount.getId();
+        Instant lastTransactionAt = Instant.now();
+
+        TransactionEntity mockTransaction = TransactionEntity.builder()
+                .id(UUID.randomUUID())
+                .account(mockAccount)
+                .createdAt(lastTransactionAt)
+                .build();
+
+        UserAccountDetailResponse detailResponse = UserAccountDetailResponse.builder()
+                .id(mockAccount.getId())
+                .accountNumber(mockAccount.getAccountNumber())
+                .customerId(mockAccount.getCustomerId())
+                .accountType(mockAccount.getAccountType())
+                .currency(String.valueOf(mockAccount.getCurrency()))
+                .balance(mockAccount.getBalance())
+                .alias(mockAccount.getAlias())
+                .status(mockAccount.getStatus())
+                .createdAt(mockAccount.getCreatedAt())
+                .lastTransactionAt(lastTransactionAt)
+                .build();
+
+        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
+                .thenReturn(Optional.of(mockAccount));
+        when(transactionRepository.findTopByAccount_IdOrderByCreatedAtDesc(accountId))
+                .thenReturn(Optional.of(mockTransaction));
+        when(accountMapper.toDetailResponse(mockAccount, lastTransactionAt))
+                .thenReturn(detailResponse);
+
+        UserAccountDetailResponse result = accountManagement.getAccountDetails(accountId, customerId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getLastTransactionAt()).isEqualTo(lastTransactionAt);
+        verify(accountRepository).findByIdAndCustomerId(accountId, customerId);
+        verify(transactionRepository).findTopByAccount_IdOrderByCreatedAtDesc(accountId);
+        verify(accountMapper).toDetailResponse(mockAccount, lastTransactionAt);
     }
 
     @Test
@@ -337,21 +388,24 @@ public class AccountManagementImplTest {
         assertThatThrownBy(() -> accountManagement.getAccountDetails(accountId, customerId))
                 .isInstanceOf(AccountNotFoundException.class);
 
-        verify(accountMapper, never()).toDetailResponse(any());
+        verify(transactionRepository, never()).findTopByAccount_IdOrderByCreatedAtDesc(any());
+        verify(accountMapper, never()).toDetailResponse(any(), any());
     }
 
     @Test
     void getAccountDetails_whenAccountBelongsToAnotherCustomer_throwsAccountNotFoundException() {
+
         AccountEntity mockAccount = AccountDataProvider.createMockAccount(customerId, "Some Alias");
         UUID accountId = mockAccount.getId();
-
         UUID anotherCustomerId = UUID.randomUUID();
+
         when(accountRepository.findByIdAndCustomerId(accountId, anotherCustomerId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> accountManagement.getAccountDetails(accountId, anotherCustomerId))
                 .isInstanceOf(AccountNotFoundException.class);
 
-        verify(accountMapper, never()).toDetailResponse(any());
+        verify(transactionRepository, never()).findTopByAccount_IdOrderByCreatedAtDesc(any());
+        verify(accountMapper, never()).toDetailResponse(any(), any());
     }
 }

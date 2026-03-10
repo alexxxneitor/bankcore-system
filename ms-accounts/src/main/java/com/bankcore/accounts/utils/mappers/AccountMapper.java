@@ -6,6 +6,7 @@ import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.models.AccountEntity;
 import org.mapstruct.Mapper;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -44,8 +45,10 @@ public interface AccountMapper {
     /**
      * Converts an {@link AccountEntity} to a {@link UserAccountDetailResponse}.
      *
-     * @param account the account entity to convert
+     * @param account           the account entity to convert
+     * @param lastTransactionAt the timestamp of the account's last recorded transaction,
+     *                          or {@code null} if no transactions have been made yet
      * @return the mapped {@link UserAccountDetailResponse}
      */
-    UserAccountDetailResponse toDetailResponse(AccountEntity account);
+    UserAccountDetailResponse toDetailResponse(AccountEntity account, Instant lastTransactionAt);
 }

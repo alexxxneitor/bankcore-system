@@ -112,8 +112,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String value = ex.getValue() != null ? ex.getValue().toString() : "null";
         String message = String.format("Invalid value '%s' for parameter '%s'", value, ex.getName());
-        log.warn("Type mismatch for parameter={} value={}", ex.getName(), ex.getValue());
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, message);
+        return badRequest(message);
     }
     /**
      * Helper method for building a 400 BAD_REQUEST error response.

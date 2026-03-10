@@ -2,12 +2,14 @@ package com.bankcore.accounts.controllers;
 
 import com.bankcore.accounts.AbstractIntegrationTest;
 import com.bankcore.accounts.AccountDataProvider;
+import com.bankcore.accounts.TransactionDataProvider;
 import com.bankcore.accounts.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.CustomerResponse;
-import com.bankcore.accounts.exceptions.CustomExternalServiceException;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.services.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
@@ -25,8 +27,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,6 +52,9 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @Autowired
     private WithdrawalService withdrawalService;
@@ -357,19 +360,19 @@ public class AccountControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     void getAccountDetails_whenAccountHasLastTransaction_returnsLastTransactionAt() throws Exception {
         UUID customerId = UUID.randomUUID();
-        AccountEntity saved = accountRepository.save(AccountDataProvider.createMockAccount(customerId, "Random Alias"));
+        AccountEntity savedAccount = accountRepository.save(
+                AccountDataProvider.createMockAccount(customerId, "Random Alias")
+        );
 
-        Instant lastTx = Instant.now().truncatedTo(ChronoUnit.SECONDS);
-        accountRepository.findById(saved.getId()).ifPresent(account -> {
-            account.setLastTransactionAt(lastTx);
-            accountRepository.save(account);
-        });
+        TransactionEntity savedTransaction = transactionRepository.save(
+                TransactionDataProvider.createMockTransaction(savedAccount)
+        );
 
-        mockMvc.perform(get("/api/accounts/{accountId}", saved.getId())
+        mockMvc.perform(get("/api/accounts/{accountId}", savedAccount.getId())
                         .with(user(customerId.toString()).roles("CUSTOMER")))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lastTransactionAt").value(lastTx.toString()));
+                .andExpect(jsonPath("$.lastTransactionAt").value(savedTransaction.getCreatedAt().toString()));
     }
 
 
