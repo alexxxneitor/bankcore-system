@@ -4,20 +4,18 @@ import com.bankcore.accounts.utils.uuidConfig.UUIDv7;
 import com.bankcore.accounts.utils.enums.TransactionStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Data
+@Getter
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Entity
+@Immutable
 @Table(
         name = "transactions",
         uniqueConstraints = {
@@ -40,32 +38,32 @@ public class TransactionEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "account_id", nullable = false, updatable = false)
     private AccountEntity account;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     @Enumerated(EnumType.STRING)
     private TransactionType type;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 19, scale = 4, updatable = false)
     private BigDecimal amount;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 19, scale = 4, updatable = false)
     private BigDecimal balanceAfter;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private String concept;
 
-    @Column
+    @Column(updatable = false)
     private String counterpartyAccountNumber;
 
-    @Column
+    @Column(updatable = false)
     private String counterpartyName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private String referenceNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
 
@@ -75,5 +73,6 @@ public class TransactionEntity {
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
+        this.referenceNumber = "TXN" + this.id.toString().replace("-", "").substring(0, 16).toUpperCase();
     }
 }
