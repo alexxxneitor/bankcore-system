@@ -1,4 +1,4 @@
-package com.bankcore.accounts.dto.responses;
+package com.bankcore.accounts.integrations.dto.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

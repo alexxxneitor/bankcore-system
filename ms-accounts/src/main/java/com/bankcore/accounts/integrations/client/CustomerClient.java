@@ -1,6 +1,6 @@
-package com.bankcore.accounts.client;
+package com.bankcore.accounts.integrations.client;
 
-import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 
 import java.util.UUID;
 

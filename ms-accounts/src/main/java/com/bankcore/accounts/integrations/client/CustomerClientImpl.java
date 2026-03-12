@@ -1,4 +1,4 @@
-package com.bankcore.accounts.client;
+package com.bankcore.accounts.integrations.client;
 
 import java.util.UUID;
 
@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomExternalServiceException;
 
 import lombok.AllArgsConstructor;

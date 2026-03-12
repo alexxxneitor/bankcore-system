@@ -1,8 +1,9 @@
 package com.bankcore.accounts.client;
 
-import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomExternalServiceException;
 import com.bankcore.accounts.exceptions.CustomInternalServiceException;
+import com.bankcore.accounts.integrations.client.CustomerClientImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,7 @@
 package com.bankcore.accounts.services.complements;
 
-import com.bankcore.accounts.client.CustomerClient;
-import com.bankcore.accounts.dto.responses.CustomerResponse;
+import com.bankcore.accounts.integrations.client.CustomerClient;
+import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.CustomerNotFoundException;
 import lombok.RequiredArgsConstructor;

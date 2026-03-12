@@ -1,7 +1,7 @@
 package com.bankcore.accounts.services;
 
 import com.bankcore.accounts.AccountDataProvider;
-import com.bankcore.accounts.client.CustomerClient;
+import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
