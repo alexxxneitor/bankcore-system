@@ -48,6 +48,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Immutable
+@Entity
 @Table(
         name = "transactions",
         uniqueConstraints = {
