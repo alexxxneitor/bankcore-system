@@ -1,6 +1,8 @@
 package com.bankcore.accounts.integrations.client;
 
+import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
 import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
+import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 
 import java.util.UUID;
 
@@ -13,4 +15,6 @@ import java.util.UUID;
 public interface CustomerClient {
 
     CustomerResponse getCustomerById(UUID customerId);
+
+    PinValidateResponse validateCustomerPin(UUID customerId, PinValidateRequest request);
 }
