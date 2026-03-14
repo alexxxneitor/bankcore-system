@@ -10,6 +10,7 @@ import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.models.AccountPinSecurity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
@@ -79,7 +80,10 @@ public class AccountManagementImpl implements AccountManagementService {
                         .alias(request.getAlias())
                         .status(AccountStatus.ACTIVE)
                         .dailyWithdrawalLimit(withdrawalService.resolveDailyLimit(request.getAccountType()))
+                        .security(AccountPinSecurity.builder().build())
                         .build();
+
+        accountEntity.getSecurity().setAccount(accountEntity);
 
         accountRepository.save(accountEntity);
 
