@@ -80,6 +80,9 @@ public class AccountEntity {
     @Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant updatedAt;
 
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private AccountPinSecurity security;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
