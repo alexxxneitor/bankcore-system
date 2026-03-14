@@ -4,6 +4,8 @@ import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
 import com.bankcore.accounts.exceptions.AccountInactiveException;
 import com.bankcore.accounts.exceptions.AccountNotFoundException;
+import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
+import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
@@ -34,6 +36,10 @@ public class TransactionServiceImpl implements TransactionService{
     public TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId) {
 
         validationService.validateCustomerIsActive(customerId);
+
+        PinValidateRequest pinRequest = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        PinValidateResponse pinValidateResponse = validationService.validateCustomerPin(customerId, pinRequest);
 
         AccountEntity account = accountRepository
                 .findByIdAndCustomerId(accountId, customerId)

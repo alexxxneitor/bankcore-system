@@ -1,9 +1,11 @@
 package com.bankcore.accounts.services.complements;
 
 import com.bankcore.accounts.integrations.client.CustomerClient;
+import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
 import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.CustomerNotFoundException;
+import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -44,5 +46,9 @@ public class CustomerValidationService {
         if (!customer.isActive()) {
             throw new CustomerInactiveException("The authenticated client is not active");
         }
+    }
+
+    public PinValidateResponse validateCustomerPin(UUID customerId, PinValidateRequest request){
+        return customerClient.validateCustomerPin(customerId, request);
     }
 }
