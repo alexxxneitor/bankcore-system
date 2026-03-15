@@ -31,24 +31,11 @@ public class AccountPinSecurity {
     @Builder.Default
     private Instant temporaryLockUntil = null;
 
-    @Column(updatable = false)
+    @Column
     @Builder.Default
     private boolean permanentLock = false;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     @Builder.Default
     private Instant lastFailedAttemptAt = null;
-
-    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = Instant.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.lastFailedAttemptAt = Instant.now();
-    }
 }
