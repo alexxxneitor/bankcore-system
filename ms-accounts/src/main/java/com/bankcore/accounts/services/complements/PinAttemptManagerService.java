@@ -103,12 +103,12 @@ public class PinAttemptManagerService {
 
     private void checkAndThrowIfLocked(AccountPinSecurity pinSecurity) {
         if (pinSecurity.isPermanentLock()) {
-            throw  new AccountPermanentlyLockedException();
+            throw new AccountPermanentlyLockedException();
         }
 
         if (pinSecurity.getTemporaryLockUntil() != null &&
                 pinSecurity.getTemporaryLockUntil().isAfter(Instant.now())) {
-            throw  new AccountTemporarilyLockedException(pinSecurity.getTemporaryLockUntil());
+            throw new AccountTemporarilyLockedException(pinSecurity.getTemporaryLockUntil());
         }
     }
 }
