@@ -123,6 +123,21 @@ public class GlobalExceptionHandler {
         return notFound(ex.getMessage());
     }
 
+    @ExceptionHandler(AccountTemporarilyLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountTemporarilyLockedException(AccountTemporarilyLockedException ex){
+        return locked(ex.getMessage());
+    }
+
+    @ExceptionHandler(AccountPermanentlyLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountPermanentlyLockedException(AccountPermanentlyLockedException ex){
+        return locked(ex.getMessage());
+    }
+
+    @ExceptionHandler(IncorrectPinException.class)
+    public ResponseEntity<ErrorResponse> handleIncorrectPinException(IncorrectPinException ex){
+        return badRequest(ex.getMessage());
+    }
+
     /**
      * Helper method for building a 400 BAD_REQUEST error response.
      *
@@ -151,6 +166,16 @@ public class GlobalExceptionHandler {
      */
     private ResponseEntity<ErrorResponse> conflict(String message){
         return buildErrorResponse(HttpStatus.CONFLICT, message);
+    }
+
+    /**
+     * Helper method for building a 423 LOCKED error response.
+     *
+     * @param message the error message
+     * @return a LOCKED {@link ErrorResponse}
+     */
+    private ResponseEntity<ErrorResponse> locked(String message){
+        return buildErrorResponse(HttpStatus.LOCKED, message);
     }
 
     /**
