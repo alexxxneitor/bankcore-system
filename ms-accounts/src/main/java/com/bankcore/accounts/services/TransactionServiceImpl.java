@@ -11,6 +11,7 @@ import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.services.complements.CustomerValidationService;
+import com.bankcore.accounts.services.complements.PinAttemptManagerService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.TransactionStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
@@ -30,16 +31,13 @@ public class TransactionServiceImpl implements TransactionService{
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
+    private final PinAttemptManagerService pinSecurityService;
 
     @Override
     @Transactional
     public TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId) {
 
         validationService.validateCustomerIsActive(customerId);
-
-        PinValidateRequest pinRequest = PinValidateRequest.builder().pin(request.getPin()).build();
-
-        PinValidateResponse pinValidateResponse = validationService.validateCustomerPin(customerId, pinRequest);
 
         AccountEntity account = accountRepository
                 .findByIdAndCustomerId(accountId, customerId)
@@ -48,6 +46,14 @@ public class TransactionServiceImpl implements TransactionService{
         if (account.getStatus() != AccountStatus.ACTIVE) {
             throw new AccountInactiveException();
         }
+
+        pinSecurityService.checkPinLock(accountId);
+
+        PinValidateRequest pinRequest = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        PinValidateResponse pinResponse = validationService.validateCustomerPin(customerId, pinRequest);
+
+        pinSecurityService.processPinAttempt(accountId, pinResponse);
 
         BigDecimal newBalance = account.getBalance().add(request.getAmount());
 
