@@ -95,7 +95,7 @@ public class PinAttemptManagerService {
                     pinSecurity.getAccount().getId(),
                     pinSecurity.getAccount().getStatus().name());
 
-        } else if (attempts >= TEMP_LOCK_ATTEMPTS) {
+        } else if (attempts == TEMP_LOCK_ATTEMPTS) {
             pinSecurity.setTemporaryLockUntil(Instant.now().plus(TEMP_LOCK_DURATION));
             log.warn("Account temporarily locked until {}: accountId={}",
                     pinSecurity.getTemporaryLockUntil(),
