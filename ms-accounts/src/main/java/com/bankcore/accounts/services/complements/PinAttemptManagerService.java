@@ -8,6 +8,7 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -17,7 +18,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class PinAttemptManagerService {
 
     private static final int TEMP_LOCK_ATTEMPTS = 4;
@@ -26,11 +26,22 @@ public class PinAttemptManagerService {
 
     private final AccountPinSecurityRepository accountPinSecurityRepository;
 
+    @Transactional(
+            propagation = Propagation.REQUIRES_NEW,
+            readOnly = true
+    )
     public void checkPinLock(UUID accountId){
         AccountPinSecurity pinSecurity = getAccountPinSecurityEntity(accountId);
         checkAndThrowIfLocked(pinSecurity);
     }
 
+    @Transactional(
+            propagation = Propagation.REQUIRES_NEW,
+            noRollbackFor = {
+            IncorrectPinException.class,
+            AccountTemporarilyLockedException.class,
+            AccountPermanentlyLockedException.class
+    })
     public void processPinAttempt(UUID accountId, PinValidateResponse response) {
 
         AccountPinSecurity pinSecurity = getAccountPinSecurityEntity(accountId);
@@ -50,7 +61,6 @@ public class PinAttemptManagerService {
         throw  new IncorrectPinException(remaining);
     }
 
-    @Transactional(readOnly = true)
     private AccountPinSecurity getAccountPinSecurityEntity(UUID accountId) {
         return accountPinSecurityRepository
                 .findByAccount_Id(accountId)
@@ -58,6 +68,10 @@ public class PinAttemptManagerService {
                     log.error("Data inconsistency: AccountPinSecurity not found for accountId={}", accountId);
                     return new CustomInternalServiceException("Security entity validation error");
                 });
+    }
+
+    private void saveAndFlush(AccountPinSecurity pinSecurity) {
+        accountPinSecurityRepository.saveAndFlush(pinSecurity);
     }
 
     private boolean isPinAlreadyClean(AccountPinSecurity pinSecurity) {
