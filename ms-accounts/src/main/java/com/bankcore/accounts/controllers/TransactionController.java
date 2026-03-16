@@ -1,8 +1,6 @@
 package com.bankcore.accounts.controllers;
 
-import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
-import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.ErrorResponse;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
 import com.bankcore.accounts.services.TransactionService;
