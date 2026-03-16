@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -17,6 +18,10 @@ import java.time.Instant;
                 @Index(name = "idx_account_pin_security_account", columnList = "account_id")
         })
 public class AccountPinSecurity {
+
+    @Id
+    @Column(name = "account_id")
+    private UUID accountId;
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY)
