@@ -44,7 +44,7 @@ public class TransactionServiceImpl implements TransactionService{
                 .orElseThrow((AccountNotFoundException::new));
 
         if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new AccountInactiveException();
+            throw new AccountInactiveException(account.getStatus());
         }
 
         pinSecurityService.checkPinLock(accountId);
