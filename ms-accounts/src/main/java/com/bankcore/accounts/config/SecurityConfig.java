@@ -71,7 +71,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/accounts/*/deposit").hasRole(UserRole.CUSTOMER.name())
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth ->
-                        oauth.jwt(jwt -> jwt
+                        oauth
+                                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .jwt(jwt -> jwt
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter(jwtGrantedAuthoritiesConverter()))
                         )
                 );
