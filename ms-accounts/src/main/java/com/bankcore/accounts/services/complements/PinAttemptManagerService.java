@@ -70,10 +70,6 @@ public class PinAttemptManagerService {
                 });
     }
 
-    private void saveAndFlush(AccountPinSecurity pinSecurity) {
-        accountPinSecurityRepository.saveAndFlush(pinSecurity);
-    }
-
     private boolean isPinAlreadyClean(AccountPinSecurity pinSecurity) {
         return pinSecurity.getFailedAttempts() == 0 &&
                 pinSecurity.getTemporaryLockUntil() == null &&
