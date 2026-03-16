@@ -101,11 +101,6 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
-    @ExceptionHandler(AccountNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String value = ex.getValue() != null ? ex.getValue().toString() : "null";
