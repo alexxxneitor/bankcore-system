@@ -53,7 +53,30 @@ public class AccountManagementImpl implements AccountManagementService {
 
     private static final int MAX_IBAN_GENERATION_ATTEMPTS = 5;
 
-    /// Registers a new account for a customer
+    /**
+     * Registers a new account for a customer.
+     * <p>
+     * This method validates the customer's state, enforces business rules
+     * regarding account limits and alias uniqueness, generates a unique IBAN,
+     * and persists the new account entity. It also initializes the account's
+     * PIN security configuration.
+     * </p>
+     *
+     * <h2>Business Rules:</h2>
+     * <ul>
+     *   <li>A customer can register a maximum of 3 accounts.</li>
+     *   <li>Account alias must be unique per customer.</li>
+     *   <li>New accounts are created with status {@link AccountStatus#ACTIVE} and
+     *       a daily withdrawal limit resolved by {@code withdrawalService}.</li>
+     * </ul>
+     *
+     * @param request the {@link AccountRegisterRequest} containing account registration details
+     * @param id      the {@link UUID} representing the customer ID
+     * @return an {@link AccountRegisterResponse} containing the result of the registration
+     * @throws BusinessException if the customer exceeds the maximum number of accounts
+     * @throws ResourceConflictException if the alias is already in use
+     * @throws CustomerInactiveException if the customer is not active
+     */
     @Override
     @Transactional
     public AccountRegisterResponse registerAccount(AccountRegisterRequest request, UUID id) {

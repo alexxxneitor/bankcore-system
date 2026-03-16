@@ -23,9 +23,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Implementation of the {@link TransactionService} interface that handles
+ * deposit transactions for customer accounts.
+ * <p>
+ * This service coordinates validation of customer state, account status,
+ * and PIN security before executing a deposit. It ensures that business
+ * rules are enforced and that both the account and transaction records
+ * are updated consistently.
+ * </p>
+ *
+ * @author BankCore Team - Sebastian Orjuela
+ * @version 1.0
+ */
 @Service
 @RequiredArgsConstructor
-public class TransactionServiceImpl implements TransactionService{
+public class TransactionServiceImpl implements TransactionService {
 
     private final CustomerValidationService validationService;
     private final AccountRepository accountRepository;
@@ -33,6 +46,27 @@ public class TransactionServiceImpl implements TransactionService{
     private final TransactionMapper transactionMapper;
     private final PinAttemptManagerService pinSecurityService;
 
+    /**
+     * Executes a deposit transaction after validating customer, account, and PIN state.
+     * <p>
+     * The method performs the following steps:
+     * <ol>
+     *   <li>Validates that the customer exists and is active.</li>
+     *   <li>Retrieves the account and ensures it belongs to the customer.</li>
+     *   <li>Checks that the account is active.</li>
+     *   <li>Checks PIN lock state and validates the PIN.</li>
+     *   <li>Processes PIN attempts and applies lockout policies if necessary.</li>
+     *   <li>Updates the account balance and persists the transaction.</li>
+     * </ol>
+     * </p>
+     *
+     * @param request    the {@link TransactionRequest} containing deposit details
+     * @param accountId  the {@link UUID} of the account to deposit into
+     * @param customerId the {@link UUID} of the customer performing the transaction
+     * @return a {@link TransactionResponse} containing the result of the deposit
+     * @throws AccountNotFoundException if the account does not exist
+     * @throws AccountInactiveException if the account is inactive
+     */
     @Override
     @Transactional
     public TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId) {
@@ -41,7 +75,7 @@ public class TransactionServiceImpl implements TransactionService{
 
         AccountEntity account = accountRepository
                 .findByIdAndCustomerId(accountId, customerId)
-                .orElseThrow((AccountNotFoundException::new));
+                .orElseThrow(AccountNotFoundException::new);
 
         if (account.getStatus() != AccountStatus.ACTIVE) {
             throw new AccountInactiveException(account.getStatus());
@@ -50,7 +84,6 @@ public class TransactionServiceImpl implements TransactionService{
         pinSecurityService.checkPinLock(accountId);
 
         PinValidateRequest pinRequest = PinValidateRequest.builder().pin(request.getPin()).build();
-
         PinValidateResponse pinResponse = validationService.validateCustomerPin(customerId, pinRequest);
 
         pinSecurityService.processPinAttempt(accountId, pinResponse);

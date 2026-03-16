@@ -16,13 +16,14 @@ import java.util.UUID;
  * transactional or business operations.
  * <p>
  * This service interacts with the {@link CustomerClient} to retrieve
- * customer information and ensures that the customer exists and is active.
+ * customer information and ensures that the customer exists and is active
+ * before proceeding with business logic. It also delegates PIN validation
+ * requests to the Customer service.
  * </p>
  *
  * @author BankcoreTeam - Sebastian Orjuela
  * @version 1.0
  */
-
 @Service
 @RequiredArgsConstructor
 public class CustomerValidationService {
@@ -31,11 +32,14 @@ public class CustomerValidationService {
 
     /**
      * Validates if the customer associated with the given ID is active.
-     * If the customer is not active, a CustomerInactiveException is thrown.
+     * <p>
+     * If the customer does not exist, a {@link CustomerNotFoundException} is thrown.
+     * If the customer exists but is inactive, a {@link CustomerInactiveException} is thrown.
+     * </p>
      *
-     * @param idCustomer the UUID of the customer to validate
-     * @throws CustomerNotFoundException if the consulted client does not exist
-     * @throws CustomerInactiveException if the customer is not active
+     * @param idCustomer the {@link UUID} of the customer to validate
+     * @throws CustomerNotFoundException if the customer does not exist in the system
+     * @throws CustomerInactiveException if the customer exists but is not active
      */
     public void validateCustomerIsActive(UUID idCustomer) {
         CustomerResponse customer = customerClient.getCustomerById(idCustomer);
@@ -48,7 +52,14 @@ public class CustomerValidationService {
         }
     }
 
-    public PinValidateResponse validateCustomerPin(UUID customerId, PinValidateRequest request){
+    /**
+     * Validates the customer's PIN by delegating the request to the {@link CustomerClient}.
+     *
+     * @param customerId the {@link UUID} representing the customer's unique ID
+     * @param request    the {@link PinValidateRequest} containing the PIN to validate
+     * @return a {@link PinValidateResponse} indicating whether the PIN is valid
+     */
+    public PinValidateResponse validateCustomerPin(UUID customerId, PinValidateRequest request) {
         return customerClient.validateCustomerPin(customerId, request);
     }
 }

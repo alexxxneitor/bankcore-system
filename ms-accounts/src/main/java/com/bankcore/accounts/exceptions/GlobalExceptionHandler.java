@@ -95,12 +95,13 @@ public class GlobalExceptionHandler {
         return badRequest(description);
     }
 
-    //Handles custom exceptions - system validation error capture
+    // Handles custom exceptions - system validation error capture
     @ExceptionHandler(CustomInternalServiceException.class)
     public ResponseEntity<ErrorResponse> handleCustomInvalidParameter(CustomInternalServiceException ex){
         return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
+    // Handles invalid parameter type errors (e.g., wrong type in request parameters)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String value = ex.getValue() != null ? ex.getValue().toString() : "null";
@@ -108,26 +109,31 @@ public class GlobalExceptionHandler {
         return badRequest(message);
     }
 
+    // Handles inactive account errors - returns HTTP 409 Conflict
     @ExceptionHandler(AccountInactiveException.class)
-    public ResponseEntity<ErrorResponse> handleAccountInactiveException( AccountInactiveException ex){
+    public ResponseEntity<ErrorResponse> handleAccountInactiveException(AccountInactiveException ex){
         return conflict(ex.getMessage());
     }
 
+    // Handles account not found errors - returns HTTP 404 Not Found
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleAccountNotFoundException(AccountNotFoundException ex){
         return notFound(ex.getMessage());
     }
 
+    // Handles temporarily locked account errors - returns HTTP 423 Locked
     @ExceptionHandler(AccountTemporarilyLockedException.class)
     public ResponseEntity<ErrorResponse> handleAccountTemporarilyLockedException(AccountTemporarilyLockedException ex){
         return locked(ex.getMessage());
     }
 
+    // Handles permanently locked account errors - returns HTTP 423 Locked
     @ExceptionHandler(AccountPermanentlyLockedException.class)
     public ResponseEntity<ErrorResponse> handleAccountPermanentlyLockedException(AccountPermanentlyLockedException ex){
         return locked(ex.getMessage());
     }
 
+    // Handles incorrect PIN attempts - returns HTTP 400 Bad Request
     @ExceptionHandler(IncorrectPinException.class)
     public ResponseEntity<ErrorResponse> handleIncorrectPinException(IncorrectPinException ex){
         return badRequest(ex.getMessage());
