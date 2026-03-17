@@ -1,5 +1,6 @@
 package com.bankcore.accounts;
 
+import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.utils.enums.TransactionStatus;
@@ -37,6 +38,14 @@ public class TransactionDataProvider {
                 .counterpartyName("Mock Counterparty")
                 .status(TransactionStatus.COMPLETED)
                 .createdAt(createdAt)
+                .build();
+    }
+
+    public static TransactionRequest createMockTransactionRequest(String pin){
+        return TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test-description")
+                .pin(pin)
                 .build();
     }
 }
