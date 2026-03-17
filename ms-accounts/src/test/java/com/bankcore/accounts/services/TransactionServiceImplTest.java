@@ -118,7 +118,7 @@ public class TransactionServiceImplTest {
 
         when(accountRepository.save(account)).thenReturn(account);
 
-        when(transactionMapper.toTransactionResponse(any(TransactionEntity.class)))
+        when(transactionMapper.toTransactionResponse(any(TransactionEntity.class), any(BigDecimal.class)))
                 .thenReturn(expectedResponse);
 
         TransactionResponse response = transactionService.makeDeposit(request, accountId, customerId);
