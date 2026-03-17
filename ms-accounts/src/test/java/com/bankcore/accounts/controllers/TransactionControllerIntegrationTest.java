@@ -263,4 +263,44 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                     .andExpect(jsonPath("$.description").exists());
         }
     }
+
+    @Test
+    public void shouldReturn403WhenUserDoesNotHaveRequiredRole() throws Exception{
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("ADMIN")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn401WhenRequestIsNotAuthenticated() throws Exception{
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
 }
