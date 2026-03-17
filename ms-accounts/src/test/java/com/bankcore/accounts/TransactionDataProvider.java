@@ -25,4 +25,18 @@ public class TransactionDataProvider {
                 .createdAt(Instant.now())
                 .build();
     }
+
+    public static TransactionEntity createMockTransaction(AccountEntity account, Instant createdAt) {
+        return TransactionEntity.builder()
+                .account(account)
+                .type(TransactionType.DEPOSIT)
+                .amount(new BigDecimal("100.00"))
+                .balanceAfter(new BigDecimal("1100.00"))
+                .description("Mock transaction")
+                .counterpartyAccountNumber("MOCK9121000418450200051332")
+                .counterpartyName("Mock Counterparty")
+                .status(TransactionStatus.COMPLETED)
+                .createdAt(createdAt)
+                .build();
+    }
 }
