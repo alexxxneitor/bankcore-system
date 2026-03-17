@@ -9,7 +9,10 @@ import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
 import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.models.AccountPinSecurity;
+import com.bankcore.accounts.repositories.AccountPinSecurityRepository;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,11 +24,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,6 +51,9 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private AccountPinSecurityRepository accountPinSecurityRepository;
 
     private AccountEntity account;
 
@@ -155,6 +165,34 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn409WhenDepositingToNonexistentOrInactiveAccount() throws Exception{
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        AccountEntity account1 = account;
+        account1.setStatus(AccountStatus.INACTIVE);
+        accountRepository.save(account1);
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(HttpStatus.CONFLICT.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.CONFLICT.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").value(containsString(String.join(" ", "status is", account1.getStatus().name()))));
     }
 
     @Test
@@ -302,5 +340,196 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldRegisterDepositInAccountWithPinIncorrect() throws Exception{
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(false));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").value(containsString("3 attempts")));
+    }
+
+    @Test
+    public void shouldLockAccountAfterFourthIncorrectPinAttemptWith423Status() throws Exception {
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(false));
+
+        Instant expectedUnlock = Instant.now().plus(15, ChronoUnit.MINUTES);
+
+        int[] remainingAttempts = {3, 2, 1};
+
+        // Hacer 4 requests consecutivos
+        for (int i = 1; i <= 4; i++) {
+            ResultActions result = mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(user(customerId.toString()).roles("CUSTOMER")));
+
+            if (i < 4) {
+                result.andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                        .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                        .andExpect(jsonPath("$.description").value(
+                                containsString(remainingAttempts[i - 1] + " attempts")
+                        ));
+            } else {
+                result.andExpect(status().isLocked())
+                        .andExpect(jsonPath("$.code").value(HttpStatus.LOCKED.value()))
+                        .andExpect(jsonPath("$.name").value(HttpStatus.LOCKED.getReasonPhrase()))
+                        .andExpect(jsonPath("$.description").value(
+                                containsString("temporarily locked")
+                        ))
+                        .andExpect(jsonPath("$.description").value(
+                                containsString(expectedUnlock.truncatedTo(ChronoUnit.MINUTES).toString().substring(0,16))
+                        ));
+            }
+        }
+    }
+
+    @Test
+    public void shouldPermanentlyBlockAccountOnFourthFailedPinAttempt() throws Exception {
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        AccountPinSecurity pinSecurity = account.getSecurity();
+        pinSecurity.setFailedAttempts(4);
+        pinSecurity.setTemporaryLockUntil(Instant.now().minus(1, ChronoUnit.MINUTES));
+        pinSecurity.setLastFailedAttemptAt(Instant.now().minus(16, ChronoUnit.MINUTES));
+        pinSecurity.setPermanentLock(false);
+
+        accountPinSecurityRepository.save(pinSecurity);
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(false));
+
+        int[] remainingAttempts = {3, 2, 1};
+
+        // Hacer 4 requests consecutivos
+        for (int i = 1; i <= 4; i++) {
+            ResultActions result = mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(user(customerId.toString()).roles("CUSTOMER")));
+
+            if (i < 4) {
+                result.andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                        .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                        .andExpect(jsonPath("$.description").value(
+                                containsString(remainingAttempts[i - 1] + " attempts")
+                        ));
+            } else {
+                result.andExpect(status().isLocked())
+                        .andExpect(jsonPath("$.code").value(HttpStatus.LOCKED.value()))
+                        .andExpect(jsonPath("$.name").value(HttpStatus.LOCKED.getReasonPhrase()))
+                        .andExpect(jsonPath("$.description").value(
+                                containsString("permanently blocked")
+                        ));
+            }
+        }
+    }
+
+    @Test
+    public void shouldPermanentlyBlockAccountAndFreezeOnNextAttempt() throws Exception {
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        AccountPinSecurity pinSecurity = account.getSecurity();
+        pinSecurity.setFailedAttempts(4);
+        pinSecurity.setTemporaryLockUntil(Instant.now().minus(1, ChronoUnit.MINUTES));
+        pinSecurity.setLastFailedAttemptAt(Instant.now().minus(16, ChronoUnit.MINUTES));
+        pinSecurity.setPermanentLock(false);
+
+        accountPinSecurityRepository.save(pinSecurity);
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(false));
+
+        // Hacer 4 requests consecutivos
+        for (int i = 1; i <= 4; i++) {
+            ResultActions result = mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(user(customerId.toString()).roles("CUSTOMER")));
+
+            if (i < 4) {
+                result.andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                        .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                        .andExpect(jsonPath("$.description").exists());
+            } else {
+                result.andExpect(status().isLocked())
+                        .andExpect(jsonPath("$.code").value(HttpStatus.LOCKED.value()))
+                        .andExpect(jsonPath("$.name").value(HttpStatus.LOCKED.getReasonPhrase()))
+                        .andExpect(jsonPath("$.description").exists());
+            }
+        }
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(HttpStatus.CONFLICT.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.CONFLICT.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").value(containsString("status is FROZEN")));
     }
 }
