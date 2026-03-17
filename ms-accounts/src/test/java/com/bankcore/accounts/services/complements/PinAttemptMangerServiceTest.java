@@ -2,6 +2,7 @@ package com.bankcore.accounts.services.complements;
 
 import com.bankcore.accounts.exceptions.AccountPermanentlyLockedException;
 import com.bankcore.accounts.exceptions.AccountTemporarilyLockedException;
+import com.bankcore.accounts.exceptions.CustomInternalServiceException;
 import com.bankcore.accounts.exceptions.IncorrectPinException;
 import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import com.bankcore.accounts.models.AccountEntity;
@@ -138,5 +139,19 @@ public class PinAttemptMangerServiceTest {
 
         assertTrue(pinSecurity.isPermanentLock());
         assertEquals(AccountStatus.FROZEN, pinSecurity.getAccount().getStatus());
+    }
+
+    @Test
+    void shouldThrowInternalServiceException_whenSecurityEntityNotFound() {
+        when(accountPinSecurityRepository.findByAccount_Id(accountId))
+                .thenReturn(Optional.empty());
+
+        PinValidateResponse response = new PinValidateResponse(true);
+
+        assertThrows(CustomInternalServiceException.class,
+                () -> service.processPinAttempt(accountId, response));
+
+        assertThrows(CustomInternalServiceException.class,
+                () -> service.checkPinLock(accountId));
     }
 }
