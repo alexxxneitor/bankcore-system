@@ -1,0 +1,94 @@
+package com.bankcore.accounts.controllers;
+
+import com.bankcore.accounts.AbstractIntegrationTest;
+import com.bankcore.accounts.AccountDataProvider;
+import com.bankcore.accounts.dto.requests.TransactionRequest;
+import com.bankcore.accounts.integrations.client.CustomerClient;
+import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
+import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
+import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
+import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.utils.enums.TransactionType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+public class TransactionControllerIntegrationTest extends AbstractIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private CustomerClient customerClient;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    private AccountEntity account;
+
+    @BeforeEach
+    public void setUp() {
+        Mockito.reset(customerClient);
+        accountRepository.deleteAll();
+        account = accountRepository.save(AccountDataProvider.createMockAccount());
+    }
+
+    @TestConfiguration
+    public static class TestConfig {
+        @Bean
+        CustomerClient customerClient() {
+            return Mockito.mock(CustomerClient.class);
+        }
+    }
+
+    @Test
+    public void shouldRegisterDepositInAccountSuccessfully() throws Exception{
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.referenceNumber").exists())
+                .andExpect(jsonPath("$.type").value(TransactionType.DEPOSIT.name()))
+                .andExpect(jsonPath("$.amount").value(request.getAmount()))
+                .andExpect(jsonPath("$.balanceBefore").value(account.getBalance().doubleValue()))
+                .andExpect(jsonPath("$.balanceAfter").value(account.getBalance().add(request.getAmount()).doubleValue()))
+                .andExpect(jsonPath("$.description").value(request.getDescription()))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+}
