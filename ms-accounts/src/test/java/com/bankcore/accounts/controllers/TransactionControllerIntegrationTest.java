@@ -12,6 +12,7 @@ import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.AccountPinSecurity;
 import com.bankcore.accounts.repositories.AccountPinSecurityRepository;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,11 +56,15 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
     @Autowired
     private AccountPinSecurityRepository accountPinSecurityRepository;
 
+    @Autowired
+    private TransactionRepository transactionRepository;
+
     private AccountEntity account;
 
     @BeforeEach
     public void setUp() {
         Mockito.reset(customerClient);
+        transactionRepository.deleteAll();
         accountRepository.deleteAll();
         account = accountRepository.save(AccountDataProvider.createMockAccount());
     }
