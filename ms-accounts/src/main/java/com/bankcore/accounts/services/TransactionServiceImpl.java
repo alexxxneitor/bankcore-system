@@ -88,7 +88,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         pinSecurityService.processPinAttempt(accountId, pinResponse);
 
-        BigDecimal newBalance = account.getBalance().add(request.getAmount());
+        BigDecimal balanceBefore = account.getBalance();
+        BigDecimal newBalance = balanceBefore.add(request.getAmount());
 
         TransactionEntity transaction = TransactionEntity.builder()
                 .account(account)
@@ -104,6 +105,6 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.save(transaction);
         accountRepository.save(account);
 
-        return transactionMapper.toTransactionResponse(transaction);
+        return transactionMapper.toTransactionResponse(transaction, balanceBefore);
     }
 }
