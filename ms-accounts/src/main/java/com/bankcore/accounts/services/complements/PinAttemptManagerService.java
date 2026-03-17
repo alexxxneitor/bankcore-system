@@ -54,9 +54,9 @@ import java.util.UUID;
 @Slf4j
 public class PinAttemptManagerService {
 
-    private static final int TEMP_LOCK_ATTEMPTS = 4;
-    private static final int PERM_LOCK_ATTEMPTS = 8;
-    private static final Duration TEMP_LOCK_DURATION = Duration.ofMinutes(15);
+    protected static final int TEMP_LOCK_ATTEMPTS = 4;
+    protected static final int PERM_LOCK_ATTEMPTS = 8;
+    protected static final Duration TEMP_LOCK_DURATION = Duration.ofMinutes(15);
 
     private final AccountPinSecurityRepository accountPinSecurityRepository;
 
