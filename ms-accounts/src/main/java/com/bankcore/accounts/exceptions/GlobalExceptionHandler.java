@@ -35,13 +35,13 @@ public class GlobalExceptionHandler {
     // Handle custom exception for when a customer is not found
     @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleCustomerNotFoundException(CustomerNotFoundException ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+        return notFound(ex.getMessage());
     }
 
     // Handle custom exception for resource conflicts, such as duplicate entries
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ErrorResponse> handleResourceConflictException(ResourceConflictException ex) {
-        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+        return conflict(ex.getMessage());
     }
 
     // Handle custom business logic exceptions that may occur during processing
@@ -95,23 +95,50 @@ public class GlobalExceptionHandler {
         return badRequest(description);
     }
 
-    //Handles custom exceptions - system validation error capture
+    // Handles custom exceptions - system validation error capture
     @ExceptionHandler(CustomInternalServiceException.class)
     public ResponseEntity<ErrorResponse> handleCustomInvalidParameter(CustomInternalServiceException ex){
         return buildErrorResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
-    @ExceptionHandler(AccountNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
+    // Handles invalid parameter type errors (e.g., wrong type in request parameters)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String value = ex.getValue() != null ? ex.getValue().toString() : "null";
         String message = String.format("Invalid value '%s' for parameter '%s'", value, ex.getName());
         return badRequest(message);
     }
+
+    // Handles inactive account errors - returns HTTP 409 Conflict
+    @ExceptionHandler(AccountInactiveException.class)
+    public ResponseEntity<ErrorResponse> handleAccountInactiveException(AccountInactiveException ex){
+        return conflict(ex.getMessage());
+    }
+
+    // Handles account not found errors - returns HTTP 404 Not Found
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFoundException(AccountNotFoundException ex){
+        return notFound(ex.getMessage());
+    }
+
+    // Handles temporarily locked account errors - returns HTTP 423 Locked
+    @ExceptionHandler(AccountTemporarilyLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountTemporarilyLockedException(AccountTemporarilyLockedException ex){
+        return locked(ex.getMessage());
+    }
+
+    // Handles permanently locked account errors - returns HTTP 423 Locked
+    @ExceptionHandler(AccountPermanentlyLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountPermanentlyLockedException(AccountPermanentlyLockedException ex){
+        return locked(ex.getMessage());
+    }
+
+    // Handles incorrect PIN attempts - returns HTTP 400 Bad Request
+    @ExceptionHandler(IncorrectPinException.class)
+    public ResponseEntity<ErrorResponse> handleIncorrectPinException(IncorrectPinException ex){
+        return badRequest(ex.getMessage());
+    }
+
     /**
      * Helper method for building a 400 BAD_REQUEST error response.
      *
@@ -120,6 +147,36 @@ public class GlobalExceptionHandler {
      */
     private ResponseEntity<ErrorResponse> badRequest(String message){
         return buildErrorResponse(HttpStatus.BAD_REQUEST, message);
+    }
+
+    /**
+     * Helper method for building a 404 NOT_FOUND error response.
+     *
+     * @param message the error message
+     * @return a NOT_FOUND {@link ErrorResponse}
+     */
+    private ResponseEntity<ErrorResponse> notFound(String message){
+        return buildErrorResponse(HttpStatus.NOT_FOUND, message);
+    }
+
+    /**
+     * Helper method for building a 409 CONFLICT error response.
+     *
+     * @param message the error message
+     * @return a CONFLICT {@link ErrorResponse}
+     */
+    private ResponseEntity<ErrorResponse> conflict(String message){
+        return buildErrorResponse(HttpStatus.CONFLICT, message);
+    }
+
+    /**
+     * Helper method for building a 423 LOCKED error response.
+     *
+     * @param message the error message
+     * @return a LOCKED {@link ErrorResponse}
+     */
+    private ResponseEntity<ErrorResponse> locked(String message){
+        return buildErrorResponse(HttpStatus.LOCKED, message);
     }
 
     /**

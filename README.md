@@ -99,38 +99,84 @@ Responsable de:
 
 Tabla: `accounts`
 
-### 🗄️ Entidad: Account
+🗄️ Entidad: Account
 
 | Campo                | Tipo       | Requerido | Restricciones                | Descripción                                               |
 |----------------------|------------|-----------|------------------------------|-----------------------------------------------------------|
-| id                   | UUID       |  Sí       | Clave primaria, autogenerada | Identificador único de la cuenta                          |
-| accountNumber        | String     |  Sí       | Único, longitud máxima 24    | Número único de la cuenta bancaria                        |
-| customerId           | UUID       |  Sí       | —                            | Identificador del cliente propietario de la cuenta        |
-| accountType          | Enum       |  Sí       | SAVINGS, CHECKING            | Tipo de cuenta bancaria                                   |
-| currency             | Enum       |  Sí       | COP, USD                     | Moneda de la cuenta                                       |
-| balance              | BigDecimal |  Sí       | —                            | Saldo actual de la cuenta                                 |
-| alias                | String     |  Sí       | —                            | Nombre personalizado de la cuenta definido por el usuario |
-| status               | Enum       |  Sí       | ACTIVE, BLOCKED, CLOSED      | Estado actual de la cuenta                                |
-| dailyWithdrawalLimit | BigDecimal |  Sí       | —                            | Límite máximo de retiro permitido por día                 |
-| createdAt            | Instant    |  Sí       | No actualizable              | Fecha y hora en que se creó la cuenta                     |
-| updatedAt            | Instant    |  Sí       | Se actualiza automáticamente | Fecha y hora de la última actualización                   |
+| id                   | UUID       | Sí        | Clave primaria, autogenerada | Identificador único de la cuenta                          |
+| accountNumber        | String     | Sí        | Único, longitud máxima 24    | Número único de la cuenta bancaria                        |
+| customerId           | UUID       | Sí        | —                            | Identificador del cliente propietario de la cuenta        |
+| accountType          | Enum       | Sí        | SAVINGS, CHECKING            | Tipo de cuenta bancaria                                   |
+| currency             | Enum       | Sí        | COP, USD                     | Moneda de la cuenta                                       |
+| balance              | BigDecimal | Sí        | —                            | Saldo actual de la cuenta                                 |
+| alias                | String     | Sí        | —                            | Nombre personalizado de la cuenta definido por el usuario |
+| status               | Enum       | Sí        | ACTIVE, BLOCKED, CLOSED      | Estado actual de la cuenta                                |
+| dailyWithdrawalLimit | BigDecimal | Sí        | —                            | Límite máximo de retiro permitido por día                 |
+| createdAt            | Instant    | Sí        | No actualizable              | Fecha y hora en que se creó la cuenta                     |
+| updatedAt            | Instant    | Sí        | Se actualiza automáticamente | Fecha y hora de la última actualización                   |
 
-Los campos `createdAt` y `updatedAt` se gestionan automáticamente mediante el método anotado con `@PrePersist`.
+**Relaciones:**
 
-Cuando la entidad se guarda por primera vez en la base de datos:
+- `security` → relación 1:1 con `account_pin_security`
+- `transactions` → relación 1:N con `transactions`
 
-- `createdAt` se establece con la fecha y hora actual.
-- `updatedAt` se establece con la fecha y hora actual.
+Los campos `createdAt` y `updatedAt` se gestionan automáticamente mediante `@PrePersist` y `@PreUpdate`.
+
+---
+
+Tabla: `transactions`
+
+🗄️ Entidad: Transaction
+
+| Campo                     | Tipo       | Requerido | Restricciones                     | Descripción                                                      |
+|---------------------------|------------|-----------|-----------------------------------|------------------------------------------------------------------|
+| id                        | UUID       | Sí        | Clave primaria, autogenerada      | Identificador único de la transacción                            |
+| account                   | UUID       | Sí        | FK a `accounts.id`                | Cuenta asociada a la transacción                                 |
+| type                      | Enum       | Sí        | DEPOSIT, WITHDRAWAL, TRANSFER     | Tipo de transacción                                              |
+| amount                    | BigDecimal | Sí        | —                                 | Monto de la transacción                                          |
+| balanceAfter              | BigDecimal | Sí        | —                                 | Saldo de la cuenta después de la transacción                     |
+| description               | String     | No        | —                                 | Descripción de la transacción                                    |
+| counterpartyAccountNumber | String     | No        | —                                 | Número de cuenta del contraparte (si aplica)                     |
+| counterpartyName          | String     | No        | —                                 | Nombre del contraparte (si aplica)                               |
+| referenceNumber           | String     | Sí        | Único                             | Número de referencia de la transacción, generado automáticamente |
+| status                    | Enum       | Sí        | PENDING, COMPLETED, FAILED        | Estado de la transacción                                         |
+| createdAt                 | Instant    | Sí        | No actualizable                   | Fecha y hora de creación de la transacción                       |
+
+**Notas:**
+
+- La referencia `referenceNumber` se genera automáticamente al persistir la entidad (`@PrePersist`).
+- Relación: cada transacción pertenece a una cuenta (`ManyToOne`).
+
+---
+
+Tabla: `account_pin_security`
+
+🗄️ Entidad: AccountPinSecurity
+
+| Campo                | Tipo    | Requerido | Restricciones      | Descripción                                                    |
+|----------------------|---------|-----------|--------------------|----------------------------------------------------------------|
+| accountId            | UUID    | Sí        | PK, FK             | Identificador de la cuenta asociada                            |
+| account              | UUID    | Sí        | FK a `accounts.id` | Relación con la cuenta                                         |
+| failedAttempts       | int     | Sí        | Default 0          | Número de intentos fallidos de PIN consecutivos                |
+| temporaryLockUntil   | Instant | No        | —                  | Timestamp hasta el cual la cuenta está bloqueada temporalmente |
+| permanentLock        | boolean | Sí        | Default false      | Indica si la cuenta está bloqueada permanentemente             |
+| lastFailedAttemptAt  | Instant | No        | —                  | Fecha y hora del último intento fallido de PIN                 |
+
+**Notas:**
+
+- Relación 1:1 con `accounts` usando `@MapsId`.
+- Controla la seguridad del PIN de la cuenta.
 
 ---
 
 #### URLs principales
 
-| Endpoint                  | Método | Descripción                                      | Acceso                             |
-|---------------------------|--------|--------------------------------------------------|------------------------------------|
-| /api/accounts             | POST   | Registro de Cuentas Bancarias                    | Restringido solo Role CUSTOMER     |
-| /api/accounts             | GET    | Obtener Cuentas Bancarias del cliente            | Restringido solo Role CUSTOMER     |
-| /api/accounts/{accountId} | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado | Restringido solo Role CUSTOMER     |
+| Endpoint                          | Método | Descripción                                                                                                       | Acceso                             |
+|-----------------------------------|--------|-------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| /api/accounts                     | POST   | Registro de Cuentas Bancarias                                                                                     | Restringido solo Role CUSTOMER     |
+| /api/accounts                     | GET    | Obtener Cuentas Bancarias del cliente                                                                             | Restringido solo Role CUSTOMER     |
+| /api/accounts/{accountId}         | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado | Restringido solo Role CUSTOMER     |
+| /api/accounts/{accountId}/deposit | POST   | Registra una nueva transaccion y un nuevo balance a la cuenta destinadad                                          | Restringido solo Role CUSTOMER     |
 
 ---
 

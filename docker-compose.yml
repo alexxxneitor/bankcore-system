@@ -1,7 +1,8 @@
+name: bankcore-system
+
 services:
   postgres-datasource:
     image: postgres:17.8
-    container_name: postgres-datasource
     environment:
       POSTGRES_USER: ${BANKCORESYSTEM_DATASOURCE_USERNAME}
       POSTGRES_PASSWORD: ${BANKCORESYSTEM_DATASOURCE_PASSWORD}
@@ -13,11 +14,12 @@ services:
       - ./bankcore-system-data:/var/lib/postgresql/data
       - ./init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh
     restart: always
+    networks:
+      - bankcore-network
 
   ms-customers:
     build:
       context: ./ms-customers
-    container_name: ms-customers
     ports:
       - "8081:8081"
     depends_on:
@@ -32,11 +34,12 @@ services:
       CORS_MAX_AGE: ${CORS_MAX_AGE}
       SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
     restart: on-failure
+    networks:
+      - bankcore-network
 
   ms-accounts:
     build:
       context: ./ms-accounts
-    container_name: ms-accounts
     ports:
       - "8082:8082"
     depends_on:
@@ -55,3 +58,9 @@ services:
       BANKCORESYSTEM_LIMIT_SAVINGS: ${BANKCORESYSTEM_LIMIT_SAVINGS}
       SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
     restart: on-failure
+    networks:
+      - bankcore-network
+
+networks:
+  bankcore-network:
+    driver: bridge

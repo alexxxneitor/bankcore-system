@@ -20,14 +20,26 @@ import java.util.UUID;
  * including account number, customer ID, account type, currency, balance, alias, status, daily withdrawal limit, and timestamps for creation and updates.
  * The class uses JPA annotations for ORM mapping and Lombok annotations for boilerplate code reduction
  * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
- * @version 1.0
+ * @version 1.1
  */
-@Entity
-@Table(name = "accounts")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(
+        name = "accounts",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_account_number",
+                        columnNames = "accountNumber"
+                )
+        },
+        indexes = {
+                @Index(name = "idx_account_customer", columnList = "customerId"),
+                @Index(name = "idx_account_number", columnList = "accountNumber")
+        }
+)
 public class AccountEntity {
 
     @Id
@@ -35,10 +47,10 @@ public class AccountEntity {
     @UuidGenerator
     private UUID id;
 
-    @Column(unique = true, nullable = false, length = 24)
+    @Column(nullable = false, length = 24, updatable = false)
     private String accountNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private UUID customerId;
 
     @Column(nullable = false)
@@ -49,7 +61,7 @@ public class AccountEntity {
     @Enumerated(EnumType.STRING)
     private CurrencyCode currency;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
 
     @Column(nullable = false)
@@ -59,7 +71,7 @@ public class AccountEntity {
     @Enumerated(EnumType.STRING)
     private AccountStatus status;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal dailyWithdrawalLimit;
 
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
@@ -67,6 +79,9 @@ public class AccountEntity {
 
     @Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant updatedAt;
+
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private AccountPinSecurity security;
 
     @PrePersist
     protected void onCreate() {

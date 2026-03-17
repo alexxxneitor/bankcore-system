@@ -1,16 +1,18 @@
 package com.bankcore.accounts.services;
 
 import com.bankcore.accounts.AccountDataProvider;
-import com.bankcore.accounts.client.CustomerClient;
+import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
-import com.bankcore.accounts.dto.responses.CustomerResponse;
 import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
 import com.bankcore.accounts.exceptions.*;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
+import com.bankcore.accounts.services.complements.CustomerValidationService;
+import com.bankcore.accounts.services.complements.IbanGeneratorService;
+import com.bankcore.accounts.services.complements.WithdrawalService;
 import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
@@ -31,6 +33,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +50,9 @@ public class AccountManagementImplTest {
 
     @Mock
     private IbanGeneratorService ibanGeneratorService;
+
+    @Mock
+    private CustomerValidationService validationService;
 
     @Mock
     private WithdrawalService withdrawalService;
@@ -72,36 +78,9 @@ public class AccountManagementImplTest {
     }
 
     @Test
-    void shouldThrowCustomerNotFound_whenCustomerDoesNotExist() {
-
-        CustomerResponse response = new CustomerResponse(customerId, false, false);
-
-        when(customerClient.getCustomerById(customerId)).thenReturn(response);
-
-        assertThrows(
-                CustomerNotFoundException.class,
-                () -> accountManagement.registerAccount(request, customerId)
-        );
-    }
-
-    @Test
-    void shouldThrowCustomerInactive_whenCustomerIsInactive() {
-
-        CustomerResponse response = new CustomerResponse(customerId, true, false);
-
-        when(customerClient.getCustomerById(customerId)).thenReturn(response);
-
-        assertThrows(
-                CustomerInactiveException.class,
-                () -> accountManagement.registerAccount(request, customerId)
-        );
-    }
-
-    @Test
     void shouldThrowBusinessException_whenCustomerHasThreeAccounts() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(3L);
@@ -115,8 +94,7 @@ public class AccountManagementImplTest {
     @Test
     void shouldThrowConflict_whenAliasAlreadyExists() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(1L);
@@ -133,8 +111,7 @@ public class AccountManagementImplTest {
     @Test
     void shouldGenerateNewIban_ifGeneratedIbanAlreadyExists() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(0L);
@@ -169,8 +146,7 @@ public class AccountManagementImplTest {
     @Test
     void shouldRegisterAccountSuccessfully() {
 
-        when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
+        doNothing().when(validationService).validateCustomerIsActive(customerId);
 
         when(accountRepository.countByCustomerId(customerId))
                 .thenReturn(0L);
@@ -247,7 +223,6 @@ public class AccountManagementImplTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-
     @Test
     void shouldAlwaysCallClientBeforeRepository() {
 
@@ -258,7 +233,6 @@ public class AccountManagementImplTest {
 
         verify(accountRepository).findAllByCustomerId(customerId);
     }
-
 
     @Test
     void shouldPassRepositoryResultDirectlyToMapper() {

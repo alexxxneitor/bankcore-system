@@ -1,16 +1,22 @@
 package com.bankcore.accounts.services;
 
-import com.bankcore.accounts.client.CustomerClient;
+import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
 import com.bankcore.accounts.dto.responses.UserAccountResponse;
-import com.bankcore.accounts.dto.responses.CustomerResponse;
-import com.bankcore.accounts.exceptions.*;
+import com.bankcore.accounts.exceptions.AccountNotFoundException;
+import com.bankcore.accounts.exceptions.BusinessException;
+import com.bankcore.accounts.exceptions.CustomerInactiveException;
+import com.bankcore.accounts.exceptions.ResourceConflictException;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.models.AccountPinSecurity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
+import com.bankcore.accounts.services.complements.CustomerValidationService;
+import com.bankcore.accounts.services.complements.IbanGeneratorService;
+import com.bankcore.accounts.services.complements.WithdrawalService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.mappers.AccountMapper;
 import lombok.AllArgsConstructor;
@@ -43,34 +49,39 @@ public class AccountManagementImpl implements AccountManagementService {
     private final IbanGeneratorService ibanGeneratorService;
     private final WithdrawalService withdrawalService;
     private final AccountMapper accountMapper;
+    private final CustomerValidationService validationService;
 
     private static final int MAX_IBAN_GENERATION_ATTEMPTS = 5;
 
     /**
-     * Validates if the customer associated with the given ID is active.
-     * If the customer is not active, a CustomerInactiveException is thrown.
+     * Registers a new account for a customer.
+     * <p>
+     * This method validates the customer's state, enforces business rules
+     * regarding account limits and alias uniqueness, generates a unique IBAN,
+     * and persists the new account entity. It also initializes the account's
+     * PIN security configuration.
+     * </p>
      *
-     * @param idCustomer the UUID of the customer to validate
-     * @throws CustomerNotFoundException if the consulted client does not exist
+     * <h2>Business Rules:</h2>
+     * <ul>
+     *   <li>A customer can register a maximum of 3 accounts.</li>
+     *   <li>Account alias must be unique per customer.</li>
+     *   <li>New accounts are created with status {@link AccountStatus#ACTIVE} and
+     *       a daily withdrawal limit resolved by {@code withdrawalService}.</li>
+     * </ul>
+     *
+     * @param request the {@link AccountRegisterRequest} containing account registration details
+     * @param id      the {@link UUID} representing the customer ID
+     * @return an {@link AccountRegisterResponse} containing the result of the registration
+     * @throws BusinessException if the customer exceeds the maximum number of accounts
+     * @throws ResourceConflictException if the alias is already in use
      * @throws CustomerInactiveException if the customer is not active
      */
-    private void validateCustomerIsActive(UUID idCustomer) {
-        CustomerResponse customer = customerClient.getCustomerById(idCustomer);
-        if (!customer.exists()) {
-            throw new CustomerNotFoundException("The customer is not registered in the system");
-        }
-
-        if (!customer.isActive()) {
-            throw new CustomerInactiveException("The authenticated client is not active");
-        }
-    }
-
-    /// Registers a new account for a customer
     @Override
     @Transactional
     public AccountRegisterResponse registerAccount(AccountRegisterRequest request, UUID id) {
 
-        validateCustomerIsActive(id);
+        validationService.validateCustomerIsActive(id);
 
         if (accountRepository.countByCustomerId(id) >= 3) {
             throw new BusinessException("Customer has reached the maximum number of accounts allowed");
@@ -92,7 +103,10 @@ public class AccountManagementImpl implements AccountManagementService {
                         .alias(request.getAlias())
                         .status(AccountStatus.ACTIVE)
                         .dailyWithdrawalLimit(withdrawalService.resolveDailyLimit(request.getAccountType()))
+                        .security(AccountPinSecurity.builder().build())
                         .build();
+
+        accountEntity.getSecurity().setAccount(accountEntity);
 
         accountRepository.save(accountEntity);
 

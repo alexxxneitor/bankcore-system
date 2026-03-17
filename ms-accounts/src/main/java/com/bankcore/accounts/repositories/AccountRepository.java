@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * Repository interface for managing AccountEntity instances in the database.
  * Extends JpaRepository to provide CRUD operations and custom query methods.
- * @author BankCore Team - Sebastian Orjuela
+ * @author BankCore Team - Sebastian Orjuela - Cristian Ortiz
  * @version 1.0
  */
 public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {

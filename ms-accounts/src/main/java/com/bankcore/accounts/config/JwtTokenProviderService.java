@@ -26,7 +26,7 @@ import java.util.List;
  *     <li>Issuer: bankcore</li>
  *     <li>Subject: BANKCORE_SYSTEM_ACCOUNTS</li>
  *     <li>Role: SERVICE</li>
- *     <li>Expiration time: 5 minutes</li>
+ *     <li>Expiration time: 3 minutes</li>
  * </ul>
  *
  * @author Bankcore Team - Sebastian Orjuela
