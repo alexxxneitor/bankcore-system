@@ -2,6 +2,7 @@ package com.bankcore.accounts.controllers;
 
 import com.bankcore.accounts.AbstractIntegrationTest;
 import com.bankcore.accounts.AccountDataProvider;
+import com.bankcore.accounts.TransactionDataProvider;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
@@ -17,10 +18,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -90,5 +93,174 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 .andExpect(jsonPath("$.balanceAfter").value(account.getBalance().add(request.getAmount()).doubleValue()))
                 .andExpect(jsonPath("$.description").value(request.getDescription()))
                 .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    public void shouldRegisterDepositInAccountSuccessfullyWithDescriptionNull() throws Exception{
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description(null)
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.referenceNumber").exists())
+                .andExpect(jsonPath("$.type").value(TransactionType.DEPOSIT.name()))
+                .andExpect(jsonPath("$.amount").value(request.getAmount()))
+                .andExpect(jsonPath("$.balanceBefore").value(account.getBalance().doubleValue()))
+                .andExpect(jsonPath("$.balanceAfter").value(account.getBalance().add(request.getAmount()).doubleValue()))
+                .andExpect(jsonPath("$.description").value(request.getDescription()))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    public void shouldRegisterDepositInAccountNotFound() throws Exception{
+        UUID customerId = account.getCustomerId();
+        UUID accountId = UUID.randomUUID();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldRegisterDepositWithCustomerNotActive() throws Exception{
+        UUID customerId = UUID.randomUUID();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, false));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldRegisterDepositWithCustomerNotExists() throws Exception{
+        UUID customerId = UUID.randomUUID();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, false, false));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldRegisterDepositWithBalanceZero() throws Exception{
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.ZERO)
+                .description("test deposit")
+                .pin("1234")
+                .build();
+
+        mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldRegisterDepositWithPinInvalid() throws Exception{
+        UUID accountId = account.getId();
+        UUID customerId = account.getCustomerId();
+
+        TransactionRequest pinMinimumSize = TransactionDataProvider.createMockTransactionRequest("12");
+        TransactionRequest pinMaximumSize = TransactionDataProvider.createMockTransactionRequest("12345");
+        TransactionRequest pinLetters = TransactionDataProvider.createMockTransactionRequest("12mp");
+        TransactionRequest pinSameDigits = TransactionDataProvider.createMockTransactionRequest("3333");
+        TransactionRequest pinBlankSpace = TransactionDataProvider.createMockTransactionRequest("");
+        TransactionRequest pinNull = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("test deposit")
+                .pin(null)
+                .build();
+
+        List<TransactionRequest> invalidRequests = List.of(
+                pinMinimumSize,
+                pinMaximumSize,
+                pinLetters,
+                pinSameDigits,
+                pinBlankSpace,
+                pinNull
+        );
+
+        for (TransactionRequest request : invalidRequests) {
+
+            mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                            .with(user(customerId.toString()).roles("CUSTOMER")))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                    .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                    .andExpect(jsonPath("$.description").exists());
+        }
     }
 }
