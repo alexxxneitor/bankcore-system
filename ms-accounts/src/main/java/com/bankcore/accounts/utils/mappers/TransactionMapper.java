@@ -5,6 +5,9 @@ import com.bankcore.accounts.models.TransactionEntity;
 import org.mapstruct.Mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import java.math.BigDecimal;
 
 /**
  * Mapper interface for converting between {@link TransactionEntity} and {@link TransactionResponse}.
@@ -26,5 +29,7 @@ public interface TransactionMapper {
      * @param transactionEntity the entity representing the transaction
      * @return a {@link TransactionResponse} containing mapped transaction details
      */
-    TransactionResponse toTransactionResponse(TransactionEntity transactionEntity);
+    @Mapping(source = "transactionEntity.createdAt", target = "timestamp")
+    @Mapping(source = "balanceBefore", target = "balanceBefore")
+    TransactionResponse toTransactionResponse(TransactionEntity transactionEntity, BigDecimal balanceBefore);
 }
