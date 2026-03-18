@@ -1,6 +1,7 @@
 package com.bankcore.accounts.integrations.client;
 
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
+import com.bankcore.accounts.integrations.dto.responses.CustomerDetailsResponse;
 import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 
@@ -38,4 +39,12 @@ public interface CustomerClient {
      * @return a {@link PinValidateResponse} indicating whether the PIN is valid
      */
     PinValidateResponse validateCustomerPin(UUID customerId, PinValidateRequest request);
+
+    /**
+     * Get the customer details by their id
+     *
+     * @param customerId the {@link UUID} representing the customer's unique ID
+     * @return a {@link CustomerDetailsResponse} contains the detailed information of the client
+     */
+    CustomerDetailsResponse getCustomerDetailsById(UUID customerId);
 }

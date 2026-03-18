@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.bankcore.accounts.exceptions.CustomInternalServiceException;
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
+import com.bankcore.accounts.integrations.dto.responses.CustomerDetailsResponse;
 import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -79,6 +80,23 @@ public class CustomerClientImpl implements CustomerClient {
                 .bodyValue(request);
 
         return executeRequest(req, PinValidateResponse.class, customerId);
+    }
+
+    /**
+     * Get the customer details by their id
+     *
+     * @param customerId the {@link UUID} representing the customer's unique ID
+     * @return a {@link CustomerDetailsResponse} contains the detailed information of the client
+     * @throws CustomInternalServiceException if the Customer service rejects the request or returns an empty body
+     * @throws CustomExternalServiceException if the Customer service is unavailable
+     */
+    @Override
+    public CustomerDetailsResponse getCustomerDetailsById(UUID customerId) {
+        WebClient.RequestHeadersSpec<?> request = customersWebClient
+                .get()
+                .uri("/api/customers/{id}/validate", customerId);
+
+        return executeRequest(request, CustomerDetailsResponse.class, customerId);
     }
 
     /**
