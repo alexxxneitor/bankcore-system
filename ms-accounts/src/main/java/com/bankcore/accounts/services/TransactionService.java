@@ -1,7 +1,9 @@
 package com.bankcore.accounts.services;
 
 import com.bankcore.accounts.dto.requests.TransactionRequest;
+import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
+import com.bankcore.accounts.dto.responses.TransferResponse;
 
 import java.util.UUID;
 
@@ -30,4 +32,14 @@ public interface TransactionService {
      * @return a {@link TransactionResponse} containing the result of the deposit
      */
     TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId);
+
+    /**
+     * Execute a transfer between accounts
+     *
+     * @param request    the {@link TransactionRequest} It contains the details of the transfer
+     * @param accountId  the {@link UUID} Representing the originating account
+     * @param customerId the {@link UUID} Representing the client who owns the source account
+     * @return a {@link TransactionResponse} It contains the results of the transfer between accounts
+     */
+    TransferResponse makeTransfer(TransferRequest request, UUID accountId, UUID customerId);
 }
