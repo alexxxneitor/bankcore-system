@@ -1,4 +1,4 @@
-package com.bankcore.accounts.utils.validators;
+package com.bankcore.accounts.utils.validators.pin;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
