@@ -94,7 +94,7 @@ public class CustomerClientImpl implements CustomerClient {
     public CustomerDetailsResponse getCustomerDetailsById(UUID customerId) {
         WebClient.RequestHeadersSpec<?> request = customersWebClient
                 .get()
-                .uri("/api/customers/{id}/validate", customerId);
+                .uri("/api/customers/{id}", customerId);
 
         return executeRequest(request, CustomerDetailsResponse.class, customerId);
     }
