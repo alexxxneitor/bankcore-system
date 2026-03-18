@@ -17,7 +17,8 @@ import java.util.UUID;
  * <p>
  * This Data Transfer Object (DTO) is used to capture the necessary
  * information for creating a new transfer, including source account,
- * destination IBAN, amount, and optional description.
+ * destination IBAN, amount, optional description, and ATM PIN for
+ * authentication.
  * </p>
  *
  * <h2>Validation</h2>
@@ -25,9 +26,19 @@ import java.util.UUID;
  *   <li>Ensures required fields are present using Bean Validation annotations.</li>
  *   <li>Validates destination IBAN format via {@link ValidIban}.</li>
  *   <li>Enforces minimum amount constraints.</li>
+ *   <li>Requires a valid ATM PIN:
+ *     <ul>
+ *       <li>Must not be null.</li>
+ *       <li>Must be exactly 4 digits.</li>
+ *       <li>Must contain only numeric characters.</li>
+ *       <li>Validated via {@link ValidAtmPin} for custom rules.</li>
+ *     </ul>
+ *   </li>
  * </ul>
+
  *
  * @author BankcoreTeam - Sebastian Orjuela
+ * @version 1.0
  */
 @Data
 @Builder
