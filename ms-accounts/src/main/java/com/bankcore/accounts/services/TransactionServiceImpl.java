@@ -72,13 +72,12 @@ public class TransactionServiceImpl implements TransactionService {
      * </p>
      *
      * @param request    the {@link TransferRequest} containing transfer details
-     * @param accountId  the {@link UUID} of the source account
      * @param customerId the {@link UUID} of the customer initiating the transfer
      * @return a {@link TransferResponse} containing the result of the transfer
      */
     @Override
-    public TransferResponse makeTransfer(TransferRequest request, UUID accountId, UUID customerId) {
-        AccountEntity sourceAccount = validator.validateCustomerAccountAndPin(customerId, accountId, request.getPin());
+    public TransferResponse makeTransfer(TransferRequest request, UUID customerId) {
+        AccountEntity sourceAccount = validator.validateCustomerAccountAndPin(customerId, request.getSourceAccountId(), request.getPin());
         return transferProcessor.processTransfer(sourceAccount, request);
     }
 }
