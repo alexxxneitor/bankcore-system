@@ -139,6 +139,12 @@ public class GlobalExceptionHandler {
         return badRequest(ex.getMessage());
     }
 
+    //Handles insufficient funds - returns HTTP 409 Conflict
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientBalanceException(InsufficientBalanceException ex){
+        return conflict(ex.getMessage());
+    }
+
     /**
      * Helper method for building a 400 BAD_REQUEST error response.
      *
