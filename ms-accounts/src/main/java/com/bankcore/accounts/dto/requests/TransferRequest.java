@@ -1,8 +1,11 @@
 package com.bankcore.accounts.dto.requests;
 
 import com.bankcore.accounts.utils.validators.iban.ValidIban;
+import com.bankcore.accounts.utils.validators.pin.ValidAtmPin;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
@@ -42,4 +45,10 @@ public class TransferRequest {
     private BigDecimal amount;
 
     private String description;
+
+    @NotNull(message = "ATM Pin cannot be null")
+    @Size(min = 4, max = 4, message = "ATM Pin must be exactly 4 digits")
+    @Pattern(regexp = "\\d+", message = "ATM Pin must contain only numbers")
+    @ValidAtmPin
+    private String pin;
 }
