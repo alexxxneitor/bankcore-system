@@ -1,30 +1,37 @@
 package com.bankcore.customers.services;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.bankcore.customers.dto.requests.PinValidateRequest;
+import com.bankcore.customers.dto.responses.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.bankcore.customers.DataProvider;
 import com.bankcore.customers.dto.requests.RegisterRequest;
-import com.bankcore.customers.dto.responses.CustomerDetailsValidateResponse;
-import com.bankcore.customers.dto.responses.CustomerValidateResponse;
-import com.bankcore.customers.dto.responses.RegisterResponse;
-import com.bankcore.customers.dto.responses.UserProfileResponse;
 import com.bankcore.customers.exceptions.ResourceConflictException;
 import com.bankcore.customers.exceptions.UserProfileNotFoundException;
 import com.bankcore.customers.model.UserEntity;
 import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.bankcore.customers.utils.mappers.UserMapper;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 class UserManagementImplTest {
@@ -219,7 +226,7 @@ class UserManagementImplTest {
         CustomerValidateResponse result =
                 userManagement.getCustomerIsActive(id);
 
-        assertTrue(result.isExist());
+        assertTrue(result.isExists());
         assertTrue(result.isActive());
         assertEquals(id, result.getCustomerId());
 
@@ -240,7 +247,7 @@ class UserManagementImplTest {
         CustomerValidateResponse result =
                 userManagement.getCustomerIsActive(id);
 
-        assertTrue(result.isExist());
+        assertTrue(result.isExists());
         assertFalse(result.isActive());
     }
 
@@ -255,7 +262,75 @@ class UserManagementImplTest {
         CustomerValidateResponse result =
                 userManagement.getCustomerIsActive(id);
 
-        assertFalse(result.isExist());
+        assertFalse(result.isExists());
         assertFalse(result.isActive());
+    }
+
+    @Test
+    void shouldReturnValidTrueWhenPinMatches() {
+
+        UUID customerId = UUID.randomUUID();
+
+        PinValidateRequest request = PinValidateRequest.builder()
+                .pin("1234")
+                .build();
+
+        UserEntity user = new UserEntity();
+        user.setAtmPin("encoded-pin");
+
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("1234", "encoded-pin")).thenReturn(true);
+
+        PinValidateResponse response = userManagement
+                .getPinValidateCustomer(request, customerId);
+
+        assertTrue(response.isValid());
+
+        verify(userRepository).findById(customerId);
+        verify(passwordEncoder).matches("1234", "encoded-pin");
+    }
+
+    @Test
+    void shouldReturnValidFalseWhenPinDoesNotMatch() {
+
+        UUID customerId = UUID.randomUUID();
+
+        PinValidateRequest request = PinValidateRequest.builder()
+                .pin("9999")
+                .build();
+
+        UserEntity user = new UserEntity();
+        user.setAtmPin("encoded-pin");
+
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("9999", "encoded-pin")).thenReturn(false);
+
+        PinValidateResponse response = userManagement
+                .getPinValidateCustomer(request, customerId);
+
+        assertFalse(response.isValid());
+
+        verify(userRepository).findById(customerId);
+        verify(passwordEncoder).matches("9999", "encoded-pin");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotFound() {
+
+        UUID customerId = UUID.randomUUID();
+
+        PinValidateRequest request = PinValidateRequest.builder()
+                .pin("1234")
+                .build();
+
+        when(userRepository.findById(customerId)).thenReturn(Optional.empty());
+
+        assertThrows(
+                UserProfileNotFoundException.class,
+                () -> userManagement.getPinValidateCustomer(request, customerId)
+        );
+
+        verify(userRepository).findById(customerId);
+        verifyNoInteractions(passwordEncoder);
     }
 }

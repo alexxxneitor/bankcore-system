@@ -19,6 +19,6 @@ import java.util.UUID;
 public class CustomerValidateResponse {
 
     private UUID customerId;
-    private boolean exist;
+    private boolean exists;
     private boolean active;
 }

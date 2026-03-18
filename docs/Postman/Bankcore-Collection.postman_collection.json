@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "2d47e7ec-516e-47ed-89c7-48d05b9c981b",
+    "_postman_id": "6228710d-4455-484b-9231-93e45ada5ee9",
     "name": "Bankcore-Collection",
     "description": "This Postman collection contains all the requests related to the **Customers** and **Accounts** microservices.\n\nIts main purpose is to enable **controlled and structured manual testing**, allowing developers and testers to interact with the system, validate business flows, and verify the behavior of each endpoint in an isolated and predictable way.\n\nThe collection serves as a centralized tool to:\n\n- Perform manual API testing\n    \n- Validate request and response contracts\n    \n- Simulate real usage scenarios\n    \n- Support development, debugging, and QA processes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -47,7 +47,8 @@
               "script": {
                 "exec": [
                   "const res = pm.response.json();\r",
-                  "pm.environment.set(\"jwt\", res.token);"
+                  "pm.collectionVariables.set(\"jwt\", res.token);\r",
+                  "pm.collectionVariables.set(\"id_customer\", res.customerId);"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -98,7 +99,15 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": ""
+              "raw": "{{base_url_customers}}/api/customers/me",
+              "host": [
+                "{{base_url_customers}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "me"
+              ]
             },
             "description": "## Get Authenticated Customer Profile\n\n### Endpoint\n\n`GET /api/customers/me`\n\n### Description\n\nRetrieves the profile information of the currently authenticated customer.  \nThis endpoint returns the personal and account details associated with the user identified by the provided authentication token.\n\nThis endpoint requires a valid authenticated session and is intended for retrieving the logged-in customer's profile data.\n\n---\n\n### 🔐 Authorization Requirements\n\nThe request must include a valid authentication token.\n\n**Required Header**  \nAuthorization: Bearer\n\n**Access Rules**\n\n- The user must be authenticated.\n    \n- The user must have the **CUSTOMER** role.\n    \n- The token must be valid and not expired.\n    \n\n---\n\n### 📥 Request Rules\n\n- No request body is required.\n    \n- The request must include a valid Bearer token in the Authorization header.\n    \n- The system identifies the customer from the authentication context.\n    \n\n---\n\n### 📤 Responses\n\n#### ✅ 200 OK\n\nThe authenticated customer's profile was successfully retrieved.\n\nThe response contains the customer's personal and account information.\n\n**Response Body**\n\n``` json\n{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"dni\": \"12345678A\",\n  \"firstName\": \"Carlos\",\n  \"lastName\": \"García López\",\n  \"email\": \"carlos.garcia@email.com\",\n  \"phone\": \"+34612345678\",\n  \"address\": \"Calle Mayor 123, Madrid\",\n  \"status\": \"ACTIVE\",\n  \"createdAt\": \"2025-01-15T10:30:00Z\"\n}\n\n ```\n\n#### ❌ 401 Unauthorized\n\nThe request could not be authenticated.  \nPossible reasons include:\n\n- Missing Authorization header\n    \n- Invalid or malformed token\n    \n- Expired token\n    \n- Authentication credentials are incorrect\n    \n\n#### ⛔ 403 Forbidden\n\nThe request was authenticated but the user does not have sufficient permissions.\n\nPossible reasons include:\n\n- The authenticated user does not have the required CUSTOMER role.\n    \n\n#### 🚫 404 Not Found\n\n**The requested resource could not be found.** The server was unable to retrieve the user profile due to a data mismatch or a recent administrative action.\n\n---\n\n##### 🔍 Possible Reasons\n\n- **🗑️ Synchronized Deletion**  \n    The user successfully logged in and obtained a valid token (JWT). However, an administrator deleted the account from the database before the token expired, leaving an active session without a backing record.\n    \n- **📧 Email Change**  \n    The user recently updated their email address. The legacy token still attempts to query the system using the previous email, which no longer exists in the current records.\n    \n\n---\n\n> **Developer Note:** If this error occurs while the user holds a seemingly valid JWT, recommend a full logout and re-authentication to refresh the identity claims. \n  \n\n---\n\n#### ❌ 500 Internal Server Error\n\nAn unexpected error occurred while retrieving the customer profile.  \nPossible reasons include:\n\n- Server-side processing error\n    \n- Database access issues\n    \n- Unexpected system failure"
           },
@@ -112,7 +121,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{jwt_sercice}}",
+                  "value": "{{jwt_service}}",
                   "type": "string"
                 }
               ]
@@ -142,7 +151,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{jwt_sercice}}",
+                  "value": "{{jwt_service}}",
                   "type": "string"
                 }
               ]
@@ -164,13 +173,191 @@
             "description": "# 🧾 Validate Customer (Internal)\n\n## 📌 Endpoint\n\n`GET {{base_url_customers}}/api/customers/{{customerId}}/validate`\n\n## 📖 Description\n\nValidates whether a customer exists in the system and whether the account is currently active.\n\nThis endpoint is intended for internal service-to-service communication.\n\n---\n\n## 🔐 Access\n\nThis endpoint is protected.\n\nAuthentication is required using a valid JWT token.\n\nAllowed role:\n\n- `SERVICE`\n    \n\n---\n\n## 📥 Request\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| customerId | UUID | ✅ Yes | Unique identifier of the customer |\n\n### Example Request\n\n---\n\n## 📤 Responses\n\n`GET /api/customers/f4c86734-4ad0-4073-bb1b-237d9b446822/validate`\n\n---\n\n### ✅ 200 OK\n\nThe validation process was executed successfully.\n\n#### Response Body (JSON)\n\n``` json\n{\n    \"customerId\": \"f4c86734-4ad0-4073-bb1b-237d9b446822\",\n    \"exist\": true,\n    \"active\": true\n}\n\n ```\n\n### Response Fields\n\n| Field | Type | Description |\n| --- | --- | --- |\n| customerId | UUID | Customer identifier |\n| exist | boolean | Indicates whether the customer exists in the system |\n| active | boolean | Indicates whether the customer is active |\n\n---\n\n### ❌ 400 Bad Request\n\nThe provided `customerId` has an invalid format.\n\n#### Possible Causes:\n\n- The `customerId` is not a valid UUID.\n    \n- The path parameter is malformed.\n    \n\nExample:\n\n`GET /api/customers/invalid-id/validate`\n\n---\n\n### 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\n#### Possible Causes:\n\n- Missing JWT token.\n    \n- Expired token.\n    \n- Invalid token signature.\n    \n\n---\n\n### ⛔ 403 Forbidden\n\nThe authenticated user does not have the required role (`SERVICE`) to access this endpoint.\n\n---\n\n### ❌ 500 Internal Server Error\n\nAn unexpected error occurred while processing the request.\n\n#### Possible Causes:\n\n- Database access error.\n    \n- Unexpected system failure.\n    \n- Internal processing exception."
           },
           "response": []
+        },
+        {
+          "name": "Validate Pin Customer (intern)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_sercice}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"pin\":\"1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_customers}}/api/customers/{{id_customer}}/validate-pin",
+              "host": [
+                "{{base_url_customers}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{id_customer}}",
+                "validate-pin"
+              ]
+            },
+            "description": "# 🔐 Validate Customer PIN\n\n## 📌 Endpoint\n\n**POST**  \n`/api/customers/{id_customer}/validate-pin`\n\n---\n\n# 📖 Description\n\nValidates whether the **PIN provided by the customer is correct**.\n\nThis endpoint is mainly used by the **ms-accounts** service to verify the customer's PIN before executing **sensitive banking operations**, such as withdrawals, transfers, or other financial movements.\n\nThe service compares the provided PIN with the **securely stored PIN** of the customer and returns a boolean value indicating whether the PIN is valid.\n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `SERVICE`\n    \n\nThis restriction ensures that only **internal services** (such as `ms-accounts`) can validate customer PINs.\n\n---\n\n# 📥 Request\n\n## Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id_customer | UUID | ✅ Yes | Unique identifier of the customer |\n\nExample:\n\n`POST /api/customers/f4c86734-4ad0-4073-bb1b-237d9b446822/validate-pin`\n\n---\n\n## Request Body (JSON)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| pin | String | ✅ Yes | Customer PIN to validate |\n\n### Validation Rules\n\nThe `pin` field must comply with the following rules:\n\n- Cannot be **null**\n    \n- Cannot be **blank**\n    \n- Must contain **exactly 4 digits**\n    \n- **Only numeric characters** are allowed\n    \n- **Repeated digits are not allowed** (e.g. `1111`, `2222`, `9999`)\n    \n\n---\n\n### Example Request\n\n`POST /api/customers/{id_customer}/validate-pin`\n\n``` json\n{\n  \"pin\": \"1234\"\n}\n\n ```\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 200 OK\n\nThe PIN validation was processed successfully.\n\nThe response indicates whether the PIN is valid or not.\n\n### Response Body\n\n``` json\n{\n  \"valid\": true\n}\n\n ```\n\nPossible values:\n\n| Value | Meaning |\n| --- | --- |\n| true | The PIN is correct |\n| false | The PIN is incorrect |\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid data.\n\nPossible Causes:\n\n- The `id_customer` is not a valid UUID\n    \n- The `pin` field is null or empty\n    \n- The `pin` does not contain exactly **4 digits**\n    \n- The `pin` contains **letters or non-numeric characters**\n    \n- The `pin` contains **repeated digits** (e.g. `1111`)\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have the required permissions to access this endpoint.\n\nPossible Causes:\n\n- The user does not have the required role (`SERVICE`)\n    \n\n---\n\n## ⚠️ 404 Not Found\n\nThe customer with the provided `id_customer` does not exist in the system.\n\nPossible Causes:\n\n- The customer ID is valid but **no customer is associated with it**\n    \n\n---\n\n### ❌ 500 Internal Server Error\n\nAn unexpected error occurred while processing the request.\n\n#### Possible Causes:\n\n- Database access error.\n    \n- Unexpected system failure.\n    \n- Internal processing exception."
+          },
+          "response": []
         }
       ],
       "description": "This folder contains all the API requests related to the **Customers** microservice.\n\nIt is intended to support **manual testing and validation** of customer-related operations, allowing controlled interaction with the service endpoints and verification of their expected behavior.\n\nThe requests in this folder cover the main customer flows and can be used during development, debugging, and QA processes."
     },
     {
       "name": "bankcore-accounts",
-      "item": [],
+      "item": [
+        {
+          "name": "Register Account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"accountType\" : \"SAVINGS\",\r\n    \"currency\" : \"COP\",\r\n    \"alias\" : \"Mi cuenta de Deposito\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_accounts}}/api/accounts",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            },
+            "description": "# 🏦 Account Creation\n\n## 📌 Endpoint\n\n**POST**  \n`/api/accounts`\n\n---\n\n## 📖 Description\n\nCreates a new bank account associated with the authenticated customer.\n\nThe system automatically generates a unique **account number** and assigns the account to the authenticated user.  \nEach customer can have **a maximum of three accounts** in the system.\n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `CUSTOMER`\n    \n\nThe authenticated user will be used to determine the **customerId** associated with the account.\n\n---\n\n# 📥 Request\n\n## Headers\n\n| Header | Type | Required | Description |\n| --- | --- | --- | --- |\n| Authorization | Bearer Token | ✅ Yes | JWT access token |\n\nExample:\n\n```\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\n---\n\n## Body (JSON)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| accountType | Enum | ✅ Yes | Type of account to create |\n| currency | Enum | ✅ Yes | Currency of the account |\n| alias | String | ✅ Yes | Custom name for the account |\n\n### Allowed Values\n\n**accountType**\n\n- `SAVINGS`\n    \n- `CHECKING`\n    \n\n**currency**\n\n- `COP`\n    \n- `USD`\n    \n\n---\n\n### Example Request\n\n``` http\nPOST /api/accounts\n\n ```\n\n``` json\n{\n    \"accountType\": \"SAVINGS\",\n    \"currency\": \"COP\",\n    \"alias\": \"Mi cuenta de Deposito\"\n}\n\n ```\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 201 Created\n\nThe account was successfully created.\n\nResponse Body:\n\n``` json\n{\n    \"id\": \"f7002851-65ff-4b12-9acd-fe1408f13ddb\",\n    \"accountNumber\": \"ES8832107988618167785749\",\n    \"customerId\": \"f4c86734-4ad0-4073-bb1b-237d9b446822\",\n    \"accountType\": \"SAVINGS\",\n    \"currency\": \"COP\",\n    \"balance\": 0,\n    \"alias\": \"Mi cuenta de Deposito\",\n    \"status\": \"ACTIVE\",\n    \"createdAt\": \"2026-03-06T21:15:50.996462400Z\"\n}\n\n ```\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid data.\n\nPossible Causes:\n\n- `accountType` contains an invalid value\n    \n- `currency` contains an invalid value\n    \n- `alias` does not meet validation rules\n    \n- Missing required fields\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have permission to access this endpoint.\n\nPossible Causes:\n\n- The user does not have the required role (`CUSTOMER`)\n    \n- The customer exists but is **inactive** according to the **Customers service**\n    \n\n---\n\n## ⚠️ 409 Conflict\n\nThe customer does not exist in the **Customers service**.\n\nPossible Causes:\n\n- The authenticated user ID does not correspond to a registered customer\n    \n\n---\n\n## ⚠️ 422 Unprocessable Entity\n\nA business rule was violated.\n\nPossible Causes:\n\n- The customer has reached the **maximum limit of three accounts**\n    \n\n---\n\n## 🔌 502 Bad Gateway\n\nUnexpected response received from the **Customers service**.\n\nPossible Causes:\n\n- Invalid or malformed response\n    \n- Communication error between services\n    \n- Unexpected status code returned by the external service\n    \n\n---\n\n## 🚨 503 Service Unavailable\n\nThe **Customers service** is currently unavailable.\n\nPossible Causes:\n\n- Service is down\n    \n- Network communication failure\n    \n- Timeout while calling the external service"
+          },
+          "response": []
+        },
+        {
+          "name": "Get user accounts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_accounts}}/api/accounts",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            },
+            "description": "## 📋 View Customer Accounts\n\n---\n\n### Endpoint\n\n`GET api/accounts`\n\n---\n\n### Description\n\nReturns the list of accounts associated with the currently authenticated customer. The client identity is resolved automatically from the JWT token — no user ID is required in the request.\n\n---\n\n### Access\n\n| Property | Value |\n| --- | --- |\n| Authentication | ✅ Required (Bearer JWT) |\n| Required Role | `CUSTOMER` |\n| Account Status | Must be **active** |\n\n---\n\n### Request\n\n#### Headers\n\n| Header | Type | Required | Description |\n| --- | --- | --- | --- |\n| `Authorization` | `string` | ✅ Yes | Bearer token. Format: `Bearer` |\n\n#### Body\n\n> This endpoint does not require a request body. \n  \n\n#### HTTP Example\n\n``` http\nGET /accounts HTTP/1.1\nHost: api.example.com\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\n> 💡 The customer's UUID is extracted internally from the JWT (`auth.getName()`). The client does not need to provide an ID explicitly. \n  \n\n---\n\n### Responses\n\n---\n\n#### ✅ 200 — Accounts retrieved successfully\n\nThe authenticated customer's accounts were found and returned.\n\n**Example response:**\n\n``` json\n[\n    {\n        \"id\": \"27670a6d-e5d8-4584-b465-3413bbed92b5\",\n        \"accountNumber\": \"ES6237649763684125645131\",\n        \"accountType\": \"SAVINGS\",\n        \"currency\": \"COP\",\n        \"balance\": 0.00,\n        \"alias\": \"Mi cuenta de Deposito\",\n        \"status\": \"ACTIVE\"\n    },\n    {......}\n]\n\n ```\n\n---\n\n#### 🔐 401 — Customer is not authenticated\n\nThe request could not be authenticated.\n\n**Possible Causes:**\n\n- The `Authorization` header is missing from the request.\n    \n- The JWT token is expired.\n    \n- The JWT token has an invalid signature or is malformed.\n    \n\n---\n\n#### ⛔ 403 — Access denied\n\nThe token is valid but the customer is not authorized to access this resource.\n\n**Possible Causes:**\n\n- The authenticated user does not have the `CUSTOMER` role.\n    \n- The customer's account is inactive or suspended."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_accounts}}/api/accounts/{{accountId}}",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "{{accountId}}"
+              ]
+            },
+            "description": "## 📋 Get Account Details\n\n---\n\n### Endpoint\n\n`GET api/accounts/{accountId}`\n\n---\n\n### Description\n\nRetrieves the full details of a specific account belonging to the authenticated customer. The client identity is resolved automatically from the JWT token — no user ID is required in the request. The account must belong to the authenticated customer.\n\n---\n\n### Access\n\n| Property | Value |\n| --- | --- |\n| Authentication | ✅ Required (Bearer JWT) |\n| Required Role | `CUSTOMER` |\n| Account Status | Must be **active** |\n\n---\n\n### Request\n\n#### Headers\n\n| Header | Type | Required | Description |\n| --- | --- | --- | --- |\n| `Authorization` | `string` | ✅ Yes | Bearer token. Format: `Bearer` |\n\n#### Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| `accountId` | `UUID` | ✅ Yes | Unique identifier of the account to retrieve |\n\n#### Body\n\n> This endpoint does not require a request body. \n  \n\n#### HTTP Example\n\nhttp\n\n```\nGET /api/accounts/27670a6d-e5d8-4584-b465-3413bbed92b5 HTTP/1.1\nHost: api.example.com\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\n💡 The customer's UUID is extracted internally from the JWT (`auth.getName()`). The account is only returned if it belongs to the authenticated customer.\n\n---\n\n### Responses\n\n---\n\n#### ✅ 200 — Account details retrieved successfully\n\nThe specified account was found and belongs to the authenticated customer.\n\n**Example response:**\n\njson\n\n``` json\n{\n\"id\": \"451a6bcf-3d8d-4da8-8ce8-b7e68404a883\",\n\"accountNumber\": \"IBANEA03FEDC-8\",\n\"customerId\": \"23ca658b-dd9b-4731-aebd-12fb4e2dd389\",\n\"accountType\": \"SAVINGS\",\n\"currency\": \"EUR\",\n\"balance\": 0,\n\"alias\": \"Random Alias\",\n\"status\": \"ACTIVE\",\n\"createdAt\": \"2026-03-09T21:02:34.019088Z\",\n\"lastTransactionAt\": \"2026-03-09T21:02:34Z\"\n}\n\n ```\n\n---\n\n#### ❌ 400 — Invalid account ID format\n\nThe provided `accountId` is not a valid UUID.\n\n**Possible Causes:**\n\n- The `accountId` path parameter is not a well-formed UUID (e.g., `123abc` instead of `27670a6d-e5d8-4584-b465-3413bbed92b5`).\n    \n\n---\n\n#### 🔐 401 — Customer is not authenticated\n\nThe request could not be authenticated.\n\n**Possible Causes:**\n\n- The `Authorization` header is missing from the request.\n    \n- The JWT token is expired.\n    \n- The JWT token has an invalid signature or is malformed.\n    \n\n---\n\n#### ⛔ 403 — Access denied\n\nThe token is valid but the customer is not authorized to access this resource.\n\n**Possible Causes:**\n\n- The authenticated user does not have the `CUSTOMER` role.\n    \n- The customer's account is inactive or suspended.\n    \n\n---\n\n#### 🔍 404 — Account not found\n\nNo account matching the given `accountId` was found for the authenticated customer.\n\n**Possible Causes:**\n\n- The `accountId` does not exist in the system.\n    \n- The account exists but belongs to a different customer."
+          },
+          "response": []
+        },
+        {
+          "name": "Deposit into the account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 1000.00,\r\n    \"description\": \"\",\r\n    \"pin\": \"1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_accounts}}/api/accounts/{{accountId}}/deposit",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "{{accountId}}",
+                "deposit"
+              ]
+            },
+            "description": "# 💰 Deposit Money\n\n## 📌 Endpoint\n\n`POST /api/accounts/{{accountId}}/deposit`\n\n---\n\n## 📖 Description\n\nAllows an authenticated customer to **deposit money into a specific account**.\n\nThis operation requires **PIN validation** to authorize the transaction and ensure security.  \nThe system verifies the account ownership, validates the PIN via **ms-customers**, and updates the account balance accordingly.\n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `CUSTOMER`\n    \n\n---\n\n# 📥 Request\n\n## Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| accountId | UUID | ✅ Yes | Unique identifier of the account |\n\n### Example\n\n`POST /api/accounts/f7002851-65ff-4b12-9acd-fe1408f13ddb/deposit`\n\n---\n\n## Request Body (JSON)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| amount | BigDecimal | ✅ Yes | Amount to deposit |\n| description | String | ❌ No | Optional description of the transaction |\n| pin | String | ✅ Yes | Customer PIN for authorization |\n\n---\n\n### Example Request\n\n`POST /api/accounts/{accountId}/deposit`\n\n``` json\n{\n    \"amount\": 1000.00,\n    \"description\": \"Depósito inicial\",\n    \"pin\": \"1234\"\n}\n\n ```\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 200 OK\n\nThe deposit was successfully processed.\n\n### Response Body\n\n``` json\n{\n    \"referenceNumber\": \"TXN-20260316-0001\",\n    \"type\": \"DEPOSIT\",\n    \"amount\": 1000.00,\n    \"balanceBefore\": 0.00,\n    \"balanceAfter\": 1000.00,\n    \"description\": \"Depósito inicial\",\n    \"timestamp\": \"2026-03-16T23:10:45.123Z\"\n}\n\n ```\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid data.\n\nPossible Causes:\n\n- `accountId` is not a valid UUID\n    \n- Invalid request body (missing or malformed fields)\n    \n- Invalid `amount` (null, negative, or zero)\n    \n- Invalid `pin` format or incorrect PIN\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have permission to access this resource.\n\nPossible Causes:\n\n- User does not have the required role (`CUSTOMER`)\n    \n- The account does not belong to the authenticated user\n    \n\n---\n\n## ⚠️ 404 Not Found\n\nThe requested resource was not found.\n\nPossible Causes:\n\n- Account does not exist\n    \n- Associated customer does not exist\n    \n\n---\n\n## ⚠️ 409 Conflict\n\nThe operation cannot be completed due to the current state of the resource.\n\nPossible Causes:\n\n- Account status does not allow deposits (e.g., CLOSED or BLOCKED)\n    \n- Business rule violation\n    \n\n---\n\n## 🔒 423 Locked\n\nThe account is temporarily or permanently locked due to failed PIN attempts.\n\nPossible Causes:\n\n- Multiple failed PIN attempts (temporary lock for 15 minutes)\n    \n- Account permanently blocked after exceeding allowed attempts\n    \n\n---\n\n## 🔌 502 Bad Gateway\n\nError while communicating with **ms-customers**.\n\nPossible Causes:\n\n- Unexpected response from customer service\n    \n- Internal validation error related to PIN or customer security\n    \n\n---\n\n## 🚨 503 Service Unavailable\n\nThe **ms-customers** service is currently unavailable.\n\nPossible Causes:\n\n- Service downtime\n    \n- Network issues\n    \n- Timeout during PIN validation request"
+          },
+          "response": []
+        }
+      ],
       "description": "This folder contains all the API requests related to the **Accounts** microservice.\n\nIt is intended to support **manual testing and validation** of account-related operations, allowing controlled interaction with the service endpoints and verification of their expected behavior.\n\nThe requests in this folder cover the main account lifecycle and transactional flows and are used during development, debugging, and QA processes."
     }
   ],
@@ -201,15 +388,33 @@
   "variable": [
     {
       "key": "base_url_customers",
-      "value": "http://localhost:8081"
+      "value": "",
+      "description": "Main URL of the customers service"
     },
     {
       "key": "jwt",
-      "value": ""
+      "value": "",
+      "description": "Identification token for CUSTOMER or ADMIN user"
     },
     {
-      "key": "jwt_sercice",
-      "value": ""
+      "key": "jwt_service",
+      "value": "",
+      "description": "Identification token for SERVICE role"
+    },
+    {
+      "key": "id_customer",
+      "value": "",
+      "description": "user identifier in the system"
+    },
+    {
+      "key": "base_url_accounts",
+      "value": "",
+      "description": "Main URL of the accounts service"
+    },
+    {
+      "key": "accountId",
+      "value": "",
+      "description": "Unique identifier of an account"
     }
   ]
 }

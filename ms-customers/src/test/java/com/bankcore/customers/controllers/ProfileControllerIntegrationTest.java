@@ -1,5 +1,25 @@
 package com.bankcore.customers.controllers;
 
+import com.bankcore.customers.dto.requests.PinValidateRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.bankcore.customers.AbstractIntegrationTest;
 import com.bankcore.customers.DataProvider;
 import com.bankcore.customers.model.UserEntity;
@@ -7,21 +27,8 @@ import com.bankcore.customers.repository.UserRepository;
 import com.bankcore.customers.services.UserManagementImpl;
 import com.bankcore.customers.utils.enums.CustomerStatus;
 import com.bankcore.customers.utils.enums.UserRole;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.util.List;
 
 
 @Transactional
@@ -32,6 +39,9 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -39,9 +49,15 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
 
     private UserEntity savedUser;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
     public void init() {
         UserEntity user = DataProvider.createMockUser();
+
+        user.setAtmPin(passwordEncoder.encode(user.getAtmPin()));
+
         savedUser = userRepository.save(user);
     }
 
@@ -77,7 +93,6 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
-        ;
     }
 
     @Test
@@ -91,7 +106,6 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
-        ;
     }
 
     @Test
@@ -103,7 +117,6 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
-        ;
     }
 
     @Test
@@ -183,7 +196,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(true));
 
     }
@@ -196,7 +209,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(DataProvider.UUID))
-                .andExpect(jsonPath("$.exist").value(false))
+                .andExpect(jsonPath("$.exists").value(false))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
@@ -224,7 +237,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
@@ -252,7 +265,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
@@ -280,7 +293,7 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.customerId").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.exist").value(true))
+                .andExpect(jsonPath("$.exists").value(true))
                 .andExpect(jsonPath("$.active").value(false));
 
     }
@@ -321,5 +334,132 @@ public class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
 
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturnTrueWhenProvidedPinMatchesStoredPin() throws Exception{
+
+        PinValidateRequest request = DataProvider.createMockPinValidate(DataProvider.createMockUser().getAtmPin());
+
+        mockMvc.perform(post("/api/customers/{id}/validate-pin", savedUser.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.valid").value(true));
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturnFalseWhenProvidedPinDoesNotMatchStoredPin() throws Exception{
+
+        PinValidateRequest request = DataProvider.createMockPinValidate("4590");
+
+        mockMvc.perform(post("/api/customers/{id}/validate-pin", savedUser.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.valid").value(false));
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn404WhenUserDoesNotExist() throws Exception{
+
+        PinValidateRequest request = DataProvider.createMockPinValidate("4576");
+
+        mockMvc.perform(post("/api/customers/{id}/validate-pin", DataProvider.UUID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    void shouldReturn401WhenRequestIsNotAuthenticated() throws Exception{
+
+        PinValidateRequest request = DataProvider.createMockPinValidate("3176");
+
+        mockMvc.perform(post("/api/customers/{id}/validate-pin", DataProvider.UUID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.CUSTOMER_ROLE)
+    void shouldReturn403WhenUserDoesNotHaveRequiredRole() throws Exception{
+
+        PinValidateRequest request = DataProvider.createMockPinValidate("5621");
+
+        mockMvc.perform(post("/api/customers/{id}/validate-pin", DataProvider.UUID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn400WhenCustomerIdIsInvalidUuid() throws Exception{
+
+        PinValidateRequest request = DataProvider.createMockPinValidate("3412");
+
+        mockMvc.perform(post("/api/customers/{id}/validate-pin", DataProvider.INVALID_UUID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = DataProvider.SERVICE_ROLE)
+    void shouldReturn400WhenPinRequestValidationFails() throws Exception{
+
+        PinValidateRequest pinMinimunSize = DataProvider.createMockPinValidate("12");
+        PinValidateRequest pinMaximumSize = DataProvider.createMockPinValidate("12345");
+        PinValidateRequest pinLetters = DataProvider.createMockPinValidate("12mp");
+        PinValidateRequest pinSameDigits = DataProvider.createMockPinValidate("3333");
+        PinValidateRequest pinBlankSpace = DataProvider.createMockPinValidate("");
+        PinValidateRequest pinNull = PinValidateRequest.builder()
+                .pin(null)
+                .build();
+
+        List<PinValidateRequest> invalidRequests = List.of(
+                pinMinimunSize,
+                pinMaximumSize,
+                pinLetters,
+                pinSameDigits,
+                pinBlankSpace,
+                pinNull
+        );
+
+        for (PinValidateRequest request : invalidRequests){
+
+            mockMvc.perform(post("/api/customers/{id}/validate-pin", DataProvider.INVALID_UUID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                    .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                    .andExpect(jsonPath("$.description").exists());
+
+        }
     }
 }
