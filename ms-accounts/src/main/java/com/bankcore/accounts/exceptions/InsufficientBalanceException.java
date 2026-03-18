@@ -8,7 +8,7 @@ package com.bankcore.accounts.exceptions;
  * logic layers to signal that the requested operation cannot be
  * performed due to insufficient funds.
  * </p>
- * 
+ *
  * @author BankcoreTeam - Sebastian Orjuela
  * @version 1.0
  */
