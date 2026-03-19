@@ -1,10 +1,12 @@
 package com.bankcore.accounts.integrations.client;
 
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
+import com.bankcore.accounts.integrations.dto.responses.CustomerDetailsResponse;
 import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomExternalServiceException;
 import com.bankcore.accounts.exceptions.CustomInternalServiceException;
 import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
+import com.bankcore.accounts.utils.enums.CustomerStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -118,6 +120,37 @@ public class CustomerClientImplTest {
 
         assertNotNull(result);
         assertTrue(result.valid());
+    }
+
+    @Test
+    void shouldReturnCustomerDetailsResponse_when200() {
+
+        CustomerDetailsResponse response = new CustomerDetailsResponse(
+                customerId,
+                "12345781",
+                "John Doe",
+                "johndoe@email.com",
+                CustomerStatus.ACTIVE
+
+
+        );
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri("/api/customers/{id}", customerId))
+                .thenReturn(requestHeadersSpec);
+
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+
+        when(responseSpec.onStatus(any(), any()))
+                .thenReturn(responseSpec);
+
+        when(responseSpec.bodyToMono(CustomerDetailsResponse.class))
+                .thenReturn(Mono.just(response));
+
+        CustomerDetailsResponse result = customerClient.getCustomerDetailsById(customerId);
+
+        assertNotNull(result);
+        assertEquals(response, result);
     }
 
     @Test
