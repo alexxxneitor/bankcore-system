@@ -6,10 +6,11 @@ import com.bankcore.accounts.services.complements.IbanGeneratorService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.AccountType;
 import com.bankcore.accounts.utils.enums.CurrencyCode;
-import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+
+import org.testcontainers.shaded.org.bouncycastle.jcajce.provider.asymmetric.dsa.DSASigner.stdDSA;
 
 public class AccountDataProvider {
 
@@ -65,5 +66,9 @@ public class AccountDataProvider {
 
         account.getSecurity().setAccount(account);
         return account;
+    }
+
+    public String generateIban(){
+        return generatorService.generateSpanishIban();
     }
 }

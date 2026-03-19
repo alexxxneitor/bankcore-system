@@ -3,9 +3,6 @@ package com.bankcore.accounts.integrations.dto.request;
 import lombok.Builder;
 import lombok.Data;
 
-import lombok.Builder;
-import lombok.Data;
-
 /**
  * Request object used to validate a PIN.
  * <p>

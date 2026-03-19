@@ -7,8 +7,6 @@ import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 
 import java.util.UUID;
 
-import java.util.UUID;
-
 /**
  * Client interface for interacting with the Customer service.
  * <p>

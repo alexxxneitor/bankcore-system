@@ -7,8 +7,6 @@ import com.bankcore.accounts.dto.responses.TransferResponse;
 
 import java.util.UUID;
 
-import java.util.UUID;
-
 /**
  * Service interface for handling account transactions.
  * <p>
