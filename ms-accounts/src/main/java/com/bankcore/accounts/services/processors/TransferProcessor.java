@@ -70,8 +70,9 @@ public class TransferProcessor {
                 .amount(request.getAmount())
                 .fee(fee)
                 .description(request.getDescription())
-                .status(TransferStatus.COMPLETED)
+                .status(destinationAccount != null ? TransferStatus.COMPLETED : TransferStatus.PENDING)
                 .build();
+
         transferRepository.save(transfer);
 
         // Process source transaction

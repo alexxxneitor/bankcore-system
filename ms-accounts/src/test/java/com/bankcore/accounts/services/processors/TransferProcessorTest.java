@@ -12,6 +12,7 @@ import com.bankcore.accounts.repositories.TransferRepository;
 import com.bankcore.accounts.services.complements.CustomerValidationService;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
+import com.bankcore.accounts.utils.enums.TransferStatus;
 import com.bankcore.accounts.utils.mappers.TransactionMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -110,12 +111,13 @@ public class TransferProcessorTest {
                 .thenReturn(false);
 
         when(transactionMapper.toTransferResponse(any(), any(), any(), any()))
-                .thenReturn(TransferResponse.builder().build());
+                .thenReturn(TransferResponse.builder().status(TransferStatus.PENDING).build());
 
         TransferResponse result = transferProcessor.processTransfer(source, request);
 
         assertNotNull(result);
         assertEquals(new BigDecimal("400"), source.getBalance());
+        assertEquals(TransferStatus.PENDING, result.getStatus());
 
         verify(transactionRepository, times(1)).save(any()); // solo OUT
         verify(accountRepository, times(1)).save(source);
