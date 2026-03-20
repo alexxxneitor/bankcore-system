@@ -4,7 +4,6 @@ import com.bankcore.accounts.dto.responses.TransactionResponse;
 import com.bankcore.accounts.models.TransactionEntity;
 import org.mapstruct.Mapper;
 
-import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
@@ -31,5 +30,6 @@ public interface TransactionMapper {
      */
     @Mapping(source = "transactionEntity.createdAt", target = "timestamp")
     @Mapping(source = "balanceBefore", target = "balanceBefore")
+    @Mapping(source = "transactionEntity.status", target = "status")
     TransactionResponse toTransactionResponse(TransactionEntity transactionEntity, BigDecimal balanceBefore);
 }
