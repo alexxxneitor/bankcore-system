@@ -145,6 +145,12 @@ public class GlobalExceptionHandler {
         return conflict(ex.getMessage());
     }
 
+    // Handles exception of transfer to destination account - returns HTTP 409 Conflict
+    @ExceptionHandler(InvalidTransferDestinationException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTransferDestinationException(InvalidTransferDestinationException ex){
+        return conflict(ex.getMessage());
+    }
+
     /**
      * Helper method for building a 400 BAD_REQUEST error response.
      *

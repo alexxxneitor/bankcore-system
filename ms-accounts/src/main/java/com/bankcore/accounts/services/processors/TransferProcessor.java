@@ -5,6 +5,7 @@ import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.exceptions.AccountInactiveException;
 import com.bankcore.accounts.exceptions.AccountNotFoundException;
 import com.bankcore.accounts.exceptions.InsufficientBalanceException;
+import com.bankcore.accounts.exceptions.InvalidTransferDestinationException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.models.TransferEntity;
@@ -49,6 +50,10 @@ public class TransferProcessor {
      */
     @Transactional
     public TransferResponse processTransfer(AccountEntity sourceAccount, TransferRequest request) {
+
+        if (request.getDestinationAccountNumber().equals(sourceAccount.getAccountNumber())){
+            throw new InvalidTransferDestinationException("Transfer to the same account is not allowed");
+        }
 
         // Resolve destination account
         AccountEntity destinationAccount = resolveDestinationAccount(request.getDestinationAccountNumber());
