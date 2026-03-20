@@ -10,12 +10,12 @@ import com.bankcore.accounts.utils.enums.CurrencyCode;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import org.testcontainers.shaded.org.bouncycastle.jcajce.provider.asymmetric.dsa.DSASigner.stdDSA;
-
 public class AccountDataProvider {
 
     private static IbanGeneratorService generatorService = new IbanGeneratorService();
+
     public static final String CUSTOMER_TEST_UUID = "e7c6be34-c77b-4afa-aebb-327354a9fe0b";
+    public static final String INVALID_IBAN = "ES2553907030769590566959";
 
     public static AccountEntity createMockAccount() {
         AccountEntity account = AccountEntity.builder()
@@ -68,7 +68,7 @@ public class AccountDataProvider {
         return account;
     }
 
-    public String generateIban(){
+    public static String generateIban(){
         return generatorService.generateSpanishIban();
     }
 }
