@@ -3,6 +3,7 @@ package com.bankcore.accounts.controllers;
 import com.bankcore.accounts.AbstractIntegrationTest;
 import com.bankcore.accounts.AccountDataProvider;
 import com.bankcore.accounts.TransferAccountProvider;
+import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
@@ -502,5 +503,46 @@ public class TransferControllerIntegrationTest extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
                     .andExpect(jsonPath("$.description").exists());
         }
+    }
+
+    @Test
+    public void shouldReturn403WhenUserDoesNotHaveRequiredRole() throws Exception{
+        UUID customerId = sourceAccount.getCustomerId();
+
+        TransferRequest request = TransferRequest.builder()
+                .sourceAccountId(sourceAccount.getId())
+                .destinationAccountNumber(AccountDataProvider.INVALID_IBAN)
+                .amount(BigDecimal.valueOf(0.99))
+                .description("test-transfer")
+                .pin("1234")
+                .build();
+
+        mockMvc.perform(post("/api/transfers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles("ADMIN")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn401WhenRequestIsNotAuthenticated() throws Exception{
+        TransferRequest request = TransferRequest.builder()
+                .sourceAccountId(sourceAccount.getId())
+                .destinationAccountNumber(AccountDataProvider.INVALID_IBAN)
+                .amount(BigDecimal.valueOf(0.99))
+                .description("test-transfer")
+                .pin("1234")
+                .build();
+
+        mockMvc.perform(post("/api/transfers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
     }
 }
