@@ -2,8 +2,6 @@
 
 Proyecto backend desarrollado con **arquitectura de microservicios**, enfocado en la gestión de clientes y cuentas bancarias, como parte de un proyecto colaborativo por sprints.
 
-> ⚠️ El proyecto se encuentra actualmente en desarrollo (Sprint 1).
-
 ---
 
 ## 🧩 Arquitectura General
@@ -149,6 +147,30 @@ Tabla: `transactions`
 
 ---
 
+Tabla: `transfers`
+
+🗄️ Entidad: TransferEntity
+
+| Campo                    | Tipo       | Requerido | Restricciones                        | Descripción                                        |
+|--------------------------|------------|-----------|--------------------------------------|----------------------------------------------------|
+| id                       | UUID       | Sí        | Clave primaria, autogenerada (UUIDv7)| Identificador único de la transferencia            |
+| account                  | UUID       | Sí        | FK a `accounts.id`                   | Cuenta origen asociada a la transferencia          |
+| destinationAccountNumber | String     | Sí        | No actualizable                      | Número de cuenta destino de la transferencia       |
+| amount                   | BigDecimal | Sí        | Precisión 19, escala 2               | Monto de la transferencia                          |
+| fee                      | BigDecimal | Sí        | Precisión 19, escala 2               | Comisión aplicada a la transferencia               |
+| description              | String     | No        | —                                    | Descripción de la transferencia                    |
+| status                   | Enum       | Sí        | PENDING, COMPLETED, FAILED           | Estado de la transferencia                         |
+| createdAt                | Instant    | Sí        | No actualizable, TIMESTAMP WITH TIME ZONE | Fecha y hora de creación de la transferencia  |
+
+**Notas:**
+
+- El campo `createdAt` se asigna automáticamente al persistir la entidad (`@PrePersist`).
+- Relación: cada transferencia pertenece a una cuenta origen (`ManyToOne`, carga lazy).
+- Índices definidos sobre `source_account_id`, `destinationAccountNumber` y la combinación `source_account_id + createdAt DESC` para optimizar consultas.
+- La entidad es inmutable (`@Immutable`): ningún campo es actualizable tras su creación.
+
+---
+
 Tabla: `account_pin_security`
 
 🗄️ Entidad: AccountPinSecurity
@@ -177,6 +199,7 @@ Tabla: `account_pin_security`
 | /api/accounts                     | GET    | Obtener Cuentas Bancarias del cliente                                                                             | Restringido solo Role CUSTOMER     |
 | /api/accounts/{accountId}         | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado | Restringido solo Role CUSTOMER     |
 | /api/accounts/{accountId}/deposit | POST   | Registra una nueva transaccion y un nuevo balance a la cuenta destinadad                                          | Restringido solo Role CUSTOMER     |
+| /api/transfers                    | POST   | Regsistra una Transferencia entre cuentas y sus respectivos movimientos                                           | Restringido solo Role CUSTOMER     |
 
 ---
 

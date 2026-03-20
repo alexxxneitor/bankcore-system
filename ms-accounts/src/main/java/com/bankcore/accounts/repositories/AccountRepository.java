@@ -66,4 +66,18 @@ public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
      *         or {@link Optional#empty()} if no account is found for the given combination
      */
     Optional<AccountEntity> findByIdAndCustomerId(UUID id, UUID customerId);
+
+    /**
+     * Finds an account entity by its IBAN (International Bank Account Number).
+     * <p>
+     * This method queries the persistence layer for an account that matches
+     * the provided IBAN. If no account is found, an empty {@link Optional}
+     * is returned.
+     * </p>
+     *
+     * @param iban the IBAN string used to identify the account
+     * @return an {@link Optional} containing the matching {@link AccountEntity},
+     *         or empty if no account exists with the given IBAN
+     */
+    Optional<AccountEntity> findByAccountNumber(String iban);
 }

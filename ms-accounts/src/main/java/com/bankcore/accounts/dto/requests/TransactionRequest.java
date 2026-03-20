@@ -1,6 +1,6 @@
 package com.bankcore.accounts.dto.requests;
 
-import com.bankcore.accounts.utils.validators.ValidAtmPin;
+import com.bankcore.accounts.utils.validators.pin.ValidAtmPin;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
