@@ -36,7 +36,7 @@ import java.util.UUID;
                 )
         },
         indexes = {
-                @Index(name = "idx_account_customer", columnList = "customerId")
+                @Index(name = "idx_account_customer", columnList = "customer_id")
         }
 )
 public class AccountEntity {
