@@ -4,6 +4,7 @@ import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.exceptions.AccountInactiveException;
 import com.bankcore.accounts.exceptions.InsufficientBalanceException;
+import com.bankcore.accounts.exceptions.InvalidTransferDestinationException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
@@ -121,6 +122,24 @@ public class TransferProcessorTest {
 
         verify(transactionRepository, times(1)).save(any()); // solo OUT
         verify(accountRepository, times(1)).save(source);
+    }
+
+    @Test
+    void shouldThrowInvalidTransferDestinationException_whenSourceAndDestinationAccountAreTheSame() {
+        AccountEntity source = new AccountEntity();
+        source.setBalance(new BigDecimal("500"));
+        source.setAccountNumber("SRC123");
+
+        TransferRequest request = TransferRequest.builder()
+                .sourceAccountId(UUID.randomUUID())
+                .destinationAccountNumber("SRC123")
+                .pin("1234")
+                .amount(new BigDecimal("100"))
+                .description("same account transfer")
+                .build();
+
+        assertThrows(InvalidTransferDestinationException.class, () ->
+                transferProcessor.processTransfer(source, request));
     }
 
     @Test
