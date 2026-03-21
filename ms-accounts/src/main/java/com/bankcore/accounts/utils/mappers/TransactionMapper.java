@@ -1,8 +1,7 @@
 package com.bankcore.accounts.utils.mappers;
 
-import com.bankcore.accounts.dto.responses.TransactionHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
-import com.bankcore.accounts.dto.responses.TransferHistoryResponse;
+import com.bankcore.accounts.dto.responses.TransactionHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.models.TransferEntity;
@@ -85,7 +84,7 @@ public interface TransactionMapper {
     );
 
     /**
-     * Maps a {@link TransactionEntity} into a {@link TransferHistoryResponse}.
+     * Maps a {@link TransactionEntity} into a {@link TransactionHistoryResponse}.
      *
      * <p>This method extracts relevant fields from the given transaction entity
      * and enriches the response with counterparty details.</p>
@@ -98,28 +97,9 @@ public interface TransactionMapper {
      * </ul>
      *
      * @param transaction the transaction entity to map
-     * @return a {@link TransferHistoryResponse} populated with transaction and counterparty details
+     * @return a {@link TransactionHistoryResponse} populated with transaction and counterparty details
      */
     @Mapping(source = "transferEntity.balanceAfter", target = "balance")
     @Mapping(source = "transferEntity.createdAt", target = "timestamp")
-    TransferHistoryResponse toTransfer(TransactionEntity transaction);
-
-    /**
-     * Maps a {@link TransactionEntity} into a {@link TransactionHistoryResponse}.
-     *
-     * <p>This method extracts relevant fields from the given transaction entity
-     * and produces a simplified transaction history response without counterparty details.</p>
-     *
-     * <p>Responsibilities:</p>
-     * <ul>
-     *   <li>Map {@code balanceAfter} from {@link TransactionEntity} to {@code balance}.</li>
-     *   <li>Map {@code createdAt} from {@link TransactionEntity} to {@code timestamp}.</li>
-     * </ul>
-     *
-     * @param transaction the transaction entity to map
-     * @return a {@link TransactionHistoryResponse} populated with transaction details
-     */
-    @Mapping(source = "transferEntity.balanceAfter", target = "balance")
-    @Mapping(source = "transferEntity.createdAt", target = "timestamp")
-    TransactionHistoryResponse toBasic(TransactionEntity transaction);
+    TransactionHistoryResponse toTransactionHistory(TransactionEntity transaction);
 }

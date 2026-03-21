@@ -7,38 +7,55 @@ import java.util.List;
 
 /**
  * {@code TransactionsHistoryResponse} is an immutable Data Transfer Object (DTO)
- * that represents a paginated list of transaction history items.
+ * that represents a paginated list of transaction history responses.
  *
  * <p>This class is typically used as an API response model to provide clients
  * with structured transaction history data, including pagination metadata
- * such as page number and page size.</p>
+ * such as page number, page size, total elements, and total pages.</p>
  *
  * <p>Responsibilities:</p>
  * <ul>
- *   <li>Expose a list of {@link TransactionHistoryItem} objects.</li>
+ *   <li>Expose a list of {@link TransactionHistoryResponse} objects.</li>
  *   <li>Provide pagination details ({@code page}, {@code size}).</li>
+ *   <li>Expose metadata about the total number of elements and pages.</li>
  *   <li>Ensure immutability through Lombok's {@link lombok.Value} annotation.</li>
  *   <li>Support builder pattern via {@link lombok.Builder} for easy instantiation.</li>
  * </ul>
  *
  * <p>This object is returned by APIs to provide clients with a paginated
- * transaction history, supporting heterogeneous transaction types
- * via {@link TransactionHistoryItem}.</p>
+ * transaction history, ensuring consistency and clarity in response models.</p>
  *
  * @author BankcoreTeam
  * @author Sebastian Orjuela
  * @version 1.0
- * @see TransactionHistoryItem
- * @see TransferHistoryResponse
  * @see TransactionHistoryResponse
  */
 @Value
 @Builder
 public class TransactionsHistoryResponse {
 
-    List<TransactionHistoryItem> content;
+    /**
+     * The list of transaction history responses for the current page.
+     */
+    List<TransactionHistoryResponse> content;
+
+    /**
+     * The current page number in the paginated response.
+     */
     int page;
+
+    /**
+     * The size of the page (number of items per page).
+     */
     int size;
-    int totalElements;
+
+    /**
+     * The total number of elements across all pages.
+     */
+    Long totalElements;
+
+    /**
+     * The total number of pages available.
+     */
     int totalPages;
 }
