@@ -36,18 +36,9 @@ import java.util.List;
 @Builder
 public class TransactionsHistoryResponse {
 
-    /**
-     * The list of transaction history items for the current page.
-     */
     List<TransactionHistoryItem> content;
-
-    /**
-     * The current page number in the paginated response.
-     */
     int page;
-
-    /**
-     * The size of the page (number of items per page).
-     */
     int size;
+    int totalElements;
+    int totalPages;
 }
