@@ -42,7 +42,7 @@ public class TransferHistoryResponse {
     BigDecimal amount;
     BigDecimal balance;
     String description;
-    String counterPartyAccount;
-    String counterPartyName;
+    String counterpartyAccountNumber;
+    String counterpartyName;
     Instant timestamp;
 }
