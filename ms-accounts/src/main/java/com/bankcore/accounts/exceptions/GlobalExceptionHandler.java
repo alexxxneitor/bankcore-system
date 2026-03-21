@@ -2,6 +2,8 @@ package com.bankcore.accounts.exceptions;
 
 import com.bankcore.accounts.dto.responses.ErrorResponse;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -149,6 +151,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTransferDestinationException.class)
     public ResponseEntity<ErrorResponse> handleInvalidTransferDestinationException(InvalidTransferDestinationException ex){
         return conflict(ex.getMessage());
+    }
+
+    // Handles validation exception of date parsing from the query - returns HTTP 400 Bad Request
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+
+        return badRequest(message);
     }
 
     /**
