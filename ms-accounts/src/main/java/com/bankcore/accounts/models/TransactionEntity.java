@@ -60,7 +60,9 @@ import java.util.UUID;
         indexes = {
                 @Index(name = "idx_transaction_account", columnList = "account_id"),
                 @Index(name = "idx_transaction_reference", columnList = "referenceNumber"),
-                @Index(name = "idx_transaction_account_created", columnList = "account_id, createdAt DESC")
+                @Index(name = "idx_transaction_account_created", columnList = "account_id, createdAt DESC"),
+                @Index(name = "idx_account_timestamp", columnList = "account_id, timestamp"),
+                @Index(name = "idx_account_type_timestamp", columnList = "account_id, type, timestamp")
         }
 )
 public class TransactionEntity {
