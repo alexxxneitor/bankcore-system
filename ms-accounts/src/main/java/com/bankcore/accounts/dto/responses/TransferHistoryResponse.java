@@ -37,7 +37,7 @@ import java.util.UUID;
 @Builder
 public class TransferHistoryResponse {
 
-    UUID id;
+    String referenceNumber;
     TransactionType type;
     BigDecimal amount;
     BigDecimal balance;
