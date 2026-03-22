@@ -237,7 +237,7 @@ public class TransactionController {
             @Parameter(description = "Unique identifier of the account to retrieve", required = true)
             @PathVariable UUID accountId,
             @ParameterObject
-            @Valid TransactionQueryParams params
+            @ModelAttribute @Valid TransactionQueryParams params
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(transactionService.getTransactionsHistory(accountId, params));
     }
