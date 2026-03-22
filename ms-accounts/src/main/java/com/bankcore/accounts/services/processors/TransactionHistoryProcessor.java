@@ -87,7 +87,7 @@ public class TransactionHistoryProcessor {
 
         Page<TransactionEntity> pageResult = repository.findAll(
                 TransactionSpecification.withFilters(accountId, type, from, to),
-                TransactionSpecification.toPageable(params.getPage(), params.getSize())
+                TransactionSpecification.toPageable(params.getPage() - 1, params.getSize())
         );
 
         List<TransactionHistoryResponse> content = pageResult.stream()

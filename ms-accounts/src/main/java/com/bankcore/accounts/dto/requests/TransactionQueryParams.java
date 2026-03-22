@@ -55,7 +55,7 @@ public class TransactionQueryParams {
     /**
      * Default values
      */
-    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_PAGE = 1;
     private static final int DEFAULT_SIZE = 20;
 
     /**
@@ -63,12 +63,12 @@ public class TransactionQueryParams {
      * Must be greater than or equal to 0.
      */
     @Schema(
-            description = "Page number (starting from 0)",
-            example = "0",
-            minimum = "0",
-            defaultValue = "0"
+            description = "Page number (starting from 1)",
+            example = "1",
+            minimum = "1",
+            defaultValue = "1"
     )
-    @Min(value = 0, message = "Page must be greater than or equal to 0")
+    @Min(value = 1, message = "Page must be greater than or equal to 1")
     private Integer page = DEFAULT_PAGE;
 
     /**
