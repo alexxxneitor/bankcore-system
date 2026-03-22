@@ -164,12 +164,6 @@ public class GlobalExceptionHandler {
         return badRequest(message);
     }
 
-    //successful response exception handler without content -  returns HTTP 204 No-Content
-    @ExceptionHandler(NoTransactionHistoryException.class)
-    public ResponseEntity<ErrorResponse> handleNoTransactionHistoryException(NoTransactionHistoryException ex){
-        return buildErrorResponse(HttpStatus.NO_CONTENT, ex.getMessage());
-    }
-
     /**
      * Helper method for building a 400 BAD_REQUEST error response.
      *

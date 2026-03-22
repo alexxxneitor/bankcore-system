@@ -4,7 +4,6 @@ import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.responses.TransactionHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.exceptions.AccountNotFoundException;
-import com.bankcore.accounts.exceptions.NoTransactionHistoryException;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
@@ -68,7 +67,6 @@ public class TransactionHistoryProcessor {
      * @param params the query parameters including pagination, type, and date filters
      * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
      * @throws AccountNotFoundException if the account does not exist
-     * @throws NoTransactionHistoryException if no transaction history is found for the account
      */
     @Transactional(readOnly = true)
     public TransactionsHistoryResponse getTransactions(UUID accountId, TransactionQueryParams params) {
@@ -94,10 +92,6 @@ public class TransactionHistoryProcessor {
                 to,
                 pageable
         );
-
-        if (pageResult.isEmpty()) {
-            throw new NoTransactionHistoryException("There is no transaction history associated with this account");
-        }
 
         List<TransactionHistoryResponse> content = pageResult.stream()
                 .map(transactionMapper::toTransactionHistory)
