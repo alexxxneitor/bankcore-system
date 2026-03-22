@@ -6,8 +6,10 @@ import com.bankcore.accounts.utils.validators.query.ValidTransactionQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * {@code TransactionQueryParams} is a Data Transfer Object (DTO)
@@ -45,6 +47,8 @@ import lombok.Data;
 @Schema(description = "Query parameters for filtering and pagination of transactions")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @ValidTransactionQuery
 public class TransactionQueryParams {
 
@@ -58,9 +62,8 @@ public class TransactionQueryParams {
             minimum = "0",
             defaultValue = "0"
     )
-    @Builder.Default
     @Min(value = 0, message = "Page must be greater than or equal to 0")
-    private int page = 0;
+    private Integer page = 0;
 
     /**
      * The page size for pagination.
@@ -73,10 +76,9 @@ public class TransactionQueryParams {
             maximum = "50",
             defaultValue = "20"
     )
-    @Builder.Default
     @Min(value = 1, message = "Size must be greater than or equal to 1")
     @Max(value = 50, message = "Size must be less than or equal to 50")
-    private int size = 20;
+    private Integer size = 20;
 
     /**
      * The start date of the transaction query.
