@@ -53,6 +53,12 @@ import lombok.NoArgsConstructor;
 public class TransactionQueryParams {
 
     /**
+     * Default values
+     */
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 20;
+
+    /**
      * The page number for pagination.
      * Must be greater than or equal to 0.
      */
@@ -63,7 +69,7 @@ public class TransactionQueryParams {
             defaultValue = "0"
     )
     @Min(value = 0, message = "Page must be greater than or equal to 0")
-    private Integer page = 0;
+    private Integer page = DEFAULT_PAGE;
 
     /**
      * The page size for pagination.
@@ -78,7 +84,7 @@ public class TransactionQueryParams {
     )
     @Min(value = 1, message = "Size must be greater than or equal to 1")
     @Max(value = 50, message = "Size must be less than or equal to 50")
-    private Integer size = 20;
+    private Integer size = DEFAULT_SIZE;
 
     /**
      * The start date of the transaction query.
@@ -112,4 +118,30 @@ public class TransactionQueryParams {
             allowableValues = {"DEPOSIT", "WITHDRAWAL", "TRANSFER_IN", "TRANSFER_OUT", "FEE"}
     )
     private String type;
+
+    /**
+     * Returns the requested page number or a default value.
+     *
+     * <p>If the query parameter {@code page} is passed as an empty string (""),
+     * Spring's DataBinder will set it to {@code null}. In that case, this method
+     * ensures a default value of {@code #DEFAULT_PAGE} is returned.</p>
+     *
+     * @return the page number, or {@code #DEFAULT_PAGE} if {@code page} is null
+     */
+    public Integer getPage() {
+        return page != null ? page : DEFAULT_PAGE;
+    }
+
+    /**
+     * Returns the requested page size or a default value.
+     *
+     * <p>If the query parameter {@code size} is passed as an empty string (""),
+     * Spring's DataBinder will set it to {@code null}. In that case, this method
+     * ensures a default value of {@code #DEFAULT_SIZE} is returned.</p>
+     *
+     * @return the page size, or {@code #DEFAULT_SIZE} if {@code size} is null
+     */
+    public Integer getSize() {
+        return size != null ? size : DEFAULT_SIZE;
+    }
 }
