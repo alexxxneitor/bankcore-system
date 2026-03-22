@@ -3,6 +3,9 @@ package com.bankcore.accounts.repositories;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
@@ -65,5 +68,20 @@ public class TransactionSpecification {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * Builds a {@link Pageable} object with the given page number and size,
+     * applying a default sort order by {@code createdAt} in descending direction.
+     *
+     * <p>This utility method ensures that transaction queries are consistently
+     * paginated and ordered by the most recent entries first.</p>
+     *
+     * @param page the page number (zero-based index)
+     * @param size the number of elements per page
+     * @return a {@link Pageable} object with descending sort by {@code createdAt}
+     */
+    public static Pageable toPageable(int page, int size) {
+        return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 }
