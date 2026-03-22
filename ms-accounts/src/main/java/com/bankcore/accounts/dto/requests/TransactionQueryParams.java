@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
  *
  * <p>Validation Rules:</p>
  * <ul>
- *   <li>{@code page} must be greater than or equal to 0.</li>
+ *   <li>{@code page} must be greater than or equal to 1.</li>
  *   <li>{@code size} must be between 1 and 50.</li>
  *   <li>{@code fromDate} and {@code toDate} must be ISO-8601 formatted strings.</li>
  *   <li>{@code fromDate} cannot be after {@code toDate}.</li>
