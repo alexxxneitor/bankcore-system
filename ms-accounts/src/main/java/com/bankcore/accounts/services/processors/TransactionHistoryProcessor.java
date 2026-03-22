@@ -7,12 +7,14 @@ import com.bankcore.accounts.exceptions.AccountNotFoundException;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
+import com.bankcore.accounts.repositories.TransactionSpecification;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.bankcore.accounts.utils.mappers.TransactionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,14 +85,9 @@ public class TransactionHistoryProcessor {
             type = TransactionType.valueOf(params.getType().toUpperCase());
         }
 
-        Pageable pageable = PageRequest.of(params.getPage(), params.getSize());
-
-        Page<TransactionEntity> pageResult = repository.findByAccountAndFilters(
-                accountId,
-                type,
-                from,
-                to,
-                pageable
+        Page<TransactionEntity> pageResult = repository.findAll(
+                TransactionSpecification.withFilters(accountId, type, from, to),
+                TransactionSpecification.toPageable(params.getPage(), params.getSize())
         );
 
         List<TransactionHistoryResponse> content = pageResult.stream()
