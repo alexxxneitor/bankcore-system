@@ -1,8 +1,10 @@
 package com.bankcore.accounts.controllers;
 
+import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.dto.responses.ErrorResponse;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
+import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.services.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -149,7 +151,7 @@ public class TransactionController {
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponse.class)
                     )
-            ),
+            )
     })
     @PostMapping("/{accountId}/deposit")
     public ResponseEntity<TransactionResponse> deposit(
@@ -158,5 +160,14 @@ public class TransactionController {
             @PathVariable UUID accountId,
             Authentication auth){
         return ResponseEntity.status(HttpStatus.OK).body(transactionService.makeDeposit(request, accountId, UUID.fromString(auth.getName())));
+    }
+
+    @GetMapping("/{accountId}/transactions")
+    public ResponseEntity<TransactionsHistoryResponse> getHistoryTransactionsByAccount(
+            @PathVariable UUID accountId,
+            @Parameter(description = "Unique identifier of the account to retrieve", required = true)
+            @Valid TransactionQueryParams params
+            ){
+        return ResponseEntity.status(HttpStatus.OK).body(transactionService.getTransactionsHistory(accountId, params));
     }
 }
