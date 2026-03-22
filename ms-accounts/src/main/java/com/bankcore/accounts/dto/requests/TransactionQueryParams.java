@@ -3,6 +3,7 @@ package com.bankcore.accounts.dto.requests;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.bankcore.accounts.utils.validators.query.TransactionQueryValidator;
 import com.bankcore.accounts.utils.validators.query.ValidTransactionQuery;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Builder;
@@ -41,6 +42,7 @@ import lombok.Data;
  * @see ValidTransactionQuery
  * @see TransactionQueryValidator
  */
+@Schema(description = "Query parameters for filtering and pagination of transactions")
 @Data
 @Builder
 @ValidTransactionQuery
@@ -50,6 +52,12 @@ public class TransactionQueryParams {
      * The page number for pagination.
      * Must be greater than or equal to 0.
      */
+    @Schema(
+            description = "Page number (starting from 0)",
+            example = "0",
+            minimum = "0",
+            defaultValue = "0"
+    )
     @Builder.Default
     @Min(value = 0, message = "Page must be greater than or equal to 0")
     private int page = 0;
@@ -58,6 +66,13 @@ public class TransactionQueryParams {
      * The page size for pagination.
      * Must be between 1 and 50.
      */
+    @Schema(
+            description = "Number of records per page",
+            example = "20",
+            minimum = "1",
+            maximum = "50",
+            defaultValue = "20"
+    )
     @Builder.Default
     @Min(value = 1, message = "Size must be greater than or equal to 1")
     @Max(value = 50, message = "Size must be less than or equal to 50")
@@ -67,17 +82,32 @@ public class TransactionQueryParams {
      * The start date of the transaction query.
      * Must be in ISO-8601 format.
      */
+    @Schema(
+            description = "Start date for filtering transactions (ISO-8601 format)",
+            example = "2025-01-01T00:00:00Z",
+            format = "date-time"
+    )
     private String fromDate;
 
     /**
      * The end date of the transaction query.
      * Must be in ISO-8601 format.
      */
+    @Schema(
+            description = "End date for filtering transactions (ISO-8601 format)",
+            example = "2025-01-31T23:59:59Z",
+            format = "date-time"
+    )
     private String toDate;
 
     /**
      * The type of transaction to filter.
      * Must correspond to a valid {@link TransactionType}.
      */
+    @Schema(
+            description = "Transaction type filter",
+            example = "TRANSFER",
+            allowableValues = {"DEPOSIT", "WITHDRAWAL", "TRANSFER_IN", "TRANSFER_OUT", "FEE"}
+    )
     private String type;
 }
