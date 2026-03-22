@@ -66,12 +66,12 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
      * @return a paginated list of transactions matching the filters
      */
     @Query("""
-        SELECT t FROM Transaction t
+        SELECT t FROM TransactionEntity t
         WHERE t.account.id = :accountId
           AND (:type IS NULL OR t.type = :type)
-          AND (:fromDate IS NULL OR t.timestamp >= :fromDate)
-          AND (:toDate IS NULL OR t.timestamp <= :toDate)
-        ORDER BY t.timestamp DESC
+          AND (:fromDate IS NULL OR t.createdAt >= :fromDate)
+          AND (:toDate IS NULL OR t.createdAt <= :toDate)
+        ORDER BY t.createdAt DESC
         """)
     Page<TransactionEntity> findByAccountAndFilters(
             @Param("accountId") UUID accountId,

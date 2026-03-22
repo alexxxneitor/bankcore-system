@@ -99,7 +99,7 @@ public interface TransactionMapper {
      * @param transaction the transaction entity to map
      * @return a {@link TransactionHistoryResponse} populated with transaction and counterparty details
      */
-    @Mapping(source = "transferEntity.balanceAfter", target = "balance")
-    @Mapping(source = "transferEntity.createdAt", target = "timestamp")
+    @Mapping(source = "transaction.balanceAfter", target = "balance")
+    @Mapping(source = "transaction.createdAt", target = "timestamp")
     TransactionHistoryResponse toTransactionHistory(TransactionEntity transaction);
 }
