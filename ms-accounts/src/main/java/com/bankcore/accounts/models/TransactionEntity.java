@@ -42,6 +42,7 @@ import java.util.UUID;
  * @author Bankcore Team - Sebastian Orjuela
  * @version 1.0
  */
+
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -58,10 +59,9 @@ import java.util.UUID;
         },
         indexes = {
                 @Index(name = "idx_transaction_account", columnList = "account_id"),
-                @Index(name = "idx_transaction_reference", columnList = "referenceNumber"),
-                @Index(name = "idx_transaction_account_created", columnList = "account_id, createdAt DESC"),
-                @Index(name = "idx_account_timestamp", columnList = "account_id, created_at DESC"),
-                @Index(name = "idx_account_type_timestamp", columnList = "account_id, type, created_at DESC")
+                @Index(name = "idx_transaction_reference", columnList = "reference_number"),
+                @Index(name = "idx_transaction_account_created", columnList = "account_id, created_at DESC"),
+                @Index(name = "idx_account_type_created_at", columnList = "account_id, type, created_at DESC")
         }
 )
 public class TransactionEntity {
