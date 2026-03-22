@@ -59,8 +59,7 @@ import java.util.UUID;
         },
         indexes = {
                 @Index(name = "idx_transaction_account", columnList = "account_id"),
-                @Index(name = "idx_transaction_reference", columnList = "referenceNumber"),
-                @Index(name = "idx_transaction_account_created", columnList = "account_id, createdAt DESC")
+                @Index(name = "idx_transaction_account_created", columnList = "account_id, created_at DESC")
         }
 )
 public class TransactionEntity {

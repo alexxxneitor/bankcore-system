@@ -44,8 +44,8 @@ import java.util.UUID;
         name = "transfers",
         indexes = {
                 @Index(name = "idx_transfer_source_account", columnList = "source_account_id"),
-                @Index(name = "idx_transfer_destination_account", columnList = "destinationAccountNumber"),
-                @Index(name = "idx_transfer_source_account_created", columnList = "source_account_id, createdAt DESC")
+                @Index(name = "idx_transfer_destination_account", columnList = "destination_account_number"),
+                @Index(name = "idx_transfer_source_account_created", columnList = "source_account_id, created_at DESC")
         }
 )
 public class TransferEntity {
