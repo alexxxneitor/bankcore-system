@@ -3,7 +3,10 @@ package com.bankcore.accounts.services.processors;
 import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.responses.TransactionHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
+import com.bankcore.accounts.exceptions.AccountNotFoundException;
+import com.bankcore.accounts.exceptions.NoTransactionHistoryException;
 import com.bankcore.accounts.models.TransactionEntity;
+import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.bankcore.accounts.utils.mappers.TransactionMapper;
@@ -43,6 +46,7 @@ import java.util.UUID;
  * @author Sebastian Orjuela
  * @version 1.0
  * @see TransactionRepository
+ * @see AccountRepository
  * @see TransactionMapper
  * @see TransactionsHistoryResponse
  * @see TransactionHistoryResponse
@@ -54,6 +58,7 @@ public class TransactionHistoryProcessor {
 
     private final TransactionRepository repository;
     private final TransactionMapper transactionMapper;
+    private final AccountRepository accountRepository;
 
     /**
      * Retrieves a paginated transaction history for the given account,
@@ -62,9 +67,15 @@ public class TransactionHistoryProcessor {
      * @param accountId the unique identifier of the account
      * @param params the query parameters including pagination, type, and date filters
      * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
+     * @throws AccountNotFoundException if the account does not exist
+     * @throws NoTransactionHistoryException if no transaction history is found for the account
      */
     @Transactional(readOnly = true)
     public TransactionsHistoryResponse getTransactions(UUID accountId, TransactionQueryParams params) {
+
+        if (!accountRepository.existsById(accountId)) {
+            throw new AccountNotFoundException();
+        }
 
         Instant from = params.getFromDate() != null ? Instant.parse(params.getFromDate()) : null;
         Instant to = params.getToDate() != null ? Instant.parse(params.getToDate()) : null;
@@ -83,6 +94,10 @@ public class TransactionHistoryProcessor {
                 to,
                 pageable
         );
+
+        if (pageResult.isEmpty()) {
+            throw new NoTransactionHistoryException("There is no transaction history associated with this account");
+        }
 
         List<TransactionHistoryResponse> content = pageResult.stream()
                 .map(transactionMapper::toTransactionHistory)
