@@ -69,6 +69,7 @@ public class TransactionQueryParams {
             defaultValue = "1"
     )
     @Min(value = 1, message = "Page must be greater than or equal to 1")
+    @Builder.Default
     private Integer page = DEFAULT_PAGE;
 
     /**
@@ -84,6 +85,7 @@ public class TransactionQueryParams {
     )
     @Min(value = 1, message = "Size must be greater than or equal to 1")
     @Max(value = 50, message = "Size must be less than or equal to 50")
+    @Builder.Default
     private Integer size = DEFAULT_SIZE;
 
     /**
