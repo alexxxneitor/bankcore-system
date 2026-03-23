@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
  *
  * @author BankcoreTeam
  * @author Sebastian Orjuela
- * @version 1.0
+ * @version 0.1.0
  * @see ValidTransactionQuery
  * @see TransactionQueryValidator
  */
@@ -55,8 +55,8 @@ public class TransactionQueryParams {
     /**
      * Default values
      */
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_SIZE = 20;
+    public static final int DEFAULT_PAGE = 1;
+    public static final int DEFAULT_SIZE = 20;
 
     /**
      * The page number for pagination.
