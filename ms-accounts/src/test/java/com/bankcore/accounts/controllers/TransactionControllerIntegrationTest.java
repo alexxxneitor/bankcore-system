@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -868,5 +868,123 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         assertEquals(TransactionQueryParams.DEFAULT_SIZE, response.getContent().size());
         assertEquals(registersMock.longValue(), response.getTotalElements());
         assertEquals(totalPages, response.getTotalPages());
+    }
+
+    @Test
+    public void shouldReturn200WhenFilteringByTransactionTypeDeposit() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = 50;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        TransactionType typeToFilter = TransactionType.DEPOSIT;
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("type", typeToFilter.name())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        response.getContent().forEach(tx -> {
+            assertEquals(typeToFilter, tx.getType());
+            assertNull(tx.getCounterpartyAccountNumber());
+            assertNull(tx.getCounterpartyName());
+        });
+    }
+
+    @Test
+    public void shouldReturn200WhenFilteringByTransactionTypeWithdrawal() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = 50;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        TransactionType typeToFilter = TransactionType.WITHDRAWAL;
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("type", typeToFilter.name())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        response.getContent().forEach(tx -> {
+            assertEquals(typeToFilter, tx.getType());
+            assertNull(tx.getCounterpartyAccountNumber());
+            assertNull(tx.getCounterpartyName());
+        });
+    }
+
+    @Test
+    public void shouldReturn200WhenFilteringByTransactionTypeTransferIn() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = 50;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        TransactionType typeToFilter = TransactionType.TRANSFER_IN;
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("type", typeToFilter.name())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        response.getContent().forEach(tx -> {
+            assertEquals(typeToFilter, tx.getType());
+            assertNotNull(tx.getCounterpartyAccountNumber());
+        });
+    }
+
+    @Test
+    public void shouldReturn200WhenFilteringByTransactionTypeTransferOut() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = 50;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        TransactionType typeToFilter = TransactionType.TRANSFER_OUT;
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("type", typeToFilter.name())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        response.getContent().forEach(tx -> {
+            assertEquals(typeToFilter, tx.getType());
+            assertNotNull(tx.getCounterpartyAccountNumber());
+        });
     }
 }
