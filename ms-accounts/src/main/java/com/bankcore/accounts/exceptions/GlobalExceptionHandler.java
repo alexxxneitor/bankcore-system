@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -87,11 +88,17 @@ public class GlobalExceptionHandler {
 
     //Custom exception handling: captures and manages errors in the request body when the user submits incorrect or malformed parameters.
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> customMethodArgumentNotValidException(MethodArgumentNotValidException ex){
+    public ResponseEntity<ErrorResponse> customMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         String description = ex.getBindingResult()
-                .getFieldErrors()
+                .getAllErrors()
                 .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .map(error -> {
+                    if (error instanceof FieldError fieldError) {
+                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                    }
+                    return error.getDefaultMessage();
+                })
+                .filter(msg -> msg != null && !msg.isBlank())
                 .collect(Collectors.joining("; "));
 
         return badRequest(description);
@@ -159,7 +166,7 @@ public class GlobalExceptionHandler {
         String message = ex.getConstraintViolations()
                 .stream()
                 .map(ConstraintViolation::getMessage)
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining("; "));
 
         return badRequest(message);
     }
