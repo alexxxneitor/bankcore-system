@@ -124,7 +124,9 @@ public class TransactionEntity {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = Instant.now();
+        if (this.createdAt == null) {
+            this.createdAt = Instant.now();
+        }
         generateReferenceNumber();
     }
 }
