@@ -3,13 +3,16 @@ package com.bankcore.accounts.controllers;
 import com.bankcore.accounts.AbstractIntegrationTest;
 import com.bankcore.accounts.AccountDataProvider;
 import com.bankcore.accounts.TransactionDataProvider;
+import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
+import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
 import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.models.AccountPinSecurity;
+import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountPinSecurityRepository;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
@@ -17,6 +20,8 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.bankcore.accounts.utils.enums.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
@@ -35,6 +41,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -711,5 +718,155 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn200WithDefaultRecordCountAndDatabaseEntries() throws Exception {
+        UUID customerId = account.getCustomerId();
+        Integer registersMock = 120;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        transactionRepository.saveAll(dataMock);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        String json = result.getResponse().getContentAsString();
+
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        assertEquals(registersMock.longValue(), response.getTotalElements());
+        assertEquals(TransactionQueryParams.DEFAULT_SIZE, response.getContent().size());
+    }
+
+    @Test
+    public void shouldReturn200WhenSingleObjectRequestedAndPageCountEqualsDatabaseObjects() throws Exception {
+        UUID customerId = account.getCustomerId();
+        Integer registersMock = 120;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        transactionRepository.saveAll(dataMock);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("size", "1")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        String json = result.getResponse().getContentAsString();
+
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        assertEquals(1, response.getContent().size());
+        assertEquals(registersMock.longValue(), response.getTotalElements());
+        assertEquals(registersMock.longValue(), response.getTotalPages());
+    }
+
+    @Test
+    public void shouldReturn200WhenPageCountUsesDefaultSize() throws Exception {
+        UUID customerId = account.getCustomerId();
+        Integer registersMock = 120;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        transactionRepository.saveAll(dataMock);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        String json = result.getResponse().getContentAsString();
+
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        int totalPages = registersMock / TransactionQueryParams.DEFAULT_SIZE;
+
+        assertEquals(TransactionQueryParams.DEFAULT_SIZE, response.getContent().size());
+        assertEquals(registersMock.longValue(), response.getTotalElements());
+        assertEquals(totalPages, response.getTotalPages());
+    }
+
+    @Test
+    public void shouldReturn200WhenPaginationIsTestedInSystem() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = 55;
+        int pageSize = 20;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        int pageNumber = 1;
+        int totalFetched = 0;
+
+        while (true) {
+            MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                            .param("page", String.valueOf(pageNumber))
+                            .param("size", String.valueOf(pageSize))
+                            .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            String json = result.getResponse().getContentAsString();
+            TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+            assertEquals(pageNumber, response.getPage(), "La página devuelta debe coincidir con la solicitada");
+            int expectedContentSize = Math.min(pageSize, totalTransactions - totalFetched);
+            assertEquals(expectedContentSize, response.getContent().size(), "Content size debe ser correcto");
+
+            totalFetched += response.getContent().size();
+
+            if (response.getPage() >= response.getTotalPages()) {
+                break;
+            }
+            pageNumber++;
+        }
+
+        assertEquals(totalTransactions, totalFetched);
+    }
+
+    @Test
+    public void shouldReturn200WhenAllRecordsFitInSinglePage() throws Exception {
+        UUID customerId = account.getCustomerId();
+        Integer registersMock = TransactionQueryParams.DEFAULT_SIZE;
+
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        transactionRepository.saveAll(dataMock);
+
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        String json = result.getResponse().getContentAsString();
+
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        int totalPages = registersMock / TransactionQueryParams.DEFAULT_SIZE;
+
+        assertEquals(TransactionQueryParams.DEFAULT_SIZE, response.getContent().size());
+        assertEquals(registersMock.longValue(), response.getTotalElements());
+        assertEquals(totalPages, response.getTotalPages());
     }
 }
