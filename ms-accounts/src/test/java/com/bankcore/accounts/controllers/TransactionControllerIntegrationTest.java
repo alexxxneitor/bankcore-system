@@ -707,9 +707,9 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
                         .param("type", "type")
                         .with(user(customerId.toString()).roles(UserRole.ADMIN.name())))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").exists());
     }
 }
