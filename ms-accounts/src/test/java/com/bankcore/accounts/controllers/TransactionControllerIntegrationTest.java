@@ -987,4 +987,99 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
             assertNotNull(tx.getCounterpartyAccountNumber());
         });
     }
+
+    @Test
+    public void shouldReturn200WhenFilteringByFromDate() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = TransactionQueryParams.DEFAULT_SIZE;
+
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        Instant fromDate = now.plus(25, ChronoUnit.MINUTES);
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("fromDate", fromDate.toString())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        response.getContent().forEach(tx ->
+                assertTrue(tx.getTimestamp().isAfter(fromDate))
+        );
+
+        assertTrue(response.getContent().size() < totalTransactions);
+        assertTrue(response.getTotalElements() < totalTransactions);
+    }
+
+    @Test
+    public void shouldReturn200WhenFilteringByToDate() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = TransactionQueryParams.DEFAULT_SIZE;
+
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        Instant toDate = now.plus(70, ChronoUnit.MINUTES);
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("toDate", toDate.toString())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        response.getContent().forEach(tx ->
+                assertTrue(tx.getTimestamp().isBefore(toDate))
+        );
+
+        assertTrue(response.getContent().size() < totalTransactions);
+        assertTrue(response.getTotalElements() < totalTransactions);
+    }
+
+    @Test
+    public void shouldReturn200WhenFilteringByFromDateAndToDate() throws Exception {
+        UUID customerId = account.getCustomerId();
+        int totalTransactions = TransactionQueryParams.DEFAULT_SIZE;
+
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        transactionRepository.saveAll(dataMock);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        Instant fromDate = now.plus(50, ChronoUnit.MINUTES);
+        Instant toDate = now.plus(70, ChronoUnit.MINUTES);
+        MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("fromDate", fromDate.toString())
+                        .param("toDate", toDate.toString())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
+
+        response.getContent().forEach(tx ->
+                assertTrue(tx.getTimestamp().isAfter(fromDate) && tx.getTimestamp().isBefore(toDate))
+        );
+
+        assertTrue(response.getContent().size() < totalTransactions);
+        assertTrue(response.getTotalElements() < totalTransactions);
+    }
 }
