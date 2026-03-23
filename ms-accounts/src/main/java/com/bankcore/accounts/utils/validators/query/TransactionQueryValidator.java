@@ -79,7 +79,7 @@ public class TransactionQueryValidator implements ConstraintValidator<ValidTrans
             isValid = false;
         }
 
-        if (from != null & to != null && from.isAfter(to)) {
+        if (from != null && to != null && from.isAfter(to)) {
             addError(context, "fromDate cannot be after toDate");
             isValid = false;
         }
