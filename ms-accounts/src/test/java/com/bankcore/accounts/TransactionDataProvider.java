@@ -59,9 +59,8 @@ public class TransactionDataProvider {
                 .build();
     }
 
-    public static List<TransactionEntity> createMockTransactions(Integer registers, AccountEntity account) {
+    public static List<TransactionEntity> createMockTransactions(Integer registers, AccountEntity account, Instant baseTime) {
         List<TransactionEntity> transactions = new ArrayList<>();
-        Instant now = Instant.now();
 
         TransactionType[] types = TransactionType.values();
 
@@ -86,7 +85,7 @@ public class TransactionDataProvider {
                     : TransactionStatus.PENDING;
 
             // Calcular fecha con incremento de 5 minutos
-            Instant createdAt = now.plus(i * 5L, ChronoUnit.MINUTES);
+            Instant createdAt = baseTime.plus(i * 5L, ChronoUnit.MINUTES);
 
             // Construir transacción
             TransactionEntity tx = TransactionEntity.builder()

@@ -723,9 +723,10 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
     @Test
     public void shouldReturn200WithDefaultRecordCountAndDatabaseEntries() throws Exception {
         UUID customerId = account.getCustomerId();
-        Integer registersMock = 120;
+        int registersMock = 120;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account, now);
         transactionRepository.saveAll(dataMock);
 
         MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
@@ -741,16 +742,17 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
 
         TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
 
-        assertEquals(registersMock.longValue(), response.getTotalElements());
+        assertEquals(registersMock, response.getTotalElements());
         assertEquals(TransactionQueryParams.DEFAULT_SIZE, response.getContent().size());
     }
 
     @Test
     public void shouldReturn200WhenSingleObjectRequestedAndPageCountEqualsDatabaseObjects() throws Exception {
         UUID customerId = account.getCustomerId();
-        Integer registersMock = 120;
+        int registersMock = 120;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account, now);
         transactionRepository.saveAll(dataMock);
 
         MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
@@ -768,16 +770,17 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
 
         assertEquals(1, response.getContent().size());
-        assertEquals(registersMock.longValue(), response.getTotalElements());
-        assertEquals(registersMock.longValue(), response.getTotalPages());
+        assertEquals(registersMock, response.getTotalElements());
+        assertEquals(registersMock, response.getTotalPages());
     }
 
     @Test
     public void shouldReturn200WhenPageCountUsesDefaultSize() throws Exception {
         UUID customerId = account.getCustomerId();
-        Integer registersMock = 120;
+        int registersMock = 120;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account, now);
         transactionRepository.saveAll(dataMock);
 
         MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
@@ -796,7 +799,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         int totalPages = registersMock / TransactionQueryParams.DEFAULT_SIZE;
 
         assertEquals(TransactionQueryParams.DEFAULT_SIZE, response.getContent().size());
-        assertEquals(registersMock.longValue(), response.getTotalElements());
+        assertEquals(registersMock, response.getTotalElements());
         assertEquals(totalPages, response.getTotalPages());
     }
 
@@ -806,7 +809,8 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         int totalTransactions = 55;
         int pageSize = 20;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -845,9 +849,10 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
     @Test
     public void shouldReturn200WhenAllRecordsFitInSinglePage() throws Exception {
         UUID customerId = account.getCustomerId();
-        Integer registersMock = TransactionQueryParams.DEFAULT_SIZE;
+        int registersMock = TransactionQueryParams.DEFAULT_SIZE;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(registersMock, account, now);
         transactionRepository.saveAll(dataMock);
 
         MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
@@ -866,7 +871,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         int totalPages = registersMock / TransactionQueryParams.DEFAULT_SIZE;
 
         assertEquals(TransactionQueryParams.DEFAULT_SIZE, response.getContent().size());
-        assertEquals(registersMock.longValue(), response.getTotalElements());
+        assertEquals(registersMock, response.getTotalElements());
         assertEquals(totalPages, response.getTotalPages());
     }
 
@@ -875,7 +880,8 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         UUID customerId = account.getCustomerId();
         int totalTransactions = 50;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         TransactionType typeToFilter = TransactionType.DEPOSIT;
@@ -905,7 +911,8 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         UUID customerId = account.getCustomerId();
         int totalTransactions = 50;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         TransactionType typeToFilter = TransactionType.WITHDRAWAL;
@@ -935,7 +942,8 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         UUID customerId = account.getCustomerId();
         int totalTransactions = 50;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         TransactionType typeToFilter = TransactionType.TRANSFER_IN;
@@ -964,7 +972,8 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         UUID customerId = account.getCustomerId();
         int totalTransactions = 50;
 
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        Instant now = Instant.now();
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         TransactionType typeToFilter = TransactionType.TRANSFER_OUT;
@@ -994,7 +1003,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         int totalTransactions = TransactionQueryParams.DEFAULT_SIZE;
 
         Instant now = Instant.now();
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -1012,7 +1021,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
 
         response.getContent().forEach(tx ->
-                assertTrue(tx.getTimestamp().isAfter(fromDate))
+                assertFalse(tx.getTimestamp().isBefore(fromDate))
         );
 
         assertTrue(response.getContent().size() < totalTransactions);
@@ -1025,7 +1034,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         int totalTransactions = TransactionQueryParams.DEFAULT_SIZE;
 
         Instant now = Instant.now();
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -1056,7 +1065,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         int totalTransactions = TransactionQueryParams.DEFAULT_SIZE;
 
         Instant now = Instant.now();
-        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account);
+        List<TransactionEntity> dataMock = TransactionDataProvider.createMockTransactions(totalTransactions, account, now);
         transactionRepository.saveAll(dataMock);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -1076,7 +1085,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         TransactionsHistoryResponse response = mapper.readValue(json, TransactionsHistoryResponse.class);
 
         response.getContent().forEach(tx ->
-                assertTrue(tx.getTimestamp().isAfter(fromDate) && tx.getTimestamp().isBefore(toDate))
+                assertTrue(!tx.getTimestamp().isBefore(fromDate) && !tx.getTimestamp().isAfter(toDate))
         );
 
         assertTrue(response.getContent().size() < totalTransactions);
