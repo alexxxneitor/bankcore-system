@@ -8,10 +8,10 @@ import com.bankcore.accounts.utils.enums.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.util.UUID;
 
 public class TransactionDataProvider {
+
+    public static final String INVALID_UUID = "e7c6be34-c77b-4afa-aebb-327354a9fe0z";
 
     public static TransactionEntity createMockTransaction(AccountEntity account) {
         return TransactionEntity.builder()
