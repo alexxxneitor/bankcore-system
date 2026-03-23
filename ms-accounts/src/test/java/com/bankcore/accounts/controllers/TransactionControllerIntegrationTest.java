@@ -15,6 +15,7 @@ import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.utils.enums.AccountStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
+import com.bankcore.accounts.utils.enums.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -99,7 +101,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.referenceNumber").exists())
                 .andExpect(jsonPath("$.type").value(TransactionType.DEPOSIT.name()))
@@ -132,7 +134,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.referenceNumber").exists())
                 .andExpect(jsonPath("$.type").value(TransactionType.DEPOSIT.name()))
@@ -165,7 +167,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
@@ -193,7 +195,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(HttpStatus.CONFLICT.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.CONFLICT.getReasonPhrase()))
@@ -217,7 +219,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
@@ -241,7 +243,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.NOT_FOUND.getReasonPhrase()))
@@ -262,7 +264,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
@@ -299,7 +301,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
             mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request))
-                            .with(user(customerId.toString()).roles("CUSTOMER")))
+                            .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
                     .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
@@ -321,7 +323,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("ADMIN")))
+                        .with(user(customerId.toString()).roles(UserRole.ADMIN.name())))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
@@ -369,7 +371,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
@@ -404,7 +406,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
             ResultActions result = mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .with(user(customerId.toString()).roles("CUSTOMER")));
+                    .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())));
 
             if (i < 4) {
                 result.andExpect(status().isBadRequest())
@@ -461,7 +463,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
             ResultActions result = mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .with(user(customerId.toString()).roles("CUSTOMER")));
+                    .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())));
 
             if (i < 4) {
                 result.andExpect(status().isBadRequest())
@@ -513,7 +515,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
             ResultActions result = mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .with(user(customerId.toString()).roles("CUSTOMER")));
+                    .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())));
 
             if (i < 4) {
                 result.andExpect(status().isBadRequest())
@@ -531,10 +533,183 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                        .with(user(customerId.toString()).roles("CUSTOMER")))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(HttpStatus.CONFLICT.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.CONFLICT.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").value(containsString("status is FROZEN")));
+    }
+
+    @Test
+    public void shouldReturn400WhenUuidFormatIsInvalid() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", TransactionDataProvider.INVALID_UUID)
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenPageNumberIsBelowOne() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("page", "0")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenPageIsAlphabetic() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("page", "o")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenSizeExceedsLimit() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("size", "51")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenSizeIsLessThanOne() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("size", "0")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenSizeIsAlphabetic() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("size", "o")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenFromDateHasInvalidFormat() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("fromDate", "2024-03-20 10:15:30")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenToDateHasInvalidFormat() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("toDate", "2024-03-20 10:15:30")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn400WhenFromDateIsAfterToDate() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("fromDate", "2024-03-21T10:00:00Z")
+                        .param("toDate", "2024-03-20T10:00:00Z")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldAllowSameFromDateAndToDate() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("fromDate", "2024-03-20T10:00:00Z")
+                        .param("toDate", "2024-03-20T10:00:00Z")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void shouldReturn400WhenTypeIsNotInEnum() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("type", "type")
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn200WhenTypeIsEnumAndLowercase() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("type", TransactionType.DEPOSIT.name().toLowerCase())
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void shouldReturn401WhenIsNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
+    }
+
+    @Test
+    public void shouldReturn403WhenUserDoesNotHaveRequiredRole_() throws Exception {
+        UUID customerId = account.getCustomerId();
+
+        mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
+                        .param("type", "type")
+                        .with(user(customerId.toString()).roles(UserRole.ADMIN.name())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.name").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+                .andExpect(jsonPath("$.description").exists());
     }
 }
