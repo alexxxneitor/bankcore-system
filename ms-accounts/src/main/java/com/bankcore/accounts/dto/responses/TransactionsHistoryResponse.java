@@ -1,7 +1,9 @@
 package com.bankcore.accounts.dto.responses;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
@@ -27,11 +29,13 @@ import java.util.List;
  *
  * @author BankcoreTeam
  * @author Sebastian Orjuela
- * @version 1.0
+ * @version 0.2.0
  * @see TransactionHistoryResponse
  */
 @Value
+@Getter
 @Builder
+@Jacksonized
 public class TransactionsHistoryResponse {
 
     /**

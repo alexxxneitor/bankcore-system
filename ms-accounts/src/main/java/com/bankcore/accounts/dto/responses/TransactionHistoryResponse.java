@@ -3,7 +3,9 @@ package com.bankcore.accounts.dto.responses;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -33,12 +35,14 @@ import java.time.Instant;
  * history details in a consistent, immutable, and JSON-friendly format.</p>
  * @author BankcoreTeam
  * @author Sebastian Orjuela
- * @version 1.0
+ * @version 0.2.0
  * @see TransactionType
  */
 @Value
+@Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Jacksonized
 public class TransactionHistoryResponse {
 
     /**
