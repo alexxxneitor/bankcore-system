@@ -1010,7 +1010,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        Instant fromDate = now.plus(25, ChronoUnit.MINUTES);
+        Instant fromDate = now.truncatedTo(ChronoUnit.MILLIS).plus(25, ChronoUnit.MINUTES);
         MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
                         .param("fromDate", fromDate.toString())
                         .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
@@ -1072,8 +1072,8 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        Instant fromDate = now.plus(50, ChronoUnit.MINUTES);
-        Instant toDate = now.plus(70, ChronoUnit.MINUTES);
+        Instant fromDate = now.truncatedTo(ChronoUnit.MILLIS).plus(50, ChronoUnit.MINUTES);
+        Instant toDate   = now.truncatedTo(ChronoUnit.MILLIS).plus(70, ChronoUnit.MINUTES);
         MvcResult result = mockMvc.perform(get("/api/accounts/{accountId}/transactions", account.getId())
                         .param("fromDate", fromDate.toString())
                         .param("toDate", toDate.toString())
