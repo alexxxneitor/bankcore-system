@@ -1,6 +1,8 @@
 package com.bankcore.accounts.repositories;
 
 import com.bankcore.accounts.models.TransactionEntity;
+import com.bankcore.accounts.utils.enums.TransactionStatus;
+import com.bankcore.accounts.utils.enums.TransactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,19 +38,23 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     /**
      * Calculates the total amount of completed withdrawals for a specific account since a given time.
      * <p>
-     * This method uses a JPQL query to sum the transaction amounts where the type is 'WITHDRAWAL',
-     * the status is 'COMPLETED', and the creation timestamp is greater than or equal to the provided start time.
-     * {@code COALESCE} is used to return {@link BigDecimal#ZERO} if no matching transactions are found.
+     * This method uses a JPQL query to sum the transaction amounts where the type,
+     * status, and creation timestamp match the provided criteria.
+     * {@code COALESCE} is used to return a default value of {@code 0.0} if no matching transactions are found.
      * </p>
      *
      * @param accountId  the unique identifier of the account
+     * @param type       the {@link TransactionType} (e.g., WITHDRAWAL)
+     * @param status     the {@link TransactionStatus} (e.g., COMPLETED)
      * @param startOfDay the inclusive start time for the calculation (typically the start of the current UTC day)
      * @return the total sum of withdrawals as a {@link BigDecimal}
      */
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM TransactionEntity t " +
-            "WHERE t.account.id = :accountId AND t.type = 'WITHDRAWAL' " +
-            "AND t.status = 'COMPLETED' AND t.createdAt >= :startOfDay")
+    @Query("SELECT COALESCE(SUM(t.amount), 0.0) FROM TransactionEntity t " +
+            "WHERE t.account.id = :accountId AND t.type = :type " +
+            "AND t.status = :status AND t.createdAt >= :startOfDay")
     BigDecimal calculateDailyWithdrawalTotal(
             @Param("accountId") UUID accountId,
+            @Param("type") TransactionType type,
+            @Param("status") TransactionStatus status,
             @Param("startOfDay") Instant startOfDay);
 }

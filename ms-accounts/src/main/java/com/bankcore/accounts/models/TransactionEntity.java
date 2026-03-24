@@ -28,6 +28,7 @@ import java.util.UUID;
  *   <li>Index on {@code account_id} for efficient lookups by account.</li>
  *   <li>Index on {@code referenceNumber} for quick retrieval by reference.</li>
  *   <li>Composite index on {@code account_id, createdAt DESC} for chronological queries.</li>
+ *   <li>Composite index on {@code account_id, type, status, createdAt} to optimize daily limit calculations.</li>
  * </ul>
  * </p>
  *
@@ -60,7 +61,8 @@ import java.util.UUID;
         indexes = {
                 @Index(name = "idx_transaction_account", columnList = "account_id"),
                 @Index(name = "idx_transaction_reference", columnList = "referenceNumber"),
-                @Index(name = "idx_transaction_account_created", columnList = "account_id, createdAt DESC")
+                @Index(name = "idx_transaction_account_created", columnList = "account_id, createdAt DESC"),
+                @Index(name = "idx_transaction_account_type_status_created", columnList = "account_id, type, status, createdAt")
         }
 )
 public class TransactionEntity {

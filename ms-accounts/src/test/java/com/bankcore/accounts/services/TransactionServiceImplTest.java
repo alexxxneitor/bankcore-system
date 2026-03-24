@@ -212,8 +212,8 @@ public class TransactionServiceImplTest {
         when(validationService.validateCustomerPin(eq(customerId), any()))
                 .thenReturn(pinResponse);
 
-        when(transactionRepository.calculateDailyWithdrawalTotal(eq(accountId), any(Instant.class)))
-                .thenReturn(BigDecimal.ZERO);
+        when(transactionRepository.calculateDailyWithdrawalTotal(eq(accountId), eq(TransactionType.WITHDRAWAL), eq(TransactionStatus.COMPLETED), any(Instant.class)))
+                .thenReturn(new BigDecimal("0.0"));
 
         when(transactionRepository.save(any(TransactionEntity.class)))
                 .thenReturn(savedTransaction);
@@ -233,7 +233,7 @@ public class TransactionServiceImplTest {
         verify(validationService).validateCustomerIsActive(customerId);
         verify(pinSecurityService).checkPinLock(accountId);
         verify(pinSecurityService).processPinAttempt(accountId, pinResponse);
-        verify(transactionRepository).calculateDailyWithdrawalTotal(eq(accountId), any(Instant.class));
+        verify(transactionRepository).calculateDailyWithdrawalTotal(eq(accountId), eq(TransactionType.WITHDRAWAL), eq(TransactionStatus.COMPLETED), any(Instant.class));
         verify(transactionRepository).save(any(TransactionEntity.class));
         verify(accountRepository).save(account);
     }
@@ -262,7 +262,7 @@ public class TransactionServiceImplTest {
         when(validationService.validateCustomerPin(eq(customerId), any()))
                 .thenReturn(new PinValidateResponse(true));
 
-        when(transactionRepository.calculateDailyWithdrawalTotal(eq(accountId), any(Instant.class)))
+        when(transactionRepository.calculateDailyWithdrawalTotal(eq(accountId), eq(TransactionType.WITHDRAWAL), eq(TransactionStatus.COMPLETED), any(Instant.class)))
                 .thenReturn(BigDecimal.valueOf(950.00));
 
         BusinessException exception = assertThrows(BusinessException.class,

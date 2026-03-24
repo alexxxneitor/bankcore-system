@@ -163,7 +163,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Daily Limit Check (UTC Calendar Day)
         Instant startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay(ZoneOffset.UTC).toInstant();
-        BigDecimal dailyTotal = transactionRepository.calculateDailyWithdrawalTotal(accountId, startOfDay);
+        BigDecimal dailyTotal = transactionRepository.calculateDailyWithdrawalTotal(
+                accountId,
+                TransactionType.WITHDRAWAL,
+                TransactionStatus.COMPLETED,
+                startOfDay);
 
         if (dailyTotal.add(request.getAmount()).compareTo(account.getDailyWithdrawalLimit()) > 0) {
             throw new BusinessException("DAILY_LIMIT_EXCEEDED");
