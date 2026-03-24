@@ -2,6 +2,7 @@ package com.bankcore.accounts.services.complements;
 
 import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
+import com.bankcore.accounts.integrations.dto.responses.CustomerDetailsResponse;
 import com.bankcore.accounts.integrations.dto.responses.CustomerResponse;
 import com.bankcore.accounts.exceptions.CustomerInactiveException;
 import com.bankcore.accounts.exceptions.CustomerNotFoundException;
@@ -61,5 +62,21 @@ public class CustomerValidationService {
      */
     public PinValidateResponse validateCustomerPin(UUID customerId, PinValidateRequest request) {
         return customerClient.validateCustomerPin(customerId, request);
+    }
+
+    /**
+     * Retrieves the full name of a customer by their unique identifier.
+     * <p>
+     * This method delegates to the {@code customerClient} to fetch customer details
+     * and extracts the {@code fullName} field from the response.
+     * </p>
+     *
+     * @param customerId unique identifier of the customer
+     * @return the full name of the customer associated with the given ID
+     * @throws NullPointerException if the customer details cannot be retrieved
+     */
+    public String getFullNameCustomerById(UUID customerId) {
+        CustomerDetailsResponse customerDetails = customerClient.getCustomerDetailsById(customerId);
+        return customerDetails.fullName();
     }
 }

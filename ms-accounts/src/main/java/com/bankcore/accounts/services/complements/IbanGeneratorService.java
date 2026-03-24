@@ -1,5 +1,6 @@
 package com.bankcore.accounts.services.complements;
 
+import com.bankcore.accounts.utils.IbanUtils;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -53,7 +54,7 @@ public class IbanGeneratorService {
         String tempIban = ccc + countryCode + "00";
 
         // Step 3: Convert letters to numeric representation
-        String numericIban = convertLettersToNumbers(tempIban);
+        String numericIban = IbanUtils.convertLettersToNumbers(tempIban);
 
         // Step 4: Compute MOD 97
         BigInteger bigInt = new BigInteger(numericIban);
@@ -77,29 +78,5 @@ public class IbanGeneratorService {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
-    }
-
-    /**
-     * Converts alphabetic characters to their numeric IBAN representation.
-     *
-     * <p>
-     * According to ISO 13616:
-     * A = 10, B = 11, ..., Z = 35
-     * </p>
-     *
-     * @param input alphanumeric IBAN string
-     * @return numeric-only string ready for MOD 97 calculation
-     */
-    public String convertLettersToNumbers(String input) {
-        StringBuilder result = new StringBuilder();
-        for (char ch : input.toCharArray()) {
-            if (Character.isLetter(ch)) {
-                char upper = Character.toUpperCase(ch);
-                result.append(upper - 'A' + 10);
-            } else {
-                result.append(ch);
-            }
-        }
-        return result.toString();
     }
 }

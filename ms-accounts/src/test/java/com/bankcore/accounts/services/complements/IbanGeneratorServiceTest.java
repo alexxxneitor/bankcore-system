@@ -1,5 +1,6 @@
 package com.bankcore.accounts.services.complements;
 
+import com.bankcore.accounts.utils.IbanUtils;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -32,7 +33,7 @@ public class IbanGeneratorServiceTest {
         // Rearrange for validation (move first 4 chars to the end)
         String rearranged = iban.substring(4) + iban.substring(0, 4);
 
-        String numeric = ibanGeneratorService.convertLettersToNumbers(rearranged);
+        String numeric = IbanUtils.convertLettersToNumbers(rearranged);
 
         BigInteger bigInt = new BigInteger(numeric);
         int mod = bigInt.mod(BigInteger.valueOf(97)).intValue();

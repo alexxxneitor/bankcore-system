@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "a8bcb98a-8984-49fa-bf4a-e51044599ebd",
+    "_postman_id": "6228710d-4455-484b-9231-93e45ada5ee9",
     "name": "Bankcore-Collection",
     "description": "This Postman collection contains all the requests related to the **Customers** and **Accounts** microservices.\n\nIts main purpose is to enable **controlled and structured manual testing**, allowing developers and testers to interact with the system, validate business flows, and verify the behavior of each endpoint in an isolated and predictable way.\n\nThe collection serves as a centralized tool to:\n\n- Perform manual API testing\n    \n- Validate request and response contracts\n    \n- Simulate real usage scenarios\n    \n- Support development, debugging, and QA processes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "30666637"
+    "_exporter_id": "35777093"
   },
   "item": [
     {
@@ -375,6 +375,44 @@
               ]
             },
             "description": "# POST api/accounts/{accountId}/withdraw\n\n## Overview\n\n| Field | Value |\n| --- | --- |\n| Method | `POST` |\n| URL | `{{base_url_accounts}}/accounts/{{accountId}}/withdraw` |\n| Auth | Bearer Token (JWT) |\n| Content-Type | `application/json` |\n\nCreates a cash withdrawal transaction for the specified account. The withdrawal is validated against the account's available balance and daily withdrawal limits before being processed. The authenticated user must be the owner of the account.\n\n---\n\n## Authentication\n\nSet **Auth Type** to `Bearer Token` in Postman and provide a valid JWT in the **Token** field.\n\n```\nAuthorization: Bearer <your_jwt_token>\n\n ```\n\nThe server extracts the user's UUID from the token subject (`auth.getName()`) and uses it to verify account ownership.\n\n---\n\n## Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| `accountId` | UUID | ✅ Yes | Unique identifier of the account to debit. |\n\n**Example:**\n\n```\n3fa85f64-5717-4562-b3fc-2c963f66afa6\n\n ```\n\n---\n\n## Request Body\n\n**Content-Type:** `application/json`  \n**Example:**\n\n``` json\n{\n  \"amount\": 250.00,\n  \"description\": \"ATM withdrawal\",\n  \"pin\": \"1234\"\n}\n\n ```\n\n---\n\n## Business Rules\n\n1. **Sufficient balance** — Account balance must be ≥ requested amount. Violation → `422`.\n    \n2. **Daily withdrawal limit** — Total withdrawals within the current UTC calendar day must not exceed the configured limit. Violation → `422`.\n    \n3. **PIN validation** — Three consecutive failed PIN attempts lock the account permanently until support intervention. Locked account → `423`.\n    \n4. **Account ownership** — JWT subject UUID must match the account's owner UUID. Mismatch → `403`.\n    \n5. **Active user** — The authenticated user must have `ACTIVE` status. Inactive user → `403`.\n    \n\n---\n\n## Responses\n\n### `200 OK` — Withdrawal processed successfully\n\njson\n\n```\n{\n  \"referenceNumber\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"type\": \"WITHDRAWAL\",\n  \"amount\": 250.00,\n  \"balanceBefore\": 2000.00,\n  \"balanceAfter\": 1750.00,\n  \"description\": \"ATM withdrawal\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\",\n  \"status\": \"COMPLETED\"\n}\n\n ```\n\n---\n\n### `400 Bad Request` — Validation error or incorrect PIN\n\njson\n\n```\n{\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Validation failed\",\n  \"details\": [\n    \"amount: must be greater than 0\",\n    \"pin: must not be blank\"\n  ],\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `401 Unauthorized` — Missing or invalid JWT\n\njson\n\n```\n{\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Authentication credentials were not provided or are invalid\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `403 Forbidden` — User is not the account owner or is inactive\n\njson\n\n```\n{\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"Permission denied: user is not the account owner or is inactive\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `404 Not Found` — Account does not exist\n\njson\n\n```\n{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Account not found for id: 3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `422 Unprocessable Entity` — Business rule violation\n\n**Insufficient funds:**\n\njson\n\n```\n{\n  \"status\": 422,\n  \"error\": \"Unprocessable Entity\",\n  \"message\": \"Insufficient funds: requested 250.00, available 100.00\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n**Daily limit exceeded:**\n\njson\n\n```\n{\n  \"status\": 422,\n  \"error\": \"Unprocessable Entity\",\n  \"message\": \"Daily withdrawal limit exceeded: limit 500.00, already withdrawn 450.00\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `423 Locked` — Account locked due to failed PIN attempts\n\njson\n\n```\n{\n  \"status\": 423,\n  \"error\": \"Locked\",\n  \"message\": \"Account is locked due to multiple failed PIN attempts. Contact support to unlock.\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n⚠️ Once locked, all subsequent withdrawal attempts return `423` regardless of the PIN provided."
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer between accounts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"sourceAccountId\" : \"e7f9046e-d2f0-454e-8904-3da10f47b582\",\r\n    \"destinationAccountNumber\" : \"ES2553907030769590566959\",\r\n    \"amount\" : 10000.00,\r\n    \"description\": \"test-transfer\",\r\n    \"pin\": \"1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_accounts}}/api/transfers",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "transfers"
+              ]
+            },
+            "description": "# 💸 Transfer Money\n\n## 📌 Endpoint\n\n**POST**  \n`http://localhost:8082/api/transfers`\n\n---\n\n## 📖 Description\n\nAllows an authenticated customer to **transfer money between accounts**.\n\n- If the destination account **exists in the system**, the transfer is completed automatically (`COMPLETED`).\n    \n- If the destination account **does not exist**, the transfer remains in `PENDING` status, and the `beneficiaryName` is returned as `null`.\n    \n\nThis operation requires **PIN validation** via **ms-customers** to authorize the transaction and ensure security.\n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `CUSTOMER`\n    \n\n---\n\n# 📥 Request\n\n## Path Parameters\n\nNo path parameters. All data is sent in the body.\n\n---\n\n## Request Body (JSON)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| sourceAccountId | UUID | ✅ Yes | Unique identifier of the source account |\n| destinationAccountNumber | String | ✅ Yes | IBAN of the destination account |\n| amount | BigDecimal | ✅ Yes | Amount to transfer (must be greater than 0) |\n| description | String | ❌ No | Optional description of the transfer |\n| pin | String | ✅ Yes | Customer PIN for authorization |\n\n---\n\n### Example Request\n\n`POST /api/transfers`\n\n``` json\n{\n    \"sourceAccountId\": \"e7f9046e-d2f0-454e-8904-3da10f47b582\",\n    \"destinationAccountNumber\": \"ES2553907030769590566959\",\n    \"amount\": 10000.00,\n    \"description\": \"test-transfer\",\n    \"pin\": \"1234\"\n}\n\n ```\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 200 OK\n\nTransfer successfully processed.\n\n- **Existing destination account:** `status = COMPLETED` and `beneficiaryName` contains the recipient's name.\n    \n- **Non-existing destination account:** `status = PENDING` and `beneficiaryName = null`.\n    \n\n### Response Body (JSON)\n\n``` json\n{\n    \"transferId\": \"a1b2c3d4-e5f6-7890-ab12-3456789cdef0\",\n    \"status\": \"COMPLETED\",\n    \"sourceAccount\": \"ES8832107988618167785749\",\n    \"destinationAccount\": \"ES2553907030769590566959\",\n    \"beneficiaryName\": \"Juan Pérez\",\n    \"amount\": 10000.00,\n    \"description\": \"test-transfer\",\n    \"fee\": 50.00,\n    \"totalDebited\": 10050.00,\n    \"timestamp\": \"2026-03-19T22:15:30.123Z\"\n}\n\n ```\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid data.\n\nPossible Causes:\n\n- Invalid request body (missing or malformed fields)\n    \n- `sourceAccountId` is not a valid UUID\n    \n- `amount` is null, negative, or zero\n    \n- PIN format invalid or incorrect\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have permission to access this resource.\n\nPossible Causes:\n\n- User does not have the required role (`CUSTOMER`)\n    \n- The account does not belong to the authenticated user\n    \n\n---\n\n## ⚠️ 404 Not Found\n\nThe requested resource was not found.\n\nPossible Causes:\n\n- Source account does not exist\n    \n- Associated customer does not exist\n    \n\n---\n\n## ⚠️ 409 Conflict\n\nThe operation cannot be completed due to the current state of the resource.\n\nPossible Causes:\n\n- Destination account is not active\n    \n- Insufficient balance in source account\n    \n- Transfer to the same account is not allowed\n    \n\n---\n\n## 🔌 502 Bad Gateway\n\nError while communicating with an external service.\n\nPossible Causes:\n\n- Unexpected response from external service\n    \n- Internal validation error related to security or account information\n    \n\n---\n\n## 🚨 503 Service Unavailable\n\nThe external service is currently unavailable.\n\nPossible Causes:\n\n- Service downtime\n    \n- Network issues\n    \n- Timeout during request to the external service"
           },
           "response": []
         }

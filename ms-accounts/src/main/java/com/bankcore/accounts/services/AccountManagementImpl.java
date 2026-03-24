@@ -1,6 +1,5 @@
 package com.bankcore.accounts.services;
 
-import com.bankcore.accounts.integrations.client.CustomerClient;
 import com.bankcore.accounts.dto.requests.AccountRegisterRequest;
 import com.bankcore.accounts.dto.responses.AccountRegisterResponse;
 import com.bankcore.accounts.dto.responses.UserAccountDetailResponse;
@@ -43,7 +42,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AccountManagementImpl implements AccountManagementService {
 
-    private final CustomerClient customerClient;
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final IbanGeneratorService ibanGeneratorService;

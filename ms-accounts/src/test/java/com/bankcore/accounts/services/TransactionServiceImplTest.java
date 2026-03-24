@@ -1,24 +1,15 @@
 package com.bankcore.accounts.services;
 
 import com.bankcore.accounts.dto.requests.TransactionRequest;
+import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
-import com.bankcore.accounts.exceptions.AccountInactiveException;
-import com.bankcore.accounts.exceptions.AccountNotFoundException;
-import com.bankcore.accounts.exceptions.AccountPermanentlyLockedException;
-import com.bankcore.accounts.exceptions.AccountTemporarilyLockedException;
+import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.exceptions.BusinessException;
-import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import com.bankcore.accounts.models.AccountEntity;
-import com.bankcore.accounts.models.AccountPinSecurity;
-import com.bankcore.accounts.models.TransactionEntity;
-import com.bankcore.accounts.repositories.AccountRepository;
-import com.bankcore.accounts.repositories.TransactionRepository;
-import com.bankcore.accounts.services.complements.CustomerValidationService;
-import com.bankcore.accounts.services.complements.PinAttemptManagerService;
-import com.bankcore.accounts.utils.enums.AccountStatus;
-import com.bankcore.accounts.utils.enums.TransactionStatus;
-import com.bankcore.accounts.utils.enums.TransactionType;
-import com.bankcore.accounts.utils.mappers.TransactionMapper;
+import com.bankcore.accounts.services.complements.CustomerAccountValidator;
+import com.bankcore.accounts.services.processors.DepositProcessor;
+import com.bankcore.accounts.services.processors.TransferProcessor;
+import com.bankcore.accounts.services.processors.WithdrawalProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,247 +18,171 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceImplTest {
 
     @Mock
-    private CustomerValidationService validationService;
+    private CustomerAccountValidator validator;
 
     @Mock
-    private AccountRepository accountRepository;
+    private DepositProcessor depositProcessor;
 
     @Mock
-    private TransactionRepository transactionRepository;
+    private WithdrawalProcessor withdrawalProcessor;
 
     @Mock
-    private TransactionMapper transactionMapper;
-
-    @Mock
-    private PinAttemptManagerService pinSecurityService;
+    private TransferProcessor transferProcessor;
 
     @InjectMocks
     private TransactionServiceImpl transactionService;
 
-    private UUID accountId;
     private UUID customerId;
-    private AccountEntity account;
-    private TransactionRequest request;
-
-    private final BigDecimal balance = BigDecimal.valueOf(1000.00);
-    private final BigDecimal amount = BigDecimal.valueOf(100.00);
+    private UUID accountId;
 
     @BeforeEach
-    void setUp() {
-        accountId = UUID.randomUUID();
+    public void setup() {
         customerId = UUID.randomUUID();
+        accountId = UUID.randomUUID();
+    }
 
-        account = AccountEntity.builder()
-                .id(accountId)
-                .customerId(customerId)
-                .balance(balance)
-                .status(AccountStatus.ACTIVE)
-                .dailyWithdrawalLimit(BigDecimal.valueOf(1000.00))
-                .security(AccountPinSecurity.builder().build())
-                .build();
-
-        request = TransactionRequest.builder()
-                .amount(amount)
+    @Test
+    void shouldReturnTransactionResponse_whenDepositSuccessful() {
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(new BigDecimal("100.00"))
                 .pin("1234")
                 .description("Transaction test")
                 .build();
+
+        AccountEntity account = new AccountEntity();
+        TransactionResponse response = TransactionResponse.builder().build();
+
+        when(validator.validateCustomerAccountAndPin(customerId, accountId, "1234"))
+                .thenReturn(account);
+        when(depositProcessor.processDeposit(account, request.getAmount(), request.getDescription()))
+                .thenReturn(response);
+
+        TransactionResponse result = transactionService.makeDeposit(request, accountId, customerId);
+
+        assertNotNull(result);
+        assertEquals(response, result);
+
+        verify(validator).validateCustomerAccountAndPin(customerId, accountId, "1234");
+        verify(depositProcessor).processDeposit(account, request.getAmount(), request.getDescription());
     }
 
     @Test
-    void shouldMakeDepositSuccessfully() {
-        PinValidateResponse pinResponse = new PinValidateResponse(true);
-        TransactionEntity savedTransaction = TransactionEntity.builder()
-                .id(UUID.randomUUID())
-                .account(account)
-                .amount(request.getAmount())
-                .balanceAfter(account.getBalance().add(request.getAmount()))
-                .type(TransactionType.DEPOSIT)
-                .status(TransactionStatus.COMPLETED)
-                .description(request.getDescription())
+    void shouldReturnTransferResponse_whenTransferSuccessful() {
+        TransferRequest request = TransferRequest.builder()
+                .sourceAccountId(accountId)
+                .destinationAccountNumber("EXT123")
+                .pin("1234")
+                .amount(new BigDecimal("100"))
+                .description("external transfer")
                 .build();
 
-        TransactionResponse expectedResponse = TransactionResponse.builder()
-                .referenceNumber(savedTransaction.getReferenceNumber())
-                .type(savedTransaction.getType())
-                .amount(savedTransaction.getAmount())
-                .balanceBefore(balance)
-                .balanceAfter(savedTransaction.getBalanceAfter())
-                .description(savedTransaction.getDescription())
-                .timestamp(savedTransaction.getCreatedAt())
+        AccountEntity sourceAccount = new AccountEntity();
+        TransferResponse response = TransferResponse.builder().build();
+
+        when(validator.validateCustomerAccountAndPin(customerId, accountId, "1234"))
+                .thenReturn(sourceAccount);
+        when(transferProcessor.processTransfer(sourceAccount, request))
+                .thenReturn(response);
+
+        TransferResponse result = transactionService.makeTransfer(request, customerId);
+
+        assertNotNull(result);
+        assertEquals(response, result);
+
+        verify(validator).validateCustomerAccountAndPin(customerId, accountId, "1234");
+        verify(transferProcessor).processTransfer(sourceAccount, request);
+    }
+
+    @Test
+    void shouldThrowException_whenValidatorFailsOnDeposit() {
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(new BigDecimal("100.00"))
+                .pin("1234")
+                .description("Deposit test")
                 .build();
 
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.of(account));
+        when(validator.validateCustomerAccountAndPin(customerId, accountId, "1234"))
+                .thenThrow(new RuntimeException("Customer invalid"));
 
-        when(validationService.validateCustomerPin(eq(customerId), any()))
-                .thenReturn(pinResponse);
+        assertThrows(RuntimeException.class, () ->
+                transactionService.makeDeposit(request, accountId, customerId)
+        );
 
-        when(transactionRepository.save(any(TransactionEntity.class)))
-                .thenReturn(savedTransaction);
-
-        when(accountRepository.save(account)).thenReturn(account);
-
-        when(transactionMapper.toTransactionResponse(any(TransactionEntity.class), any(BigDecimal.class)))
-                .thenReturn(expectedResponse);
-
-        TransactionResponse response = transactionService.makeDeposit(request, accountId, customerId);
-
-        assertEquals(expectedResponse, response);
-
-        BigDecimal expectedBalance = balance.add(amount);
-        assertEquals(expectedBalance, account.getBalance());
-
-        verify(validationService).validateCustomerIsActive(customerId);
-        verify(pinSecurityService).checkPinLock(accountId);
-        verify(pinSecurityService).processPinAttempt(accountId, pinResponse);
-        verify(transactionRepository).save(any(TransactionEntity.class));
-        verify(accountRepository).save(account);
-    }
-    @Test
-    void shouldThrowAccountNotFound_whenAccountDoesNotExist() {
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.empty());
-
-        assertThrows(AccountNotFoundException.class,
-                () -> transactionService.makeDeposit(request, accountId, customerId));
-
-        verify(validationService).validateCustomerIsActive(customerId);
+        verify(depositProcessor, never()).processDeposit(any(), any(), any());
     }
 
     @Test
-    void shouldThrowAccountInactive_whenAccountIsNotActive() {
-        account.setStatus(AccountStatus.FROZEN);
-
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.of(account));
-
-        assertThrows(AccountInactiveException.class,
-                () -> transactionService.makeDeposit(request, accountId, customerId));
-    }
-
-    @Test
-    void shouldThrowTemporarilyLocked_whenPinCheckFails() {
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.of(account));
-
-        doThrow(AccountTemporarilyLockedException.class)
-                .when(pinSecurityService).checkPinLock(accountId);
-
-        assertThrows(AccountTemporarilyLockedException.class,
-                () -> transactionService.makeDeposit(request, accountId, customerId));
-    }
-
-    @Test
-    void shouldThrowPermanentlyLocked_whenPinCheckFails() {
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.of(account));
-
-        doThrow(AccountPermanentlyLockedException.class)
-                .when(pinSecurityService).checkPinLock(accountId);
-
-        assertThrows(AccountPermanentlyLockedException.class,
-                () -> transactionService.makeDeposit(request, accountId, customerId));
-    }
-
-    @Test
-    void shouldMakeWithdrawalSuccessfully() {
-        PinValidateResponse pinResponse = new PinValidateResponse(true);
-        TransactionEntity savedTransaction = TransactionEntity.builder()
-                .id(UUID.randomUUID())
-                .account(account)
-                .amount(request.getAmount())
-                .balanceAfter(account.getBalance().subtract(request.getAmount()))
-                .type(TransactionType.WITHDRAWAL)
-                .status(TransactionStatus.COMPLETED)
-                .description(request.getDescription())
+    void shouldReturnTransactionResponse_whenWithdrawalSuccessful() {
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(new BigDecimal("100.00"))
+                .pin("1234")
+                .description("Withdrawal test")
                 .build();
 
-        TransactionResponse expectedResponse = TransactionResponse.builder()
-                .referenceNumber(savedTransaction.getReferenceNumber())
-                .type(savedTransaction.getType())
-                .amount(savedTransaction.getAmount())
-                .balanceBefore(balance)
-                .balanceAfter(savedTransaction.getBalanceAfter())
-                .description(savedTransaction.getDescription())
-                .timestamp(savedTransaction.getCreatedAt())
-                .build();
+        AccountEntity account = new AccountEntity();
+        account.setBalance(new BigDecimal("500.00"));
+        TransactionResponse response = TransactionResponse.builder().build();
 
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.of(account));
+        when(validator.validateCustomerAccountAndPin(customerId, accountId, "1234"))
+                .thenReturn(account);
+        when(withdrawalProcessor.processWithdrawal(account, request.getAmount(), request.getDescription()))
+                .thenReturn(response);
 
-        when(validationService.validateCustomerPin(eq(customerId), any()))
-                .thenReturn(pinResponse);
+        TransactionResponse result = transactionService.makeWithdrawal(request, accountId, customerId);
 
-        when(transactionRepository.calculateDailyWithdrawalTotal(eq(accountId), eq(TransactionType.WITHDRAWAL), eq(TransactionStatus.COMPLETED), any(Instant.class)))
-                .thenReturn(new BigDecimal("0.0"));
+        assertNotNull(result);
+        assertEquals(response, result);
 
-        when(transactionRepository.save(any(TransactionEntity.class)))
-                .thenReturn(savedTransaction);
-
-        when(accountRepository.save(account)).thenReturn(account);
-
-        when(transactionMapper.toTransactionResponse(any(TransactionEntity.class), any(BigDecimal.class)))
-                .thenReturn(expectedResponse);
-
-        TransactionResponse response = transactionService.makeWithdrawal(request, accountId, customerId);
-
-        assertEquals(expectedResponse, response);
-
-        BigDecimal expectedBalance = balance.subtract(amount);
-        assertEquals(expectedBalance, account.getBalance());
-
-        verify(validationService).validateCustomerIsActive(customerId);
-        verify(pinSecurityService).checkPinLock(accountId);
-        verify(pinSecurityService).processPinAttempt(accountId, pinResponse);
-        verify(transactionRepository).calculateDailyWithdrawalTotal(eq(accountId), eq(TransactionType.WITHDRAWAL), eq(TransactionStatus.COMPLETED), any(Instant.class));
-        verify(transactionRepository).save(any(TransactionEntity.class));
-        verify(accountRepository).save(account);
+        verify(validator).validateCustomerAccountAndPin(customerId, accountId, "1234");
+        verify(withdrawalProcessor).processWithdrawal(account, request.getAmount(), request.getDescription());
     }
 
     @Test
     void shouldThrowBusinessException_whenWithdrawalHasInsufficientFunds() {
-        request.setAmount(BigDecimal.valueOf(2000.00));
-        
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.of(account));
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(new BigDecimal("1000.00"))
+                .pin("1234")
+                .description("Withdrawal test")
+                .build();
 
-        when(validationService.validateCustomerPin(eq(customerId), any()))
-                .thenReturn(new PinValidateResponse(true));
+        AccountEntity account = new AccountEntity();
+        account.setBalance(new BigDecimal("500.00"));
+
+        when(validator.validateCustomerAccountAndPin(customerId, accountId, "1234"))
+                .thenReturn(account);
 
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> transactionService.makeWithdrawal(request, accountId, customerId));
 
         assertEquals("INSUFFICIENT_FUNDS", exception.getMessage());
+        verify(withdrawalProcessor, never()).processWithdrawal(any(), any(), any());
     }
 
     @Test
-    void shouldThrowBusinessException_whenWithdrawalExceedsDailyLimit() {
-        when(accountRepository.findByIdAndCustomerId(accountId, customerId))
-                .thenReturn(Optional.of(account));
+    void shouldThrowException_whenValidatorFailsOnWithdrawal() {
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(new BigDecimal("100.00"))
+                .pin("1234")
+                .description("Withdrawal test")
+                .build();
 
-        when(validationService.validateCustomerPin(eq(customerId), any()))
-                .thenReturn(new PinValidateResponse(true));
+        when(validator.validateCustomerAccountAndPin(customerId, accountId, "1234"))
+                .thenThrow(new RuntimeException("PIN invalid"));
 
-        when(transactionRepository.calculateDailyWithdrawalTotal(eq(accountId), eq(TransactionType.WITHDRAWAL), eq(TransactionStatus.COMPLETED), any(Instant.class)))
-                .thenReturn(BigDecimal.valueOf(950.00));
+        assertThrows(RuntimeException.class, () ->
+                transactionService.makeWithdrawal(request, accountId, customerId)
+        );
 
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> transactionService.makeWithdrawal(request, accountId, customerId));
-
-        assertEquals("DAILY_LIMIT_EXCEEDED", exception.getMessage());
+        verify(withdrawalProcessor, never()).processWithdrawal(any(), any(), any());
     }
 }
