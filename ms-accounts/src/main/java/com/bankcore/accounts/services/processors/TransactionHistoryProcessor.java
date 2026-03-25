@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -63,14 +64,19 @@ public class TransactionHistoryProcessor {
      * applying optional filters such as type and date range.
      *
      * @param accountId the unique identifier of the account
+     * @param customerId the unique identifier of the customer
      * @param params the query parameters including pagination, type, and date filters
      * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
      * @throws AccountNotFoundException if the account does not exist
      */
     @Transactional(readOnly = true)
-    public TransactionsHistoryResponse getTransactions(UUID accountId, TransactionQueryParams params) {
+    public TransactionsHistoryResponse getTransactions(UUID accountId, UUID customerId, TransactionQueryParams params) {
 
-        if (!accountRepository.existsById(accountId)) {
+        if (params == null) {
+            throw new IllegalArgumentException("TransactionQueryParams must not be null");
+        }
+
+        if (!accountRepository.existsByIdAndCustomerId(accountId, customerId)) {
             throw new AccountNotFoundException();
         }
 
@@ -79,7 +85,7 @@ public class TransactionHistoryProcessor {
 
         TransactionType type = null;
         if (params.getType() != null) {
-            type = TransactionType.valueOf(params.getType().toUpperCase());
+            type = TransactionType.valueOf(params.getType().toUpperCase(Locale.ROOT));
         }
 
         Page<TransactionEntity> pageResult = repository.findAll(

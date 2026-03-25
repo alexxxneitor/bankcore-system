@@ -47,10 +47,11 @@ public interface TransactionService {
      * applying optional filters such as type, date range, and pagination.
      *
      * @param accountId the unique identifier of the account
+     * @param customerId the unique identifier of the customer
      * @param filters the query parameters including pagination, type, and date filters
      * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
      * @see TransactionsHistoryResponse
      * @see TransactionQueryParams
      */
-    TransactionsHistoryResponse getTransactionsHistory(UUID accountId, TransactionQueryParams filters);
+    TransactionsHistoryResponse getTransactionsHistory(UUID accountId, UUID customerId, TransactionQueryParams filters);
 }

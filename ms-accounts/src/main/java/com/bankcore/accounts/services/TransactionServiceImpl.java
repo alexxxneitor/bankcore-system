@@ -90,10 +90,11 @@ public class TransactionServiceImpl implements TransactionService {
      * applying optional filters such as type, date range, and pagination.
      *
      * <p>This method delegates the actual processing to
-     * {@link TransactionHistoryProcessor#getTransactions(UUID, TransactionQueryParams)},
+     * {@link TransactionHistoryProcessor#getTransactions(UUID, UUID, TransactionQueryParams)},
      * ensuring that the service layer handles validation, filtering, and mapping.</p>
      *
      * @param accountId the unique identifier of the account
+     * @param customerId the unique identifier of the customer
      * @param filters the query parameters including pagination, type, and date filters
      * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
      * @see TransactionHistoryProcessor
@@ -101,7 +102,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @see TransactionQueryParams
      */
     @Override
-    public TransactionsHistoryResponse getTransactionsHistory(UUID accountId, TransactionQueryParams filters) {
-        return transactionHistory.getTransactions(accountId, filters);
+    public TransactionsHistoryResponse getTransactionsHistory(UUID accountId, UUID customerId, TransactionQueryParams filters) {
+        return transactionHistory.getTransactions(accountId, customerId, filters);
     }
 }

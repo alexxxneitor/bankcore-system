@@ -80,4 +80,20 @@ public interface AccountRepository extends JpaRepository<AccountEntity, UUID> {
      *         or empty if no account exists with the given IBAN
      */
     Optional<AccountEntity> findByAccountNumber(String iban);
+
+    /**
+     * Checks whether a {@link AccountEntity} exists with the given identifiers.
+     * <p>
+     * This method queries the persistence layer to determine if a transaction
+     * with the specified {@code id} and associated {@code customerId} is present.
+     * It is typically used for validation or existence checks before performing
+     * operations that depend on the transaction's presence.
+     * </p>
+     *
+     * @param id the unique identifier of the transaction
+     * @param customerId the unique identifier of the customer associated with the transaction
+     * @return {@code true} if a transaction with the given identifiers exists,
+     *         {@code false} otherwise
+     */
+    boolean existsByIdAndCustomerId(UUID id, UUID customerId);
 }

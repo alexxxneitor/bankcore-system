@@ -180,6 +180,7 @@ public class TransactionController {
      * </ul>
      *
      * @param accountId the unique identifier of the account to retrieve
+     * @param auth      the authentication context, providing the user identifier
      * @param params the query parameters including pagination, type, and date filters
      * @return a {@link ResponseEntity} containing {@link TransactionsHistoryResponse} with HTTP 200 (OK)
      * @see TransactionsHistoryResponse
@@ -237,8 +238,13 @@ public class TransactionController {
             @Parameter(description = "Unique identifier of the account to retrieve", required = true)
             @PathVariable UUID accountId,
             @ParameterObject
-            @ModelAttribute @Valid TransactionQueryParams params
+            @ModelAttribute @Valid TransactionQueryParams params,
+            Authentication auth
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(transactionService.getTransactionsHistory(accountId, params));
+        return ResponseEntity.status(HttpStatus.OK).body(transactionService.getTransactionsHistory(
+                accountId,
+                UUID.fromString(auth.getName()),
+                params
+        ));
     }
 }

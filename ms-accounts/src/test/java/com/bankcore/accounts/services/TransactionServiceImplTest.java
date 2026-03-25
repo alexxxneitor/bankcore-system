@@ -125,15 +125,14 @@ public class TransactionServiceImplTest {
 
     @Test
     void shouldDelegateAndReturnResult() {
-        UUID accountId = UUID.randomUUID();
         TransactionQueryParams filters = new TransactionQueryParams();
         TransactionsHistoryResponse expected = TransactionsHistoryResponse.builder().build();
 
-        when(transactionHistoryProcessor.getTransactions(accountId, filters)).thenReturn(expected);
+        when(transactionHistoryProcessor.getTransactions(accountId, customerId, filters)).thenReturn(expected);
 
-        TransactionsHistoryResponse result = transactionService.getTransactionsHistory(accountId, filters);
+        TransactionsHistoryResponse result = transactionService.getTransactionsHistory(accountId, customerId, filters);
 
         assertThat(result).isSameAs(expected);
-        verify(transactionHistoryProcessor).getTransactions(accountId, filters);
+        verify(transactionHistoryProcessor).getTransactions(accountId, customerId, filters);
     }
 }

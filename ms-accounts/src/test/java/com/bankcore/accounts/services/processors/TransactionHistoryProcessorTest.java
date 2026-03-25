@@ -48,10 +48,12 @@ public class TransactionHistoryProcessorTest {
     @InjectMocks TransactionHistoryProcessor processor;
 
     private UUID accountId;
+    private UUID customerId;
 
     @BeforeEach
     void setUp() {
         accountId = UUID.randomUUID();
+        customerId = UUID.randomUUID();
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
@@ -79,18 +81,18 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("throws AccountNotFoundException")
         void shouldThrowWhenAccountNotFound() {
-            when(accountRepository.existsById(accountId)).thenReturn(false);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(false);
 
-            assertThatThrownBy(() -> processor.getTransactions(accountId, baseParams(1, 10)))
+            assertThatThrownBy(() -> processor.getTransactions(accountId, customerId, baseParams(1, 10)))
                     .isInstanceOf(AccountNotFoundException.class);
         }
 
         @Test
         @DisplayName("never queries the transaction repository")
         void shouldNotQueryRepositoryWhenAccountMissing() {
-            when(accountRepository.existsById(accountId)).thenReturn(false);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(false);
 
-            try { processor.getTransactions(accountId, baseParams(1, 10)); } catch (AccountNotFoundException ignored) {}
+            try { processor.getTransactions(accountId, customerId, baseParams(1, 10)); } catch (AccountNotFoundException ignored) {}
 
             verifyNoInteractions(repository);
         }
@@ -105,11 +107,11 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("converts 1-based page param to 0-based Pageable")
         void shouldConvertPageToZeroBased() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
-            processor.getTransactions(accountId, baseParams(1, 10));
+            processor.getTransactions(accountId, customerId, baseParams(1, 10));
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
             verify(repository).findAll(any(Specification.class), captor.capture());
@@ -119,11 +121,11 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("passes correct page size to Pageable")
         void shouldPassCorrectPageSize() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
-            processor.getTransactions(accountId, baseParams(1, 15));
+            processor.getTransactions(accountId, customerId, baseParams(1, 15));
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
             verify(repository).findAll(any(Specification.class), captor.capture());
@@ -133,11 +135,11 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("sorts by createdAt descending")
         void shouldSortByCreatedAtDescending() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
-            processor.getTransactions(accountId, baseParams(1, 10));
+            processor.getTransactions(accountId, customerId, baseParams(1, 10));
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
             verify(repository).findAll(any(Specification.class), captor.capture());
@@ -150,11 +152,11 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("returns correct page and size metadata in response")
         void shouldReturnPageAndSizeMetadata() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
-            TransactionsHistoryResponse response = processor.getTransactions(accountId, baseParams(3, 20));
+            TransactionsHistoryResponse response = processor.getTransactions(accountId, customerId, baseParams(3, 20));
 
             assertThat(response.getPage()).isEqualTo(3);
             assertThat(response.getSize()).isEqualTo(20);
@@ -170,7 +172,7 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("parses fromDate as Instant when provided")
         void shouldParseFromDate() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
 
             TransactionQueryParams params = baseParams(1, 10);
             params.setFromDate("2024-01-01T00:00:00Z");
@@ -179,13 +181,13 @@ public class TransactionHistoryProcessorTest {
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
             // No exception means Instant.parse succeeded
-            assertThat(processor.getTransactions(accountId, params)).isNotNull();
+            assertThat(processor.getTransactions(accountId, customerId, params)).isNotNull();
         }
 
         @Test
         @DisplayName("parses toDate as Instant when provided")
         void shouldParseToDate() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
 
             TransactionQueryParams params = baseParams(1, 10);
             params.setToDate("2024-12-31T23:59:59Z");
@@ -193,39 +195,39 @@ public class TransactionHistoryProcessorTest {
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
-            assertThat(processor.getTransactions(accountId, params)).isNotNull();
+            assertThat(processor.getTransactions(accountId, customerId, params)).isNotNull();
         }
 
         @Test
         @DisplayName("accepts null fromDate without error")
         void shouldHandleNullFromDate() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
             TransactionQueryParams params = baseParams(1, 10);
             params.setFromDate(null);
 
-            assertThat(processor.getTransactions(accountId, params)).isNotNull();
+            assertThat(processor.getTransactions(accountId, customerId, params)).isNotNull();
         }
 
         @Test
         @DisplayName("accepts null toDate without error")
         void shouldHandleNullToDate() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
             TransactionQueryParams params = baseParams(1, 10);
             params.setToDate(null);
 
-            assertThat(processor.getTransactions(accountId, params)).isNotNull();
+            assertThat(processor.getTransactions(accountId, customerId, params)).isNotNull();
         }
 
         @Test
         @DisplayName("parses transaction type to uppercase enum")
         void shouldParseTypeToUppercase() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
@@ -233,31 +235,31 @@ public class TransactionHistoryProcessorTest {
             params.setType("deposit"); // lowercase — should be normalised
 
             // Should not throw IllegalArgumentException
-            assertThat(processor.getTransactions(accountId, params)).isNotNull();
+            assertThat(processor.getTransactions(accountId, customerId, params)).isNotNull();
         }
 
         @Test
         @DisplayName("accepts null type without error")
         void shouldHandleNullType() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
             TransactionQueryParams params = baseParams(1, 10);
             params.setType(null);
 
-            assertThat(processor.getTransactions(accountId, params)).isNotNull();
+            assertThat(processor.getTransactions(accountId, customerId, params)).isNotNull();
         }
 
         @Test
         @DisplayName("throws IllegalArgumentException for unknown transaction type")
         void shouldThrowForUnknownType() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
 
             TransactionQueryParams params = baseParams(1, 10);
             params.setType("INVALID_TYPE");
 
-            assertThatThrownBy(() -> processor.getTransactions(accountId, params))
+            assertThatThrownBy(() -> processor.getTransactions(accountId, customerId, params))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -271,7 +273,7 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("maps each entity via transactionMapper")
         void shouldMapAllEntitiesWithMapper() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
 
             TransactionEntity e1 = TransactionEntity.builder().build();
             TransactionEntity e2 = TransactionEntity.builder().build();
@@ -284,7 +286,7 @@ public class TransactionHistoryProcessorTest {
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> pageOf(List.of(e1, e2), inv.getArgument(1)));
 
-            TransactionsHistoryResponse response = processor.getTransactions(accountId, baseParams(1, 10));
+            TransactionsHistoryResponse response = processor.getTransactions(accountId, customerId, baseParams(1, 10));
 
             assertThat(response.getContent()).containsExactly(r1, r2);
             verify(transactionMapper).toTransactionHistory(e1);
@@ -294,11 +296,11 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("returns empty content list when page has no results")
         void shouldReturnEmptyContentWhenNoResults() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> emptyPage(inv.getArgument(1)));
 
-            TransactionsHistoryResponse response = processor.getTransactions(accountId, baseParams(1, 10));
+            TransactionsHistoryResponse response = processor.getTransactions(accountId, customerId, baseParams(1, 10));
 
             assertThat(response.getContent()).isEmpty();
             verifyNoInteractions(transactionMapper);
@@ -307,14 +309,14 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("sets totalElements from page result")
         void shouldSetTotalElements() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
 
             TransactionEntity e1 = TransactionEntity.builder().build();
             when(transactionMapper.toTransactionHistory(any())).thenReturn(TransactionHistoryResponse.builder().build());
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> new PageImpl<>(List.of(e1), inv.getArgument(1), 42L));
 
-            TransactionsHistoryResponse response = processor.getTransactions(accountId, baseParams(1, 10));
+            TransactionsHistoryResponse response = processor.getTransactions(accountId, customerId, baseParams(1, 10));
 
             assertThat(response.getTotalElements()).isEqualTo(42L);
         }
@@ -322,11 +324,11 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("sets totalPages from page result")
         void shouldSetTotalPages() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> new PageImpl<>(Collections.emptyList(), inv.getArgument(1), 0L));
 
-            TransactionsHistoryResponse response = processor.getTransactions(accountId, baseParams(1, 10));
+            TransactionsHistoryResponse response = processor.getTransactions(accountId, customerId, baseParams(1, 10));
 
             assertThat(response.getTotalPages()).isZero();
         }
@@ -334,7 +336,7 @@ public class TransactionHistoryProcessorTest {
         @Test
         @DisplayName("response content size matches entity list size")
         void shouldMatchContentSizeToEntityList() {
-            when(accountRepository.existsById(accountId)).thenReturn(true);
+            when(accountRepository.existsByIdAndCustomerId(accountId, customerId)).thenReturn(true);
 
             List<TransactionEntity> entities = List.of(
                     TransactionEntity.builder().build(), TransactionEntity.builder().build(), TransactionEntity.builder().build()
@@ -344,7 +346,7 @@ public class TransactionHistoryProcessorTest {
             when(repository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenAnswer(inv -> pageOf(entities, inv.getArgument(1)));
 
-            TransactionsHistoryResponse response = processor.getTransactions(accountId, baseParams(1, 10));
+            TransactionsHistoryResponse response = processor.getTransactions(accountId, customerId, baseParams(1, 10));
 
             assertThat(response.getContent()).hasSize(3);
         }
