@@ -33,7 +33,7 @@ import java.time.ZoneOffset;
  *
  * @author BankCore
  * @author Cristian Ortiz
- * @version 1.0
+ * @version 0.1.0
  */
 @Service
 @RequiredArgsConstructor

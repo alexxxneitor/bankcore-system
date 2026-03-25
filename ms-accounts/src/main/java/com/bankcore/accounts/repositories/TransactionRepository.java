@@ -20,7 +20,10 @@ import java.util.UUID;
  * exposes custom query methods for transaction-specific lookups.
  * </p>
  *
- * @author BankCore Team - Cristian Ortiz
+ * @author BankCore Team
+ * @author Cristian Ortiz
+ * @author Sebastian Orjuela
+ * @version 0.3.0
  */
 public interface TransactionRepository extends
         JpaRepository<TransactionEntity, UUID>,

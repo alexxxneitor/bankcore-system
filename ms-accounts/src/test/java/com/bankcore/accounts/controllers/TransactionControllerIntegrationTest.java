@@ -675,14 +675,11 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 .pin("1234")
                 .build();
 
-        Mockito.when(customerClient.getCustomerById(anotherCustomerId))
-                .thenReturn(new CustomerResponse(anotherCustomerId, true, true));
-
         mockMvc.perform(post("/api/accounts/{accountId}/withdraw", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(user(anotherCustomerId.toString()).roles(UserRole.ADMIN.name())))
-                .andExpect(status().isForbidden()); // Existing logic in getAccountDetails returns 404 for wrong owner to avoid leaks.
+                .andExpect(status().isForbidden());
     }
 
     @Test
