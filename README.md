@@ -307,7 +307,7 @@ Esta colección permite explorar fácilmente las funcionalidades del servicio, a
 
 También puedes importar la colección directamente en tu workspace de Postman utilizando el siguiente botón:
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://web.postman.co/workspace/7881e3dd-6f51-41b2-8795-b96d8e8d79aa/collection/35777093-2d47e7ec-516e-47ed-89c7-48d05b9c981b?action=share&source=copy-link&creator=35777093)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://web.postman.co/workspace/7881e3dd-6f51-41b2-8795-b96d8e8d79aa/collection/35777093-6228710d-4455-484b-9231-93e45ada5ee9?action=share&source=copy-link&creator=35777093)
 
 ---
 
