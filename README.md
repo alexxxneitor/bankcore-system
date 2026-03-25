@@ -301,7 +301,7 @@ Esta colección permite explorar fácilmente las funcionalidades del servicio, a
 
 ### 📥 Descargar colección
 
-[Descargar Postman Collection](./docs/postman/Bankcore-Collection.postman_collection.json)
+[Descargar Postman Collection](./docs/Postman/Bankcore-Collection.postman_collection.json)
 
 ### ▶️ Ejecutar en Postman
 
