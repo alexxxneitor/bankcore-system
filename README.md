@@ -193,13 +193,14 @@ Tabla: `account_pin_security`
 
 #### URLs principales
 
-| Endpoint                          | Método | Descripción                                                                                                       | Acceso                             |
-|-----------------------------------|--------|-------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| /api/accounts                     | POST   | Registro de Cuentas Bancarias                                                                                     | Restringido solo Role CUSTOMER     |
-| /api/accounts                     | GET    | Obtener Cuentas Bancarias del cliente                                                                             | Restringido solo Role CUSTOMER     |
-| /api/accounts/{accountId}         | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado | Restringido solo Role CUSTOMER     |
-| /api/accounts/{accountId}/deposit | POST   | Registra una nueva transaccion y un nuevo balance a la cuenta destinadad                                          | Restringido solo Role CUSTOMER     |
-| /api/transfers                    | POST   | Regsistra una Transferencia entre cuentas y sus respectivos movimientos                                           | Restringido solo Role CUSTOMER     |
+| Endpoint                            | Método | Descripción                                                                                                       | Acceso                             |
+|-------------------------------------|--------|-------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| /api/accounts                       | POST   | Registro de Cuentas Bancarias                                                                                     | Restringido solo Role CUSTOMER     |
+| /api/accounts                       | GET    | Obtener Cuentas Bancarias del cliente                                                                             | Restringido solo Role CUSTOMER     |
+| /api/accounts/{accountId}           | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado | Restringido solo Role CUSTOMER     |
+| /api/accounts/{accountId}/deposit   | POST   | Registra una nueva transaccion y un nuevo balance a la cuenta destinadad                                          | Restringido solo Role CUSTOMER     |
+| /api/accounts/{accountId}/withdraw  | POST   | Ejecuta una operación de retiro de fondos sobre la cuenta indicada                                                | Restringido solo Role CUSTOMER     |
+| /api/transfers                      | POST   | Regsistra una Transferencia entre cuentas y sus respectivos movimientos                                           | Restringido solo Role CUSTOMER     |
 
 ---
 

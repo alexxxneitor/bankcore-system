@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/transfers").hasRole(UserRole.CUSTOMER.name())
                         .requestMatchers(HttpMethod.GET, "/api/accounts/*").hasRole(UserRole.CUSTOMER.name())
                         .requestMatchers(HttpMethod.POST, "/api/accounts/*/deposit").hasRole(UserRole.CUSTOMER.name())
+                        .requestMatchers(HttpMethod.POST, "/api/accounts/*/withdraw").hasRole(UserRole.CUSTOMER.name())
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth ->
                         oauth
