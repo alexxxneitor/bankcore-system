@@ -8,7 +8,6 @@ import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransferResponse;
 
 import java.util.UUID;
-
 /**
  * Service interface for handling account transactions.
  * <p>
@@ -32,6 +31,20 @@ public interface TransactionService {
      * @return a {@link TransactionResponse} containing the result of the deposit
      */
     TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId);
+
+    /**
+     * Executes a withdrawal transaction for the given account and customer.
+     * <p>
+     * This operation performs several business validations including account ownership,
+     * status check, PIN confirmation, available balance, and daily withdrawal limits.
+     * </p>
+     *
+     * @param request    the {@link TransactionRequest} containing withdrawal details (amount, PIN)
+     * @param accountId  the {@link UUID} representing the account to withdraw from
+     * @param customerId the {@link UUID} representing the customer performing the withdrawal
+     * @return a {@link TransactionResponse} containing the result of the withdrawal
+     */
+    TransactionResponse makeWithdrawal(TransactionRequest request, UUID accountId, UUID customerId);
 
     /**
      * Execute a transfer between accounts

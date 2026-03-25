@@ -17,6 +17,7 @@ import com.bankcore.accounts.repositories.AccountPinSecurityRepository;
 import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.repositories.TransactionRepository;
 import com.bankcore.accounts.utils.enums.AccountStatus;
+import com.bankcore.accounts.utils.enums.TransactionStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.bankcore.accounts.utils.enums.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -545,6 +546,143 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 .andExpect(jsonPath("$.code").value(HttpStatus.CONFLICT.value()))
                 .andExpect(jsonPath("$.name").value(HttpStatus.CONFLICT.getReasonPhrase()))
                 .andExpect(jsonPath("$.description").value(containsString("status is FROZEN")));
+    }
+
+    @Test
+    public void should_withdraw_successfully_when_balance_and_limit_are_sufficient() throws Exception {
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+        account.setBalance(BigDecimal.valueOf(500.00));
+        accountRepository.save(account);
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("withdrawal test")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/withdraw", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.referenceNumber").exists())
+                .andExpect(jsonPath("$.type").value(TransactionType.WITHDRAWAL.name()))
+                .andExpect(jsonPath("$.amount").value(request.getAmount()))
+                .andExpect(jsonPath("$.balanceBefore").value(500.00))
+                .andExpect(jsonPath("$.balanceAfter").value(400.00))
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+    }
+
+    @Test
+    public void should_return_error_when_balance_is_insufficient() throws Exception {
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+        account.setBalance(BigDecimal.valueOf(50.00));
+        accountRepository.save(account);
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .description("withdrawal test")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/withdraw", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.description").value("INSUFFICIENT_FUNDS"));
+    }
+
+    @Test
+    public void should_return_error_when_daily_limit_is_exceeded() throws Exception {
+        UUID customerId = account.getCustomerId();
+        UUID accountId = account.getId();
+        account.setBalance(BigDecimal.valueOf(2000.00));
+        accountRepository.save(account);
+
+        // Pre-insert a withdrawal of 950
+        transactionRepository.save(TransactionEntity.builder()
+                .account(account)
+                .type(TransactionType.WITHDRAWAL)
+                .amount(BigDecimal.valueOf(950.00))
+                .balanceAfter(BigDecimal.valueOf(1050.00))
+                .status(TransactionStatus.COMPLETED)
+                .createdAt(Instant.now()) // Ensure it's today
+                .build());
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00)) // 950 + 100 = 1050 > 1000 limit
+                .description("withdrawal test")
+                .pin("1234")
+                .build();
+
+        PinValidateRequest requestPin = PinValidateRequest.builder().pin(request.getPin()).build();
+
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
+        Mockito.when(customerClient.validateCustomerPin(customerId, requestPin))
+                .thenReturn(new PinValidateResponse(true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/withdraw", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customerId.toString()).roles(UserRole.CUSTOMER.name())))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.description").value("DAILY_LIMIT_EXCEEDED"));
+    }
+
+    @Test
+    public void should_return_401_when_request_is_unauthenticated() throws Exception {
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .pin("1234")
+                .build();
+
+        mockMvc.perform(post("/api/accounts/{accountId}/withdraw", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void should_return_403_when_account_does_not_belong_to_authenticated_user() throws Exception {
+        UUID anotherCustomerId = UUID.randomUUID();
+        UUID accountId = account.getId();
+
+        TransactionRequest request = TransactionRequest.builder()
+                .amount(BigDecimal.valueOf(100.00))
+                .pin("1234")
+                .build();
+
+        Mockito.when(customerClient.getCustomerById(anotherCustomerId))
+                .thenReturn(new CustomerResponse(anotherCustomerId, true, true));
+
+        mockMvc.perform(post("/api/accounts/{accountId}/withdraw", accountId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(anotherCustomerId.toString()).roles(UserRole.ADMIN.name())))
+                .andExpect(status().isForbidden()); // Existing logic in getAccountDetails returns 404 for wrong owner to avoid leaks.
     }
 
     @Test

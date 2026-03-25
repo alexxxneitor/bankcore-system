@@ -358,6 +358,27 @@
           "response": []
         },
         {
+          "name": "make withdraw",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_accounts}}/api/accounts/{{accountId}}/withdraw",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "{{accountId}}",
+                "withdraw"
+              ]
+            },
+            "description": "# POST api/accounts/{accountId}/withdraw\n\n## Overview\n\n| Field | Value |\n| --- | --- |\n| Method | `POST` |\n| URL | `{{base_url_accounts}}/accounts/{{accountId}}/withdraw` |\n| Auth | Bearer Token (JWT) |\n| Content-Type | `application/json` |\n\nCreates a cash withdrawal transaction for the specified account. The withdrawal is validated against the account's available balance and daily withdrawal limits before being processed. The authenticated user must be the owner of the account.\n\n---\n\n## Authentication\n\nSet **Auth Type** to `Bearer Token` in Postman and provide a valid JWT in the **Token** field.\n\n```\nAuthorization: Bearer <your_jwt_token>\n\n ```\n\nThe server extracts the user's UUID from the token subject (`auth.getName()`) and uses it to verify account ownership.\n\n---\n\n## Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| `accountId` | UUID | ✅ Yes | Unique identifier of the account to debit. |\n\n**Example:**\n\n```\n3fa85f64-5717-4562-b3fc-2c963f66afa6\n\n ```\n\n---\n\n## Request Body\n\n**Content-Type:** `application/json`  \n**Example:**\n\n``` json\n{\n  \"amount\": 250.00,\n  \"description\": \"ATM withdrawal\",\n  \"pin\": \"1234\"\n}\n\n ```\n\n---\n\n## Business Rules\n\n1. **Sufficient balance** — Account balance must be ≥ requested amount. Violation → `422`.\n    \n2. **Daily withdrawal limit** — Total withdrawals within the current UTC calendar day must not exceed the configured limit. Violation → `422`.\n    \n3. **PIN validation** — Three consecutive failed PIN attempts lock the account permanently until support intervention. Locked account → `423`.\n    \n4. **Account ownership** — JWT subject UUID must match the account's owner UUID. Mismatch → `403`.\n    \n5. **Active user** — The authenticated user must have `ACTIVE` status. Inactive user → `403`.\n    \n\n---\n\n## Responses\n\n### `200 OK` — Withdrawal processed successfully\n\njson\n\n```\n{\n  \"referenceNumber\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"type\": \"WITHDRAWAL\",\n  \"amount\": 250.00,\n  \"balanceBefore\": 2000.00,\n  \"balanceAfter\": 1750.00,\n  \"description\": \"ATM withdrawal\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\",\n  \"status\": \"COMPLETED\"\n}\n\n ```\n\n---\n\n### `400 Bad Request` — Validation error or incorrect PIN\n\njson\n\n```\n{\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Validation failed\",\n  \"details\": [\n    \"amount: must be greater than 0\",\n    \"pin: must not be blank\"\n  ],\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `401 Unauthorized` — Missing or invalid JWT\n\njson\n\n```\n{\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Authentication credentials were not provided or are invalid\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `403 Forbidden` — User is not the account owner or is inactive\n\njson\n\n```\n{\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"Permission denied: user is not the account owner or is inactive\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `404 Not Found` — Account does not exist\n\njson\n\n```\n{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Account not found for id: 3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `422 Unprocessable Entity` — Business rule violation\n\n**Insufficient funds:**\n\njson\n\n```\n{\n  \"status\": 422,\n  \"error\": \"Unprocessable Entity\",\n  \"message\": \"Insufficient funds: requested 250.00, available 100.00\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n**Daily limit exceeded:**\n\njson\n\n```\n{\n  \"status\": 422,\n  \"error\": \"Unprocessable Entity\",\n  \"message\": \"Daily withdrawal limit exceeded: limit 500.00, already withdrawn 450.00\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n---\n\n### `423 Locked` — Account locked due to failed PIN attempts\n\njson\n\n```\n{\n  \"status\": 423,\n  \"error\": \"Locked\",\n  \"message\": \"Account is locked due to multiple failed PIN attempts. Contact support to unlock.\",\n  \"timestamp\": \"2025-06-15T14:32:00Z\"\n}\n\n ```\n\n⚠️ Once locked, all subsequent withdrawal attempts return `423` regardless of the PIN provided."
+          },
+          "response": []
+        },
+        {
           "name": "Transfer between accounts",
           "request": {
             "auth": {

@@ -45,6 +45,7 @@ public interface TransactionMapper {
      */
     @Mapping(source = "transactionEntity.createdAt", target = "timestamp")
     @Mapping(source = "balanceBefore", target = "balanceBefore")
+    @Mapping(source = "transactionEntity.status", target = "status")
     TransactionResponse toTransactionResponse(TransactionEntity transactionEntity, BigDecimal balanceBefore);
 
     /**

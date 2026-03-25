@@ -1,5 +1,6 @@
 package com.bankcore.accounts.models;
 
+import com.bankcore.accounts.utils.uuidConfig.UUIDv7;
 import com.bankcore.accounts.utils.enums.TransactionStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -65,6 +66,7 @@ import java.util.concurrent.ThreadLocalRandom;
         indexes = {
                 @Index(name = "idx_transaction_account", columnList = "account_id"),
                 @Index(name = "idx_transaction_account_created", columnList = "account_id, created_at DESC"),
+                @Index(name = "idx_transaction_account_type_status_created", columnList = "account_id, type, status, created_at"),
                 @Index(name = "idx_account_type_created_at", columnList = "account_id, type, created_at DESC")
         }
 )

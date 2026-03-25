@@ -5,15 +5,30 @@ import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
 import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
+import com.bankcore.accounts.exceptions.AccountInactiveException;
+import com.bankcore.accounts.exceptions.AccountNotFoundException;
+import com.bankcore.accounts.exceptions.BusinessException;
+import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
+import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
 import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.models.AccountEntity;
+import com.bankcore.accounts.repositories.AccountRepository;
 import com.bankcore.accounts.services.complements.CustomerAccountValidator;
+import com.bankcore.accounts.services.complements.CustomerValidationService;
+import com.bankcore.accounts.services.complements.PinAttemptManagerService;
 import com.bankcore.accounts.services.processors.DepositProcessor;
 import com.bankcore.accounts.services.processors.TransactionHistoryProcessor;
 import com.bankcore.accounts.services.processors.TransferProcessor;
+import com.bankcore.accounts.services.processors.WithdrawalProcessor;
+import com.bankcore.accounts.utils.enums.AccountStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
@@ -40,6 +55,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final CustomerAccountValidator validator;
     private final DepositProcessor depositProcessor;
+    private final WithdrawalProcessor withdrawalProcessor;
     private final TransferProcessor transferProcessor;
     private final TransactionHistoryProcessor transactionHistory;
 
@@ -62,6 +78,42 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId) {
         AccountEntity account = validator.validateCustomerAccountAndPin(customerId, accountId, request.getPin());
         return depositProcessor.processDeposit(account, request.getAmount(), request.getDescription());
+    }
+
+    /**
+     * Executes a withdrawal transaction after validating customer, account, PIN, balance, and limits.
+     * <p>
+     * The method performs the following steps:
+     * <ol>
+     *   <li>Validates that the customer exists and is active.</li>
+     *   <li>Retrieves the account and ensures it belongs to the customer.</li>
+     *   <li>Checks that the account is active.</li>
+     *   <li>Validates the ATM PIN.</li>
+     *   <li>Verifies if the account has sufficient balance.</li>
+     *   <li>Verifies if the withdrawal exceeds the daily limit (calculated in UTC).</li>
+     *   <li>Reduces the account balance and persists the WITHDRAWAL transaction.</li>
+     * </ol>
+     * </p>
+     *
+     * @param request    the {@link TransactionRequest} containing withdrawal details
+     * @param accountId  the {@link UUID} of the account to withdraw from
+     * @param customerId the {@link UUID} of the customer performing the transaction
+     * @return a {@link TransactionResponse} containing the result of the withdrawal
+     * @throws AccountNotFoundException if the account does not exist
+     * @throws AccountInactiveException if the account is inactive
+     * @throws BusinessException        if funds are insufficient or daily limit is exceeded
+     */
+    @Override
+    @Transactional
+    public TransactionResponse makeWithdrawal(TransactionRequest request, UUID accountId, UUID customerId) {
+
+        AccountEntity account = validator.validateCustomerAccountAndPin(customerId, accountId, request.getPin());
+
+        if (account.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new BusinessException("INSUFFICIENT_FUNDS");
+        }
+
+        return withdrawalProcessor.processWithdrawal(account, request.getAmount(), request.getDescription());
     }
 
     /**
