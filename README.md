@@ -232,7 +232,21 @@ CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,PATCH
 CORS_MAX_AGE=3600
 ```
 
-### 2. Crear el `docker-compose.yml`
+### 2. Crear el `init-multiple-db.sh` para la creacion de las bases de datos
+
+```sh
+#!/bin/bash
+set -e
+
+echo "starting databases: $DATASOURCE_DB_NAME_ACCOUNTS y $DATASOURCE_DB_NAME_CUSTOMERS"
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+  CREATE DATABASE "$DATASOURCE_DB_NAME_ACCOUNTS";
+  CREATE DATABASE "$DATASOURCE_DB_NAME_CUSTOMERS";
+EOSQL
+```
+
+### 3. Crear el `docker-compose.yml`
 
 ```yaml
 name: bankcore-system
@@ -307,7 +321,7 @@ networks:
     driver: bridge
 ```
 
-### 3. Levantar el sistema
+### 4. Levantar el sistema
 
 ```bash
 docker compose up -d
@@ -315,9 +329,13 @@ docker compose up -d
 
 Docker descargará automáticamente las imágenes del registry y levantará los tres contenedores.
 
-### Alternativamente con `docker run`
+Claro, podemos dejarlo más claro, consistente y fácil de leer, resaltando que el script se ejecuta al iniciar el contenedor y que solo se ejecuta la primera vez. Aquí tienes una versión editada:
 
-Si prefieres levantar los servicios manualmente, primero crea la red:
+---
+
+### Alternativa: levantar con `docker run`
+
+Primero, crea la red de Docker para que los servicios puedan comunicarse:
 
 ```bash
 docker network create bankcore-network
@@ -325,17 +343,20 @@ docker network create bankcore-network
 
 Luego levanta PostgreSQL:
 
+Luego, levanta el contenedor de PostgreSQL. Para crear automáticamente las bases de datos `accounts_db` y `customers_db`, se recomienda tener un script de inicialización llamado `init-multiple-db.sh` en el directorio actual:
+
 ```bash
 docker run -d \
   --name postgres-datasource \
   --network bankcore-network \
   -e POSTGRES_USER=username-bankcore-system \
   -e POSTGRES_PASSWORD=password-bankcore-system \
-  -e DATASOURCE_DB_NAME_ACCOUNTS=accounts_db \
-  -e DATASOURCE_DB_NAME_CUSTOMERS=customers_db \
   -p 5432:5432 \
+  -v $(pwd)/init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh \
   postgres:17.8
 ```
+
+> ⚠️ Nota: El script de inicialización solo se ejecuta la **primera vez** que se inicia el contenedor. Si ya existe un volumen con datos, no volverá a crear las bases automáticamente.
 
 Luego ms-customers:
 
