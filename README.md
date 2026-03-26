@@ -9,7 +9,7 @@ Proyecto backend desarrollado con arquitectura de microservicios, enfocado en la
 El sistema está compuesto por dos microservicios independientes, cada uno con su propia base de datos y responsabilidades bien definidas. La comunicación entre servicios se realiza a través de HTTP sobre la red interna de Docker.
 
 ```
-ms-customers (8081) ←── ms-accounts (8082)
+ms-customers (8081) ← ms-accounts (8082)
        │                        │
   customers_db             accounts_db
        └──────── PostgreSQL ────┘
