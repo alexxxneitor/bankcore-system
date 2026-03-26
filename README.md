@@ -61,8 +61,16 @@ Responsable de:
 
 Con el servicio en ejecución, accede a Swagger UI en:
 
+- Para ms-customers:
+
 ```
 http://localhost:8081/swagger-ui/index.html
+```
+
+- Para ms-accounts:
+
+```
+http://localhost:8082/swagger-ui/index.html
 ```
 
 ---
