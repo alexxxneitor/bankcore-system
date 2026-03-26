@@ -1,8 +1,10 @@
 package com.bankcore.accounts.services;
 
+import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
+import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransferResponse;
 
 import java.util.UUID;
@@ -52,4 +54,17 @@ public interface TransactionService {
      * @return a {@link TransactionResponse} It contains the results of the transfer between accounts
      */
     TransferResponse makeTransfer(TransferRequest request, UUID customerId);
+
+    /**
+     * Retrieves the transaction history for a given account,
+     * applying optional filters such as type, date range, and pagination.
+     *
+     * @param accountId the unique identifier of the account
+     * @param customerId the unique identifier of the customer
+     * @param filters the query parameters including pagination, type, and date filters
+     * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
+     * @see TransactionsHistoryResponse
+     * @see TransactionQueryParams
+     */
+    TransactionsHistoryResponse getTransactionsHistory(UUID accountId, UUID customerId, TransactionQueryParams filters);
 }

@@ -415,6 +415,64 @@
             "description": "# 💸 Transfer Money\n\n## 📌 Endpoint\n\n**POST**  \n`http://localhost:8082/api/transfers`\n\n---\n\n## 📖 Description\n\nAllows an authenticated customer to **transfer money between accounts**.\n\n- If the destination account **exists in the system**, the transfer is completed automatically (`COMPLETED`).\n    \n- If the destination account **does not exist**, the transfer remains in `PENDING` status, and the `beneficiaryName` is returned as `null`.\n    \n\nThis operation requires **PIN validation** via **ms-customers** to authorize the transaction and ensure security.\n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `CUSTOMER`\n    \n\n---\n\n# 📥 Request\n\n## Path Parameters\n\nNo path parameters. All data is sent in the body.\n\n---\n\n## Request Body (JSON)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| sourceAccountId | UUID | ✅ Yes | Unique identifier of the source account |\n| destinationAccountNumber | String | ✅ Yes | IBAN of the destination account |\n| amount | BigDecimal | ✅ Yes | Amount to transfer (must be greater than 0) |\n| description | String | ❌ No | Optional description of the transfer |\n| pin | String | ✅ Yes | Customer PIN for authorization |\n\n---\n\n### Example Request\n\n`POST /api/transfers`\n\n``` json\n{\n    \"sourceAccountId\": \"e7f9046e-d2f0-454e-8904-3da10f47b582\",\n    \"destinationAccountNumber\": \"ES2553907030769590566959\",\n    \"amount\": 10000.00,\n    \"description\": \"test-transfer\",\n    \"pin\": \"1234\"\n}\n\n ```\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 200 OK\n\nTransfer successfully processed.\n\n- **Existing destination account:** `status = COMPLETED` and `beneficiaryName` contains the recipient's name.\n    \n- **Non-existing destination account:** `status = PENDING` and `beneficiaryName = null`.\n    \n\n### Response Body (JSON)\n\n``` json\n{\n    \"transferId\": \"a1b2c3d4-e5f6-7890-ab12-3456789cdef0\",\n    \"status\": \"COMPLETED\",\n    \"sourceAccount\": \"ES8832107988618167785749\",\n    \"destinationAccount\": \"ES2553907030769590566959\",\n    \"beneficiaryName\": \"Juan Pérez\",\n    \"amount\": 10000.00,\n    \"description\": \"test-transfer\",\n    \"fee\": 50.00,\n    \"totalDebited\": 10050.00,\n    \"timestamp\": \"2026-03-19T22:15:30.123Z\"\n}\n\n ```\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid data.\n\nPossible Causes:\n\n- Invalid request body (missing or malformed fields)\n    \n- `sourceAccountId` is not a valid UUID\n    \n- `amount` is null, negative, or zero\n    \n- PIN format invalid or incorrect\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have permission to access this resource.\n\nPossible Causes:\n\n- User does not have the required role (`CUSTOMER`)\n    \n- The account does not belong to the authenticated user\n    \n\n---\n\n## ⚠️ 404 Not Found\n\nThe requested resource was not found.\n\nPossible Causes:\n\n- Source account does not exist\n    \n- Associated customer does not exist\n    \n\n---\n\n## ⚠️ 409 Conflict\n\nThe operation cannot be completed due to the current state of the resource.\n\nPossible Causes:\n\n- Destination account is not active\n    \n- Insufficient balance in source account\n    \n- Transfer to the same account is not allowed\n    \n\n---\n\n## 🔌 502 Bad Gateway\n\nError while communicating with an external service.\n\nPossible Causes:\n\n- Unexpected response from external service\n    \n- Internal validation error related to security or account information\n    \n\n---\n\n## 🚨 503 Service Unavailable\n\nThe external service is currently unavailable.\n\nPossible Causes:\n\n- Service downtime\n    \n- Network issues\n    \n- Timeout during request to the external service"
           },
           "response": []
+        },
+        {
+          "name": "Get history Transactions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_accounts}}/api/accounts/{{accountId}}/transactions?page=&size&fromDate=&toDate&type",
+              "host": [
+                "{{base_url_accounts}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "{{accountId}}",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Page number (starting from 0)"
+                },
+                {
+                  "key": "size",
+                  "value": null,
+                  "description": "Number of records per page"
+                },
+                {
+                  "key": "fromDate",
+                  "value": "",
+                  "description": "Start date for filtering transactions (ISO-8601 format)"
+                },
+                {
+                  "key": "toDate",
+                  "value": null,
+                  "description": "End date for filtering transactions (ISO-8601 format)"
+                },
+                {
+                  "key": "type",
+                  "value": null,
+                  "description": "Transaction type filter"
+                }
+              ]
+            },
+            "description": "# 📊 Account Transactions History\n\n## 📌 Endpoint\n\n**GET**  \n`/api/accounts/{{accountId}}/transactions`\n\n---\n\n## 📖 Description\n\nRetrieves the **transaction history of a specific account**.\n\nThis endpoint supports **pagination and filtering** to improve search and analysis of transactions:\n\n- Filter by **date range** (`fromDate`, `toDate`)\n    \n- Filter by **transaction type**\n    \n- Paginated results for better performance and usability\n    \n\n---\n\n# 🔐 Access\n\nThis endpoint is **protected**.\n\nAuthentication is required using a **valid JWT token**.\n\n**Allowed roles:**\n\n- `CUSTOMER`\n    \n\n---\n\n# 📥 Request\n\n## Path Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| accountId | UUID | ✅ Yes | Unique identifier of the account |\n\n---\n\n## Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n| --- | --- | --- | --- | --- |\n| page | Integer | ❌ No | 1 | Page number (starting from 1) |\n| size | Integer | ❌ No | 20 | Number of records per page |\n| fromDate | ISO-8601 | ❌ No | — | Start date for filtering transactions |\n| toDate | ISO-8601 | ❌ No | — | End date for filtering transactions |\n| type | Enum | ❌ No | — | Filter by transaction type |\n\n### Allowed values for `type`\n\n- `DEPOSIT`\n    \n- `WITHDRAWAL`\n    \n- `TRANSFER_IN`\n    \n- `TRANSFER_OUT`\n    \n- `FEE`\n    \n\n---\n\n### Example Request\n\n`GET /api/accounts/f7002851-65ff-4b12-9acd-fe1408f13ddb/transactions?page=1&size=10&fromDate=2026-03-01T00:00:00Z&toDate=2026-03-31T23:59:59Z&type=TRANSFER_OUT`\n\n---\n\n# 📤 Responses\n\n---\n\n## ✅ 200 OK\n\nThe transaction history was successfully retrieved.\n\n### Response Body (JSON)\n\n``` json\n{\n    \"content\": [\n        {\n            \"referenceNumber\": \"TXN019D1CF3740B77B96C62B41931E7\",\n            \"type\": \"TRANSFER_OUT\",\n            \"amount\": 100.00,\n            \"balance\": 1100.00,\n            \"description\": \"Mock transaction 120\",\n            \"counterpartyAccountNumber\": \"ES3929935372991874466106\",\n            \"counterpartyName\": \"Counterparty 120\",\n            \"timestamp\": \"2026-03-24T09:01:50.202Z\"\n        }\n    ],\n    \"page\": 1,\n    \"size\": 1,\n    \"totalElements\": 120,\n    \"totalPages\": 120\n}\n\n ```\n\n---\n\n## ❌ 400 Bad Request\n\nThe request contains invalid query parameters.\n\nPossible Causes:\n\n- Invalid `page` or `size` values (e.g., negative or zero)\n    \n- Invalid date format (must be **ISO-8601**)\n    \n- `fromDate` greater than `toDate`\n    \n- Invalid `type` value (not part of the enum)\n    \n\n---\n\n## 🔐 401 Unauthorized\n\nAuthentication credentials were not provided or are invalid.\n\nPossible Causes:\n\n- Missing JWT token\n    \n- Expired token\n    \n- Invalid token signature\n    \n\n---\n\n## ⛔ 403 Forbidden\n\nThe authenticated user does not have permission to access this resource.\n\nPossible Causes:\n\n- User does not have the required role (`CUSTOMER`)\n    \n- The account does not belong to the authenticated user\n    \n\n---\n\n## ⚠️ 404 Not Found\n\nThe requested account was not found.\n\nPossible Causes:\n\n- The account does not exist\n    \n- The account ID is valid but not associated with any record"
+          },
+          "response": []
         }
       ],
       "description": "This folder contains all the API requests related to the **Accounts** microservice.\n\nIt is intended to support **manual testing and validation** of account-related operations, allowing controlled interaction with the service endpoints and verification of their expected behavior.\n\nThe requests in this folder cover the main account lifecycle and transactional flows and are used during development, debugging, and QA processes."

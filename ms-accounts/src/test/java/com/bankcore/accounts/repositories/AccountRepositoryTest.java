@@ -125,4 +125,28 @@ public class AccountRepositoryTest extends AbstractIntegrationTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void existsByIdAndCustomerId_WhenThereIsARecord(){
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount();
+        AccountEntity saved = accountRepository.save(mockAccount);
+
+        assertTrue(accountRepository.existsByIdAndCustomerId(saved.getId(), saved.getCustomerId()));
+    }
+
+    @Test
+    void existsByIdAndCustomerId_WhenTheAccountDoesNotBelongToTheCustomer(){
+        AccountEntity mockAccount = AccountDataProvider.createMockAccount();
+        AccountEntity saved = accountRepository.save(mockAccount);
+
+        assertFalse(accountRepository.existsByIdAndCustomerId(saved.getId(), UUID.randomUUID()));
+    }
+
+    @Test
+    void existsByIdAndCustomerId_WhenThereIsNoRecord(){
+        UUID id = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+
+        assertFalse(accountRepository.existsByIdAndCustomerId(id, customerId));
+    }
 }

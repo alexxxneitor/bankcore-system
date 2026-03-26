@@ -1,8 +1,10 @@
 package com.bankcore.accounts.services;
 
+import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
+import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.exceptions.AccountInactiveException;
 import com.bankcore.accounts.exceptions.AccountNotFoundException;
 import com.bankcore.accounts.exceptions.BusinessException;
@@ -15,6 +17,7 @@ import com.bankcore.accounts.services.complements.CustomerAccountValidator;
 import com.bankcore.accounts.services.complements.CustomerValidationService;
 import com.bankcore.accounts.services.complements.PinAttemptManagerService;
 import com.bankcore.accounts.services.processors.DepositProcessor;
+import com.bankcore.accounts.services.processors.TransactionHistoryProcessor;
 import com.bankcore.accounts.services.processors.TransferProcessor;
 import com.bankcore.accounts.services.processors.WithdrawalProcessor;
 import com.bankcore.accounts.utils.enums.AccountStatus;
@@ -54,6 +57,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final DepositProcessor depositProcessor;
     private final WithdrawalProcessor withdrawalProcessor;
     private final TransferProcessor transferProcessor;
+    private final TransactionHistoryProcessor transactionHistory;
 
     /**
      * Executes a deposit transaction for a customer's account.
@@ -131,5 +135,26 @@ public class TransactionServiceImpl implements TransactionService {
     public TransferResponse makeTransfer(TransferRequest request, UUID customerId) {
         AccountEntity sourceAccount = validator.validateCustomerAccountAndPin(customerId, request.getSourceAccountId(), request.getPin());
         return transferProcessor.processTransfer(sourceAccount, request);
+    }
+
+    /**
+     * Retrieves the transaction history for a given account,
+     * applying optional filters such as type, date range, and pagination.
+     *
+     * <p>This method delegates the actual processing to
+     * {@link TransactionHistoryProcessor#getTransactions(UUID, UUID, TransactionQueryParams)},
+     * ensuring that the service layer handles validation, filtering, and mapping.</p>
+     *
+     * @param accountId the unique identifier of the account
+     * @param customerId the unique identifier of the customer
+     * @param filters the query parameters including pagination, type, and date filters
+     * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
+     * @see TransactionHistoryProcessor
+     * @see TransactionsHistoryResponse
+     * @see TransactionQueryParams
+     */
+    @Override
+    public TransactionsHistoryResponse getTransactionsHistory(UUID accountId, UUID customerId, TransactionQueryParams filters) {
+        return transactionHistory.getTransactions(accountId, customerId, filters);
     }
 }

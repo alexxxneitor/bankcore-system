@@ -1,8 +1,8 @@
 package com.bankcore.accounts.models;
 
-import com.bankcore.accounts.utils.uuidConfig.UUIDv7;
 import com.bankcore.accounts.utils.enums.TransactionStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Immutable;
@@ -10,40 +10,36 @@ import org.hibernate.annotations.Immutable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Represents a financial transaction associated with an {@link AccountEntity}.
  * <p>
  * This entity is immutable and mapped to the {@code transactions} table.
- * Each transaction is uniquely identified by a generated {@link UUID} and
- * a derived {@code referenceNumber}. The entity captures essential details
- * such as type, amount, balance after the transaction, concept, counterparty
- * information, and status.
+ * It stores details such as transaction type, amount, balance after the transaction,
+ * counterparty information, and metadata like reference number and creation timestamp.
  * </p>
  *
- * <p>
- * Constraints and indexes:
+ * <p><b>Constraints and Indexes:</b></p>
  * <ul>
- *   <li>Unique constraint on {@code referenceNumber}.</li>
- *   <li>Index on {@code account_id} for efficient lookups by account.</li>
- *   <li>Index on {@code referenceNumber} for quick retrieval by reference.</li>
- *   <li>Composite index on {@code account_id, createdAt DESC} for chronological queries.</li>
- *   <li>Composite index on {@code account_id, type, status, createdAt} to optimize daily limit calculations.</li>
+ *   <li>Unique constraint on {@code referenceNumber} to ensure transaction uniqueness.</li>
+ *   <li>Indexes to optimize queries by account, type, status, and creation date.</li>
  * </ul>
- * </p>
  *
- * <p>
- * Lifecycle:
+ * <p><b>Lifecycle:</b></p>
  * <ul>
- *   <li>On persist, {@code createdAt} is set to the current timestamp.</li>
- *   <li>A {@code referenceNumber} is generated based on the transaction {@link UUID}.</li>
+ *   <li>On persist, generates a time-ordered UUID (UUID v7) if not provided.</li>
+ *   <li>Automatically sets {@code createdAt} and {@code referenceNumber} if missing.</li>
  * </ul>
- * </p>
  *
- * @author Bankcore Team - Sebastian Orjuela
- * @version 1.0
+ * <p><b>Immutability:</b></p>
+ * All fields are non-updatable after persistence, ensuring transaction records
+ * remain immutable and auditable.
+ *
+ * @author Banckore Team
+ * @author Sebastian Orjuela
+ * @version 0.1.0
  */
-
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -61,14 +57,13 @@ import java.util.UUID;
         indexes = {
                 @Index(name = "idx_transaction_account", columnList = "account_id"),
                 @Index(name = "idx_transaction_account_created", columnList = "account_id, created_at DESC"),
-                @Index(name = "idx_transaction_account_type_status_created", columnList = "account_id, type, status, created_at")
+                @Index(name = "idx_transaction_account_type_status_created", columnList = "account_id, type, status, created_at"),
+                @Index(name = "idx_account_type_created_at", columnList = "account_id, type, created_at DESC")
         }
 )
 public class TransactionEntity {
 
     @Id
-    @GeneratedValue(generator = "uuid7")
-    @UUIDv7
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -105,12 +100,8 @@ public class TransactionEntity {
     private Instant createdAt;
 
     /**
-     * Generates a unique reference number for the transaction.
-     * <p>
-     * The reference number is composed of the prefix {@code TXN}
-     * followed by the first 16 characters of the transaction {@link UUID},
-     * formatted in uppercase.
-     * </p>
+     * Generates a unique reference number based on the transaction UUID and a random component.
+     * This method is invoked during entity creation if no reference number is set.
      */
     protected void generateReferenceNumber() {
         if (this.id != null) {
@@ -118,13 +109,31 @@ public class TransactionEntity {
                     .replace("-", "")
                     .substring(0, 16)
                     .toUpperCase();
-            this.referenceNumber = String.join("","TXN", uuidPart);
+            String randomPart = Long.toHexString(ThreadLocalRandom.current().nextLong(0xFFFFFFFFFFFFL)).toUpperCase();
+            this.referenceNumber = String.join("", "TXN", uuidPart, randomPart);
         }
     }
 
+    /**
+     * Lifecycle callback executed before persisting the entity.
+     * <ul>
+     *   <li>Generates a UUID v7 if {@code id} is null.</li>
+     *   <li>Sets {@code createdAt} to the current timestamp if null.</li>
+     *   <li>Generates a {@code referenceNumber} if not provided.</li>
+     * </ul>
+     */
     @PrePersist
     protected void onCreate() {
-        this.createdAt = Instant.now();
-        generateReferenceNumber();
+        if (this.id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch(); // UUID v7
+        }
+
+        if (this.createdAt == null) {
+            this.createdAt = Instant.now();
+        }
+
+        if (this.referenceNumber == null) {
+            generateReferenceNumber();
+        }
     }
 }

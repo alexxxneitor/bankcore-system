@@ -193,14 +193,15 @@ Tabla: `account_pin_security`
 
 #### URLs principales
 
-| Endpoint                            | Método | Descripción                                                                                                       | Acceso                             |
-|-------------------------------------|--------|-------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| /api/accounts                       | POST   | Registro de Cuentas Bancarias                                                                                     | Restringido solo Role CUSTOMER     |
-| /api/accounts                       | GET    | Obtener Cuentas Bancarias del cliente                                                                             | Restringido solo Role CUSTOMER     |
-| /api/accounts/{accountId}           | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado | Restringido solo Role CUSTOMER     |
-| /api/accounts/{accountId}/deposit   | POST   | Registra una nueva transaccion y un nuevo balance a la cuenta destinadad                                          | Restringido solo Role CUSTOMER     |
-| /api/accounts/{accountId}/withdraw  | POST   | Ejecuta una operación de retiro de fondos sobre la cuenta indicada                                                | Restringido solo Role CUSTOMER     |
-| /api/transfers                      | POST   | Regsistra una Transferencia entre cuentas y sus respectivos movimientos                                           | Restringido solo Role CUSTOMER     |
+| Endpoint                               | Método | Descripción                                                                                                      | Acceso                          |
+|----------------------------------------|--------|------------------------------------------------------------------------------------------------------------------|---------------------------------|
+| /api/accounts                          | POST   | Registro de Cuentas Bancarias                                                                                    | Restringido solo Role CUSTOMER  |
+| /api/accounts                          | GET    | Obtener Cuentas Bancarias del cliente                                                                            | Restringido solo Role CUSTOMER  |
+| /api/accounts/{accountId}              | GET    | Obtiene los detalles completos de una cuenta bancaria específica, validando que pertenezca al cliente autenticado| Restringido solo Role CUSTOMER  |
+| /api/accounts/{accountId}/deposit      | POST   | Registra una nueva transaccion y un nuevo balance a la cuenta destinadad                                         | Restringido solo Role CUSTOMER  |
+| /api/accounts/{accountId}/withdraw     | POST   | Ejecuta una operación de retiro de fondos sobre la cuenta indicada                                               | Restringido solo Role CUSTOMER  |
+| /api/transfers                         | POST   | Registra una Transferencia entre cuentas y sus respectivos movimientos                                           | Restringido solo Role CUSTOMER  |
+| /api/accounts/{accountId}/transactions | GET    | Obtiene todas las transacciones o movimientos realizados por la cuenta, permite filtro por fechas, y tipo        | Restringido solo Role CUSTOMER  |
 
 ---
 
@@ -219,7 +220,7 @@ Swagger UI permite explorar y probar los endpoints directamente desde el navegad
 ## 🛠️ Tecnologías Utilizadas
 
 - Java 17
-- Spring Boot 3.5.11
+- Spring Boot 3.5.12
 - Spring Security + JWT
 - Spring Data JPA
 - PostgreSQL
@@ -300,13 +301,13 @@ Esta colección permite explorar fácilmente las funcionalidades del servicio, a
 
 ### 📥 Descargar colección
 
-[Descargar Postman Collection](./docs/postman/Bankcore-Collection.postman_collection.json)
+[Descargar Postman Collection](./docs/Postman/Bankcore-Collection.postman_collection.json)
 
 ### ▶️ Ejecutar en Postman
 
 También puedes importar la colección directamente en tu workspace de Postman utilizando el siguiente botón:
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://web.postman.co/workspace/7881e3dd-6f51-41b2-8795-b96d8e8d79aa/collection/35777093-2d47e7ec-516e-47ed-89c7-48d05b9c981b?action=share&source=copy-link&creator=35777093)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://web.postman.co/workspace/7881e3dd-6f51-41b2-8795-b96d8e8d79aa/collection/35777093-6228710d-4455-484b-9231-93e45ada5ee9?action=share&source=copy-link&creator=35777093)
 
 ---
 

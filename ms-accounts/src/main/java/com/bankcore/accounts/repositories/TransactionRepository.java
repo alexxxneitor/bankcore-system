@@ -4,6 +4,7 @@ import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.utils.enums.TransactionStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,16 +14,20 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Repository interface for managing {@link TransactionEntity} persistence
- * operations.
+ * Repository interface for managing {@link TransactionEntity} persistence operations.
  * <p>
  * Extends {@link JpaRepository} to provide standard CRUD operations and
  * exposes custom query methods for transaction-specific lookups.
  * </p>
- * 
- * @author BankCore Team - Cristian Ortiz
+ *
+ * @author BankCore Team
+ * @author Cristian Ortiz
+ * @author Sebastian Orjuela
+ * @version 0.3.0
  */
-public interface TransactionRepository extends JpaRepository<TransactionEntity, UUID> {
+public interface TransactionRepository extends
+        JpaRepository<TransactionEntity, UUID>,
+        JpaSpecificationExecutor<TransactionEntity> {
 
         /**
          * Retrieves the most recent transaction associated with a given account.

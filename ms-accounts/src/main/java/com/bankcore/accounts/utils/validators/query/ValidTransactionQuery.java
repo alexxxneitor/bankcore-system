@@ -1,0 +1,59 @@
+package com.bankcore.accounts.utils.validators.query;
+
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
+
+import java.lang.annotation.*;
+
+/**
+ * {@code @ValidTransactionQuery} is a custom validation annotation
+ * used to ensure that transaction query parameters comply with
+ * defined business rules.
+ *
+ * <p>This annotation delegates validation logic to
+ * {@link TransactionQueryValidator}, which performs checks
+ * on the annotated class to guarantee that query parameters
+ * are consistent and valid.</p>
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Attach validation rules to transaction query objects.</li>
+ *   <li>Provide a default validation message when constraints fail.</li>
+ *   <li>Support grouping and payload for advanced validation scenarios.</li>
+ * </ul>
+ *
+ * @author BankcoreTeam
+ * @author Sebastian Orjuela
+ * @version 1.0
+ * @see TransactionQueryValidator
+ */
+@Documented
+@Constraint(validatedBy = TransactionQueryValidator.class)
+@Target({ ElementType.TYPE })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ValidTransactionQuery {
+
+    /**
+     * Default validation message returned when the query parameters
+     * are invalid.
+     *
+     * @return the error message
+     */
+    String message() default "Invalid transaction query params";
+
+    /**
+     * Allows specification of validation groups to apply
+     * different validation contexts.
+     *
+     * @return the validation groups
+     */
+    Class<?>[] groups() default {};
+
+    /**
+     * Can be used by clients of the Bean Validation API
+     * to assign custom payload objects to a constraint.
+     *
+     * @return the payload type
+     */
+    Class<? extends Payload>[] payload() default {};
+}

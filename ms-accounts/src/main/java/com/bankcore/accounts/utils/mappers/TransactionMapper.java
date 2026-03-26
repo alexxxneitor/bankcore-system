@@ -1,6 +1,7 @@
 package com.bankcore.accounts.utils.mappers;
 
 import com.bankcore.accounts.dto.responses.TransactionResponse;
+import com.bankcore.accounts.dto.responses.TransactionHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.models.TransferEntity;
@@ -82,4 +83,24 @@ public interface TransactionMapper {
             String beneficiaryName,
             BigDecimal totalDebited
     );
+
+    /**
+     * Maps a {@link TransactionEntity} into a {@link TransactionHistoryResponse}.
+     *
+     * <p>This method extracts relevant fields from the given transaction entity
+     * and enriches the response with counterparty details.</p>
+     *
+     * <p>Responsibilities:</p>
+     * <ul>
+     *   <li>Map {@code balanceAfter} from {@link TransactionEntity} to {@code balance}.</li>
+     *   <li>Map {@code createdAt} from {@link TransactionEntity} to {@code timestamp}.</li>
+     *   <li>Include {@code counterPartyAccount} and {@code counterPartyName} in the response.</li>
+     * </ul>
+     *
+     * @param transaction the transaction entity to map
+     * @return a {@link TransactionHistoryResponse} populated with transaction and counterparty details
+     */
+    @Mapping(source = "transaction.balanceAfter", target = "balance")
+    @Mapping(source = "transaction.createdAt", target = "timestamp")
+    TransactionHistoryResponse toTransactionHistory(TransactionEntity transaction);
 }

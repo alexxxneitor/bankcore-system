@@ -1,13 +1,16 @@
 package com.bankcore.accounts.services;
 
+import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
 import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
+import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.models.AccountEntity;
 import com.bankcore.accounts.services.complements.CustomerAccountValidator;
 import com.bankcore.accounts.services.processors.DepositProcessor;
+import com.bankcore.accounts.services.processors.TransactionHistoryProcessor;
 import com.bankcore.accounts.services.processors.TransferProcessor;
 import com.bankcore.accounts.services.processors.WithdrawalProcessor;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -38,6 +42,9 @@ public class TransactionServiceImplTest {
 
     @Mock
     private TransferProcessor transferProcessor;
+
+    @Mock
+    private TransactionHistoryProcessor transactionHistoryProcessor;
 
     @InjectMocks
     private TransactionServiceImpl transactionService;
@@ -184,5 +191,18 @@ public class TransactionServiceImplTest {
         );
 
         verify(withdrawalProcessor, never()).processWithdrawal(any(), any(), any());
+    }
+
+    @Test
+    void shouldDelegateAndReturnResult() {
+        TransactionQueryParams filters = new TransactionQueryParams();
+        TransactionsHistoryResponse expected = TransactionsHistoryResponse.builder().build();
+
+        when(transactionHistoryProcessor.getTransactions(accountId, customerId, filters)).thenReturn(expected);
+
+        TransactionsHistoryResponse result = transactionService.getTransactionsHistory(accountId, customerId, filters);
+
+        assertThat(result).isSameAs(expected);
+        verify(transactionHistoryProcessor).getTransactions(accountId, customerId, filters);
     }
 }
