@@ -2,9 +2,12 @@ package com.bankcore.accounts.exceptions;
 
 import com.bankcore.accounts.dto.responses.ErrorResponse;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -85,11 +88,17 @@ public class GlobalExceptionHandler {
 
     //Custom exception handling: captures and manages errors in the request body when the user submits incorrect or malformed parameters.
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> customMethodArgumentNotValidException(MethodArgumentNotValidException ex){
+    public ResponseEntity<ErrorResponse> customMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         String description = ex.getBindingResult()
-                .getFieldErrors()
+                .getAllErrors()
                 .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .map(error -> {
+                    if (error instanceof FieldError fieldError) {
+                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                    }
+                    return error.getDefaultMessage();
+                })
+                .filter(msg -> msg != null && !msg.isBlank())
                 .collect(Collectors.joining("; "));
 
         return badRequest(description);
@@ -137,6 +146,29 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IncorrectPinException.class)
     public ResponseEntity<ErrorResponse> handleIncorrectPinException(IncorrectPinException ex){
         return badRequest(ex.getMessage());
+    }
+
+    //Handles insufficient funds - returns HTTP 409 Conflict
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientBalanceException(InsufficientBalanceException ex){
+        return conflict(ex.getMessage());
+    }
+
+    // Handles exception of transfer to destination account - returns HTTP 409 Conflict
+    @ExceptionHandler(InvalidTransferDestinationException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTransferDestinationException(InvalidTransferDestinationException ex){
+        return conflict(ex.getMessage());
+    }
+
+    // Handles validation exception of date parsing from the query - returns HTTP 400 Bad Request
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining("; "));
+
+        return badRequest(message);
     }
 
     /**

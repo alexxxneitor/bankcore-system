@@ -1,5 +1,6 @@
 package com.bankcore.accounts.dto.responses;
 
+import com.bankcore.accounts.utils.enums.TransactionStatus;
 import com.bankcore.accounts.utils.enums.TransactionType;
 import lombok.Builder;
 import lombok.Value;
@@ -25,6 +26,7 @@ import java.time.Instant;
  *   <li>{@code balanceAfter} – Account balance immediately after the transaction.</li>
  *   <li>{@code description} – Human-readable description or concept of the transaction.</li>
  *   <li>{@code timestamp} – Exact time when the transaction occurred.</li>
+ *   <li>{@code status} – Current status of the transaction (e.g., COMPLETED, PENDING).</li>
  * </ul>
  * </p>
  *
@@ -51,4 +53,5 @@ public class TransactionResponse {
     BigDecimal balanceAfter;
     String description;
     Instant timestamp;
+    TransactionStatus status;
 }

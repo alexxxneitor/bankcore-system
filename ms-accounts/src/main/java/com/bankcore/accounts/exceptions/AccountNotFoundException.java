@@ -9,7 +9,7 @@ package com.bankcore.accounts.exceptions;
  * </p>
  *
  * @author Bankcore Team - Sebastian Orjuela
- * @version 1.0
+ * @version 1.1
  *
  * @see RuntimeException
  */
@@ -17,4 +17,5 @@ public class AccountNotFoundException extends RuntimeException {
     public AccountNotFoundException() {
         super("Account not found");
     }
+    public AccountNotFoundException(String message) {super(message);}
 }

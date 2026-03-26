@@ -20,11 +20,15 @@ import com.bankcore.accounts.utils.enums.AccountStatus;
  * @see AccountStatus
  *
  * @author Bankcore Team - Sebastian Orjuela
- * @version 1.0
+ * @version 1.1
  */
 public class AccountInactiveException extends RuntimeException {
 
     public AccountInactiveException(AccountStatus status) {
         super(String.join(" ", "Account is not active. account status is", status.name()));
+    }
+
+    public AccountInactiveException(AccountStatus status, String message) {
+        super(String.join(" ", message, "account status is", status.name()));
     }
 }

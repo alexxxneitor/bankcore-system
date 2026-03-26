@@ -1,62 +1,71 @@
 package com.bankcore.accounts.services;
 
+import com.bankcore.accounts.dto.requests.TransactionQueryParams;
 import com.bankcore.accounts.dto.requests.TransactionRequest;
+import com.bankcore.accounts.dto.requests.TransferRequest;
 import com.bankcore.accounts.dto.responses.TransactionResponse;
+import com.bankcore.accounts.dto.responses.TransactionsHistoryResponse;
 import com.bankcore.accounts.exceptions.AccountInactiveException;
 import com.bankcore.accounts.exceptions.AccountNotFoundException;
+import com.bankcore.accounts.exceptions.BusinessException;
 import com.bankcore.accounts.integrations.dto.request.PinValidateRequest;
 import com.bankcore.accounts.integrations.dto.responses.PinValidateResponse;
+import com.bankcore.accounts.dto.responses.TransferResponse;
 import com.bankcore.accounts.models.AccountEntity;
-import com.bankcore.accounts.models.TransactionEntity;
 import com.bankcore.accounts.repositories.AccountRepository;
-import com.bankcore.accounts.repositories.TransactionRepository;
+import com.bankcore.accounts.services.complements.CustomerAccountValidator;
 import com.bankcore.accounts.services.complements.CustomerValidationService;
 import com.bankcore.accounts.services.complements.PinAttemptManagerService;
+import com.bankcore.accounts.services.processors.DepositProcessor;
+import com.bankcore.accounts.services.processors.TransactionHistoryProcessor;
+import com.bankcore.accounts.services.processors.TransferProcessor;
+import com.bankcore.accounts.services.processors.WithdrawalProcessor;
 import com.bankcore.accounts.utils.enums.AccountStatus;
-import com.bankcore.accounts.utils.enums.TransactionStatus;
-import com.bankcore.accounts.utils.enums.TransactionType;
-import com.bankcore.accounts.utils.mappers.TransactionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
- * Implementation of the {@link TransactionService} interface that handles
- * deposit transactions for customer accounts.
+ * Coordinator service that manages deposit and transfer operations for customer accounts.
  * <p>
- * This service coordinates validation of customer state, account status,
- * and PIN security before executing a deposit. It ensures that business
- * rules are enforced and that both the account and transaction records
- * are updated consistently.
+ * This service delegates the following responsibilities to specialized components:
+ * <ul>
+ *   <li>{@link CustomerAccountValidator}: validates customer and account status, including PIN verification.</li>
+ *   <li>{@link DepositProcessor}: handles deposit processing and persistence.</li>
+ *   <li>{@link TransferProcessor}: handles transfer processing, including destination resolution, balance updates, and transaction persistence.</li>
+ * </ul>
+ * <p>
+ * By delegating responsibilities, this class maintains a clear orchestration role,
+ * following the Single Responsibility Principle (SRP).
  * </p>
  *
- * @author BankCore Team - Sebastian Orjuela
+ * @author BankCore
+ * @author Sebastian Orjuela
  * @version 1.0
  */
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
-    private final CustomerValidationService validationService;
-    private final AccountRepository accountRepository;
-    private final TransactionRepository transactionRepository;
-    private final TransactionMapper transactionMapper;
-    private final PinAttemptManagerService pinSecurityService;
+    private final CustomerAccountValidator validator;
+    private final DepositProcessor depositProcessor;
+    private final WithdrawalProcessor withdrawalProcessor;
+    private final TransferProcessor transferProcessor;
+    private final TransactionHistoryProcessor transactionHistory;
 
     /**
-     * Executes a deposit transaction after validating customer, account, and PIN state.
+     * Executes a deposit transaction for a customer's account.
      * <p>
      * The method performs the following steps:
      * <ol>
-     *   <li>Validates that the customer exists and is active.</li>
-     *   <li>Retrieves the account and ensures it belongs to the customer.</li>
-     *   <li>Checks that the account is active.</li>
-     *   <li>Checks PIN lock state and validates the PIN.</li>
-     *   <li>Processes PIN attempts and applies lockout policies if necessary.</li>
-     *   <li>Updates the account balance and persists the transaction.</li>
+     *   <li>Validates the customer and account state, including PIN verification using {@link CustomerAccountValidator}.</li>
+     *   <li>Delegates deposit processing to {@link DepositProcessor}, which updates the account balance and saves the transaction.</li>
      * </ol>
      * </p>
      *
@@ -64,47 +73,88 @@ public class TransactionServiceImpl implements TransactionService {
      * @param accountId  the {@link UUID} of the account to deposit into
      * @param customerId the {@link UUID} of the customer performing the transaction
      * @return a {@link TransactionResponse} containing the result of the deposit
+     */
+    @Override
+    public TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId) {
+        AccountEntity account = validator.validateCustomerAccountAndPin(customerId, accountId, request.getPin());
+        return depositProcessor.processDeposit(account, request.getAmount(), request.getDescription());
+    }
+
+    /**
+     * Executes a withdrawal transaction after validating customer, account, PIN, balance, and limits.
+     * <p>
+     * The method performs the following steps:
+     * <ol>
+     *   <li>Validates that the customer exists and is active.</li>
+     *   <li>Retrieves the account and ensures it belongs to the customer.</li>
+     *   <li>Checks that the account is active.</li>
+     *   <li>Validates the ATM PIN.</li>
+     *   <li>Verifies if the account has sufficient balance.</li>
+     *   <li>Verifies if the withdrawal exceeds the daily limit (calculated in UTC).</li>
+     *   <li>Reduces the account balance and persists the WITHDRAWAL transaction.</li>
+     * </ol>
+     * </p>
+     *
+     * @param request    the {@link TransactionRequest} containing withdrawal details
+     * @param accountId  the {@link UUID} of the account to withdraw from
+     * @param customerId the {@link UUID} of the customer performing the transaction
+     * @return a {@link TransactionResponse} containing the result of the withdrawal
      * @throws AccountNotFoundException if the account does not exist
      * @throws AccountInactiveException if the account is inactive
+     * @throws BusinessException        if funds are insufficient or daily limit is exceeded
      */
     @Override
     @Transactional
-    public TransactionResponse makeDeposit(TransactionRequest request, UUID accountId, UUID customerId) {
+    public TransactionResponse makeWithdrawal(TransactionRequest request, UUID accountId, UUID customerId) {
 
-        validationService.validateCustomerIsActive(customerId);
+        AccountEntity account = validator.validateCustomerAccountAndPin(customerId, accountId, request.getPin());
 
-        AccountEntity account = accountRepository
-                .findByIdAndCustomerId(accountId, customerId)
-                .orElseThrow(AccountNotFoundException::new);
-
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new AccountInactiveException(account.getStatus());
+        if (account.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new BusinessException("INSUFFICIENT_FUNDS");
         }
 
-        pinSecurityService.checkPinLock(accountId);
+        return withdrawalProcessor.processWithdrawal(account, request.getAmount(), request.getDescription());
+    }
 
-        PinValidateRequest pinRequest = PinValidateRequest.builder().pin(request.getPin()).build();
-        PinValidateResponse pinResponse = validationService.validateCustomerPin(customerId, pinRequest);
+    /**
+     * Executes a transfer from a source account to a destination account.
+     * <p>
+     * The method performs the following steps:
+     * <ol>
+     *   <li>Validates the source account and customer state, including PIN verification using {@link CustomerAccountValidator}.</li>
+     *   <li>Delegates transfer processing to {@link TransferProcessor}, which resolves the destination account,
+     *       calculates balances, and persists transfer and transaction records.</li>
+     * </ol>
+     * </p>
+     *
+     * @param request    the {@link TransferRequest} containing transfer details
+     * @param customerId the {@link UUID} of the customer initiating the transfer
+     * @return a {@link TransferResponse} containing the result of the transfer
+     */
+    @Override
+    public TransferResponse makeTransfer(TransferRequest request, UUID customerId) {
+        AccountEntity sourceAccount = validator.validateCustomerAccountAndPin(customerId, request.getSourceAccountId(), request.getPin());
+        return transferProcessor.processTransfer(sourceAccount, request);
+    }
 
-        pinSecurityService.processPinAttempt(accountId, pinResponse);
-
-        BigDecimal balanceBefore = account.getBalance();
-        BigDecimal newBalance = balanceBefore.add(request.getAmount());
-
-        TransactionEntity transaction = TransactionEntity.builder()
-                .account(account)
-                .type(TransactionType.DEPOSIT)
-                .amount(request.getAmount())
-                .balanceAfter(newBalance)
-                .description(request.getDescription())
-                .status(TransactionStatus.COMPLETED)
-                .build();
-
-        account.setBalance(newBalance);
-
-        transactionRepository.save(transaction);
-        accountRepository.save(account);
-
-        return transactionMapper.toTransactionResponse(transaction, balanceBefore);
+    /**
+     * Retrieves the transaction history for a given account,
+     * applying optional filters such as type, date range, and pagination.
+     *
+     * <p>This method delegates the actual processing to
+     * {@link TransactionHistoryProcessor#getTransactions(UUID, UUID, TransactionQueryParams)},
+     * ensuring that the service layer handles validation, filtering, and mapping.</p>
+     *
+     * @param accountId the unique identifier of the account
+     * @param customerId the unique identifier of the customer
+     * @param filters the query parameters including pagination, type, and date filters
+     * @return a {@link TransactionsHistoryResponse} containing transaction history and pagination metadata
+     * @see TransactionHistoryProcessor
+     * @see TransactionsHistoryResponse
+     * @see TransactionQueryParams
+     */
+    @Override
+    public TransactionsHistoryResponse getTransactionsHistory(UUID accountId, UUID customerId, TransactionQueryParams filters) {
+        return transactionHistory.getTransactions(accountId, customerId, filters);
     }
 }
