@@ -22,7 +22,7 @@ package com.bankcore.accounts.utils;
  * </p>
  *
  * @author BankcoreTeam - Sebastian Orjuela
- * @version 1.0
+ * @version 0.1.0
  */
 public final class IbanUtils {
 

@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 /**
  * {@code TransactionQueryValidator} is a custom implementation of
@@ -86,7 +87,7 @@ public class TransactionQueryValidator implements ConstraintValidator<ValidTrans
 
         if (values.getType() != null) {
             try {
-                TransactionType.valueOf(values.getType().toUpperCase());
+                TransactionType.valueOf(values.getType().toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException ex) {
                 addError(context, "Invalid transaction type");
                 isValid = false;

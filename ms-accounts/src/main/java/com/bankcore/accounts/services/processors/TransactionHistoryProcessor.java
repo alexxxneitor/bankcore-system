@@ -43,7 +43,7 @@ import java.util.UUID;
  *
  * @author BankcoreTeam
  * @author Sebastian Orjuela
- * @version 1.0
+ * @version 0.1.0
  * @see TransactionRepository
  * @see AccountRepository
  * @see TransactionMapper
