@@ -304,6 +304,10 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 pinNull
         );
 
+        // Agregado para Issue #44: Evita NullPointerException al validar la existencia del customer
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
         for (TransactionRequest request : invalidRequests) {
 
             mockMvc.perform(post("/api/accounts/{accountId}/deposit", accountId)

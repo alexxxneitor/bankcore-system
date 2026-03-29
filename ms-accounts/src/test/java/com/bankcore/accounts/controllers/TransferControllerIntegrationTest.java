@@ -492,6 +492,10 @@ public class TransferControllerIntegrationTest extends AbstractIntegrationTest {
                 pinNull
         );
 
+        // Agregado para Issue #44: Evita NullPointerException asegurando que exista customer válido
+        Mockito.when(customerClient.getCustomerById(customerId))
+                .thenReturn(new CustomerResponse(customerId, true, true));
+
         for (TransferRequest request : invalidRequests) {
 
             mockMvc.perform(post("/api/transfers")
