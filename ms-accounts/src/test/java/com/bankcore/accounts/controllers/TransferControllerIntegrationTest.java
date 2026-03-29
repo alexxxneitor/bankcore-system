@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -497,7 +498,7 @@ public class TransferControllerIntegrationTest extends AbstractIntegrationTest {
                 .thenReturn(new CustomerResponse(customerId, true, true));
 
         // [CAMBIO] Evita NPE si `validateCustomerPin` retorna null para pines inválidos.
-        Mockito.when(customerClient.validateCustomerPin(org.mockito.ArgumentMatchers.eq(customerId), org.mockito.ArgumentMatchers.any(PinValidateRequest.class)))
+        Mockito.when(customerClient.validateCustomerPin(eq(customerId), any(PinValidateRequest.class)))
                 .thenReturn(new PinValidateResponse(false));
 
         for (TransferRequest request : invalidRequests) {

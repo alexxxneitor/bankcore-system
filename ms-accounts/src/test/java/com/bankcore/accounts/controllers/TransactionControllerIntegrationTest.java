@@ -41,6 +41,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -309,7 +311,7 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 .thenReturn(new CustomerResponse(customerId, true, true));
 
         // [CAMBIO] Mock de validación de PIN para que, al llegar al servicio, no retorne null y cause NPE en PinAttemptManagerService.valid()
-        Mockito.when(customerClient.validateCustomerPin(org.mockito.ArgumentMatchers.eq(customerId), org.mockito.ArgumentMatchers.any(PinValidateRequest.class)))
+        Mockito.when(customerClient.validateCustomerPin(eq(customerId), any(PinValidateRequest.class)))
                 .thenReturn(new PinValidateResponse(false));
 
         for (TransactionRequest request : invalidRequests) {
