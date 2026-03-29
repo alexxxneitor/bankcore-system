@@ -61,8 +61,7 @@ public class CustomerValidationService {
      * @return a {@link PinValidateResponse} indicating whether the PIN is valid
      */
     public PinValidateResponse validateCustomerPin(UUID customerId, PinValidateRequest request) {
-        PinValidateResponse response = customerClient.validateCustomerPin(customerId, request);
-        return response != null ? response : new PinValidateResponse(false);
+        return customerClient.validateCustomerPin(customerId, request);
     }
 
     /**

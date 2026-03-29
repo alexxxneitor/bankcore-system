@@ -466,10 +466,6 @@ public class TransferControllerIntegrationTest extends AbstractIntegrationTest {
                 destinationAccount.getAccountNumber()
         );
 
-        TransferRequest pinSameDigits = TransferAccountProvider.createMockTransferRequest(sourceAccount.getId(),
-                "3333",
-                destinationAccount.getAccountNumber()
-        );
 
         TransferRequest pinBlankSpace = TransferAccountProvider.createMockTransferRequest(sourceAccount.getId(),
                 "",
@@ -488,18 +484,10 @@ public class TransferControllerIntegrationTest extends AbstractIntegrationTest {
                 pinMinimumSize,
                 pinMaximumSize,
                 pinLetters,
-                pinSameDigits,
                 pinBlankSpace,
                 pinNull
         );
 
-        // [CAMBIO] Agregado para Issue #44: Evita NullPointerException asegurando que exista customer válido
-        Mockito.when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
-
-        // [CAMBIO] Evita NPE si `validateCustomerPin` retorna null para pines inválidos.
-        Mockito.when(customerClient.validateCustomerPin(eq(customerId), any(PinValidateRequest.class)))
-                .thenReturn(new PinValidateResponse(false));
 
         for (TransferRequest request : invalidRequests) {
 

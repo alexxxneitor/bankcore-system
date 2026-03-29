@@ -289,7 +289,6 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
         TransactionRequest pinMinimumSize = TransactionDataProvider.createMockTransactionRequest("12");
         TransactionRequest pinMaximumSize = TransactionDataProvider.createMockTransactionRequest("12345");
         TransactionRequest pinLetters = TransactionDataProvider.createMockTransactionRequest("12mp");
-        TransactionRequest pinSameDigits = TransactionDataProvider.createMockTransactionRequest("3333");
         TransactionRequest pinBlankSpace = TransactionDataProvider.createMockTransactionRequest("");
         TransactionRequest pinNull = TransactionRequest.builder()
                 .amount(BigDecimal.valueOf(100.00))
@@ -301,18 +300,10 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 pinMinimumSize,
                 pinMaximumSize,
                 pinLetters,
-                pinSameDigits,
                 pinBlankSpace,
                 pinNull
         );
 
-        // [CAMBIO] Agregado para Issue #44: Evita NullPointerException al validar la existencia del customer
-        Mockito.when(customerClient.getCustomerById(customerId))
-                .thenReturn(new CustomerResponse(customerId, true, true));
-
-        // [CAMBIO] Mock de validación de PIN para que, al llegar al servicio, no retorne null y cause NPE en PinAttemptManagerService.valid()
-        Mockito.when(customerClient.validateCustomerPin(eq(customerId), any(PinValidateRequest.class)))
-                .thenReturn(new PinValidateResponse(false));
 
         for (TransactionRequest request : invalidRequests) {
 

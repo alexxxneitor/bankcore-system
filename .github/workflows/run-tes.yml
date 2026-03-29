@@ -4,8 +4,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# [CAMBIO]: Se agrega la variable de entorno a nivel global del workflow para forzar Node 24 
-# en las dependencias JavaScript de las actions de GitHub, resolviendo deprecaciones de Node 20.
+# Directive that forces the use of Node 24 in the actions to avoid deprecations.
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -20,14 +19,12 @@ jobs:
 
     steps:
         - name: Checkout repository
-          # [CAMBIO]: Se mantiene actions/checkout@v4, que es la versión estable más reciente (v5 aún no existe oficialmente).
           uses: actions/checkout@v4
 
         - name: Verify Docker
           run: docker --version
 
         - name: Set up Java 17
-          # [CAMBIO]: Se mantiene actions/setup-java@v4, compatible con flujos modernos.
           uses: actions/setup-java@v4
           with:
             java-version: "17"
@@ -35,11 +32,9 @@ jobs:
             cache: maven
 
         - name: Run tests and generate coverage report
-          # [CAMBIO]: Verificado. La ejecución nativa de Maven no depende de un emulador Node 20.
           run: mvn -B clean verify
 
         - name: Upload JaCoCo coverage report
-          # [CAMBIO]: Actualizado internamente a upload-artifact@v4 (la recomendada actual sobre v3).
           uses: actions/upload-artifact@v4
           with:
             name: jacoco-report-customers
@@ -55,14 +50,12 @@ jobs:
 
     steps:
         - name: Checkout repository
-          # [CAMBIO]: Usando la última versión estable (checkout@v4).
           uses: actions/checkout@v4
 
         - name: Verify Docker
           run: docker --version
 
         - name: Set up Java 17
-          # [CAMBIO]: Usando la última versión estable (setup-java@v4).
           uses: actions/setup-java@v4
           with:
             java-version: "17"
@@ -73,7 +66,6 @@ jobs:
           run: mvn -B clean verify
 
         - name: Upload JaCoCo coverage report
-          # [CAMBIO]: Usando la última versión estable para la subida de artefactos (upload-artifact@v4).
           uses: actions/upload-artifact@v4
           with:
             name: jacoco-report-accounts
