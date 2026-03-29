@@ -492,9 +492,13 @@ public class TransferControllerIntegrationTest extends AbstractIntegrationTest {
                 pinNull
         );
 
-        // Agregado para Issue #44: Evita NullPointerException asegurando que exista customer válido
+        // [CAMBIO] Agregado para Issue #44: Evita NullPointerException asegurando que exista customer válido
         Mockito.when(customerClient.getCustomerById(customerId))
                 .thenReturn(new CustomerResponse(customerId, true, true));
+
+        // [CAMBIO] Evita NPE si `validateCustomerPin` retorna null para pines inválidos.
+        Mockito.when(customerClient.validateCustomerPin(org.mockito.ArgumentMatchers.eq(customerId), org.mockito.ArgumentMatchers.any(PinValidateRequest.class)))
+                .thenReturn(new PinValidateResponse(false));
 
         for (TransferRequest request : invalidRequests) {
 

@@ -304,9 +304,13 @@ public class TransactionControllerIntegrationTest extends AbstractIntegrationTes
                 pinNull
         );
 
-        // Agregado para Issue #44: Evita NullPointerException al validar la existencia del customer
+        // [CAMBIO] Agregado para Issue #44: Evita NullPointerException al validar la existencia del customer
         Mockito.when(customerClient.getCustomerById(customerId))
                 .thenReturn(new CustomerResponse(customerId, true, true));
+
+        // [CAMBIO] Mock de validación de PIN para que, al llegar al servicio, no retorne null y cause NPE en PinAttemptManagerService.valid()
+        Mockito.when(customerClient.validateCustomerPin(org.mockito.ArgumentMatchers.eq(customerId), org.mockito.ArgumentMatchers.any(PinValidateRequest.class)))
+                .thenReturn(new PinValidateResponse(false));
 
         for (TransactionRequest request : invalidRequests) {
 
